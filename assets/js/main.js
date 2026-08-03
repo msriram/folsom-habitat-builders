@@ -5,7 +5,9 @@
     ["Team", "team.html"],
     ["Project", "project.html"],
     ["Robot", "robot.html"],
-    ["Journal", "journal.html"]
+    ["Journal", "journal.html"],
+    ["Team Room", "portal.html"],
+    ["Accounting", "accounting.html"]
   ];
 
   const page = document.body.dataset.page || "Home";
