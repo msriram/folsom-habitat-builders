@@ -2,6 +2,7 @@
   const navItems = [
     ["Home", "index.html"],
     ["Homework", "homework.html"],
+    ["Roster", "roster.html"],
     ["Season", "season.html"],
     ["Team", "team.html"],
     ["Project", "project.html"],
