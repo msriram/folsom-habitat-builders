@@ -1,1 +1,43 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>User approvals | Folsom Fireflies</title><link rel="stylesheet" href="assets/css/styles.css?v=header2"><script defer src="assets/js/main.js?v=f6b4019"></script><script defer src="assets/js/portal-config.js?v=f6b4019"></script><script type="module" src="assets/js/auth.js?v=live1"></script></head><body><div data-site-header></div><main id="main"><section class="page-head"><div class="container"><span class="eyebrow">Administrator only</span><h1>User approvals</h1><p>Approve a Google account, assign its role, and link parents to the correct student alias.</p><div class="auth-state" data-auth-state>Verifying administrator access…</div></div></section><section class="section compact"><div class="container"><div class="admin-locked" data-admin-locked><h2>Access restricted</h2><p>This page is available only to an authenticated coach administrator. Front-end hiding is not the security boundary; database policies also enforce this restriction.</p></div><div class="admin-view" data-admin-view hidden><div class="section-title"><h2>Pending users</h2><a href="shirt-order.html">T-shirt order summary →</a></div><div class="table-wrap"><table><thead><tr><th>Google account</th><th>Requested role</th><th>Student link</th><th>Action</th></tr></thead><tbody data-pending-users><tr><td colspan="4">No pending users.</td></tr></tbody></table></div></div></div></section></main><div data-site-footer></div></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>User approvals | Folsom Fireflies</title>
+  <link rel="stylesheet" href="assets/css/styles.css?v=header2">
+  <script defer src="assets/js/main.js?v=f6b4019"></script>
+  <script defer src="assets/js/portal-config.js?v=f6b4019"></script>
+  <script type="module" src="assets/js/auth.js?v=approval2"></script>
+</head>
+<body>
+  <div data-site-header></div>
+  <main id="main">
+    <section class="page-head"><div class="container">
+      <span class="eyebrow">Administrator only</span>
+      <h1>User approvals</h1>
+      <p>Approve a Google account, assign its role, and link parents to the correct student.</p>
+      <div class="auth-state" data-auth-state>Verifying administrator access…</div>
+    </div></section>
+    <section class="section compact"><div class="container">
+      <div class="admin-locked" data-admin-locked>
+        <h2>Access restricted</h2>
+        <p>This page is available only to an authenticated coach administrator.</p>
+      </div>
+      <div class="admin-view" data-admin-view hidden>
+        <div class="section-title"><h2>Pending users</h2><a href="shirt-order.html">T-shirt order summary →</a></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Google account</th><th>Role</th><th>Linked child</th><th>Action</th></tr></thead>
+          <tbody data-pending-users><tr><td colspan="4">Loading…</td></tr></tbody>
+        </table></div>
+        <div class="section-title"><h2>Approved users</h2></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Name</th><th>Google account</th><th>Role</th><th>Linked child</th></tr></thead>
+          <tbody data-approved-users><tr><td colspan="4">Loading…</td></tr></tbody>
+        </table></div>
+      </div>
+    </div></section>
+  </main>
+  <div data-site-footer></div>
+</body>
+</html>
