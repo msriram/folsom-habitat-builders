@@ -20,8 +20,8 @@ window.FIREFLIES_DATA = {
     },
     {
       date: "August 4, 2026",
-      title: "Season kickoff",
-      text: "Placeholder: add the official challenge reveal, first reactions, mission observations, and the team's first questions."
+      title: "BIOGLOW materials released",
+      text: "We reviewed the official 15-mission video, Founders Edition field setup, rulebook, Engineering Notebook, and judging rubrics. The robot plan now starts with four candidate run families instead of trying to complete every mission."
     }
   ]
 };

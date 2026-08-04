@@ -7,7 +7,8 @@
     ["Home", "index.html"],
     ["Homework", "portal.html#homework"],
     ["Team", "roster.html"],
-    ["Schedule", "season.html"]
+    ["Schedule", "season.html"],
+    ["Resources", "resources.html"]
   ];
 
   const page = document.body.dataset.page || "Home";
@@ -123,7 +124,7 @@
               <a class="brand" href="index.html"><img src="assets/img/logo.svg" alt="" width="48" height="48"><span>Folsom FLL Team<small>Learn · Build · Test · Share</small></span></a>
               <p>Schedules, assignments, robot work, project research, and family information for the 2026–27 season.</p>
             </div>
-            <div><strong>Focus areas</strong><p><a href="robot.html">Robot Challenge</a><br><a href="project.html">Innovation Project</a><br><a href="core-values.html">Core Values</a><br><a href="tournament.html">Tournament Format</a></p></div>
+            <div><strong>Focus areas</strong><p><a href="robot.html">Robot Challenge</a><br><a href="project.html">Innovation Project</a><br><a href="core-values.html">Core Values</a><br><a href="tournament.html">Tournament Format</a><br><a href="resources.html">Official Resources</a></p></div>
             <div><strong>Privacy</strong><p><small>We avoid publishing children's full names, contact information, school schedules, or identifiable photos without parent permission.</small></p></div>
           </div>
           <div class="footer-bottom"><small>© <span data-year></span> Folsom FLL Team</small><small>Independent community team site. FIRST® and LEGO® are trademarks of their respective owners.</small></div>
