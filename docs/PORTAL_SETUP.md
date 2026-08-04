@@ -30,6 +30,11 @@ Enable Google in Supabase Authentication, configure the Google OAuth client and 
 
 Apply migrations in order. `002_approval_and_records.sql` adds persistent accounting and reusable team-data policies. Review them in a staging project before production.
 
+Apply `003_private_roster_profiles.sql` for private student profiles and then
+`004_family_access_boundaries.sql`. The fourth migration enforces the central
+privacy rule: coaches can review the full team, while parents can retrieve only
+the homework, questions, code, robot tests, and feedback for their linked child.
+
 `003_private_roster_profiles.sql` adds the private roster and optional student profile. Enter real roster names only through the authenticated admin workflow or Supabase dashboard. Do not add a roster seed file to this public repository. Height, weight, and food-safety notes are private and should be collected only with parent agreement, used for a specific purpose, and deleted when no longer needed.
 
 See `NOTIFICATIONS.md` for delivery requirements.
