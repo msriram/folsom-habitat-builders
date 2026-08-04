@@ -4,7 +4,7 @@
   let state; try { state = {...initial,...JSON.parse(localStorage.getItem(key)||"{}")}; } catch { state={...initial}; }
   const save=()=>localStorage.setItem(key,JSON.stringify(state));
   const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  const progress=[['Robot',18],['Innovation Project',12],['Core Values',25],['Tournament preparation',8]];
+  const progressAreas=['Robot','Project','Teamwork','Presentation'];
   const qs=document.querySelectorAll.bind(document);
   const activateTab=name=>{const button=document.querySelector(`[data-tab="${name}"]`),panel=document.querySelector(`[data-panel="${name}"]`);if(!button||!panel)return;qs('[data-tab],[data-panel]').forEach(x=>x.classList.remove('active'));button.classList.add('active');panel.classList.add('active')};
   qs('[data-tab]').forEach(b=>b.onclick=()=>{activateTab(b.dataset.tab);history.replaceState(null,'',`#${b.dataset.tab}`)});
@@ -12,8 +12,25 @@
   const switchRole=e=>{const v=e.target.value;document.querySelector('#welcome').textContent=v==='coach'?'Coach dashboard':v==='parent'?'Family progress':'Student dashboard';qs('[data-tab="parent"],[data-tab="coach"]').forEach(x=>x.hidden=(x.dataset.tab!==v));};
   document.querySelector('#role-switcher').onchange=switchRole; switchRole({target:document.querySelector('#role-switcher')});
   document.querySelector('#reset-demo').onclick=()=>{localStorage.removeItem(key);location.reload()};
-  document.querySelector('#progress-cards').innerHTML=progress.map(([n,v])=>`<article class="card"><strong>${n}</strong><div class="progress-track"><div class="progress-bar" style="width:${v}%"></div></div><span>${v}%</span></article>`).join('');
-  document.querySelector('#parent-progress').innerHTML=progress.map(([n,v])=>`<div class="progress-row"><strong>${n}</strong><div class="progress-track"><div class="progress-bar" style="width:${v}%"></div></div><span>${v}%</span></div>`).join('');
+  const renderProgress=values=>{
+    document.querySelector('#progress-cards').innerHTML=progressAreas.map(n=>`<article class="card"><strong>${n}</strong><div class="progress-track"><div class="progress-bar" style="width:${values[n]||0}%"></div></div><span>${values[n]||0}%</span></article>`).join('');
+    document.querySelector('#parent-progress').innerHTML=progressAreas.map(n=>`<div class="progress-row"><strong>${n}</strong><div class="progress-track"><div class="progress-bar" style="width:${values[n]||0}%"></div></div><span>${values[n]||0}%</span></div>`).join('');
+  };
+  renderProgress({});
+  async function setupProgress(){
+    const config=window.FIREFLIES_PORTAL_CONFIG||{},week=document.querySelector('#progress-week');
+    if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey)return;
+    const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2'),db=createClient(config.supabaseUrl,config.supabaseAnonKey);
+    const {data:{session}}=await db.auth.getSession();if(!session)return;
+    const {data:items}=await db.from('schedule_items').select('area,week_number,completed');if(!items)return;
+    const calculate=()=>{
+      const through=week.value==='all'?Infinity:Number(week.value),values={};
+      for(const area of progressAreas){const relevant=items.filter(item=>item.area===area&&item.week_number<=through);values[area]=relevant.length?Math.round(relevant.filter(item=>item.completed).length/relevant.length*100):0;}
+      renderProgress(values);
+    };
+    week.onchange=calculate;calculate();
+  }
+  setupProgress();
   function renderQuestions(){document.querySelector('#question-list').innerHTML=state.questions.map(q=>`<article class="card"><span class="status-chip">Team only</span><h3>${esc(q.question)}</h3><p>${esc(q.answer)}</p><small>Asked by ${esc(q.author)} · Coach review available</small></article>`).join('')}
   async function setupGuide(){
     const form=document.querySelector('#question-form'),status=document.querySelector('#guide-status'),message=document.querySelector('#guide-message'),button=form.querySelector('button');
