@@ -1,6 +1,6 @@
 window.FIREFLIES_DATA = {
   season: {
-    name: "BIOGLOW",
+    name: "FLL Challenge",
     year: "2026–27",
     edition: "Founders Edition Challenge",
     kickoff: "August 4, 2026",
@@ -20,7 +20,7 @@ window.FIREFLIES_DATA = {
     },
     {
       date: "August 4, 2026",
-      title: "BIOGLOW kickoff",
+      title: "Season kickoff",
       text: "Placeholder: add the official challenge reveal, first reactions, mission observations, and the team's first questions."
     }
   ]

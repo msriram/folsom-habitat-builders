@@ -12,7 +12,7 @@ Roles:
 - `parent`: only the linked student's progress, feedback, logistics, and notification preferences.
 - `coach`: assignments, reviews, moderation, publication, exports, account controls, and accounting.
 
-Use aliases (`Firefly 1` through `Firefly 5`) in team displays. Do not collect birthdays, home addresses, school schedules, or unnecessary identifiers. Disable private student-to-student messaging. Require coach approval for public content.
+Use aliases (`Student 1` through `Student 5`) in team displays. Do not collect birthdays, home addresses, school schedules, or unnecessary identifiers. Disable private student-to-student messaging. Require coach approval for public content.
 
 ## Before live mode
 
@@ -20,7 +20,7 @@ Use aliases (`Firefly 1` through `Firefly 5`) in team displays. Do not collect b
 2. Create Supabase tables and enable Row Level Security on every exposed table.
 3. Create private buckets for submissions and original receipts.
 4. Implement signed URLs for authorized file access.
-5. Deploy Edge Functions for the Firefly Guide and notifications.
+5. Deploy Edge Functions for the Ask AI and notifications.
 6. Add rate limits, input/output moderation, audit history, and a coach AI shutdown switch.
 7. Test every student/parent/coach access boundary with separate accounts.
 

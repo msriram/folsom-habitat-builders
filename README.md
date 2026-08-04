@@ -1,6 +1,6 @@
-# Folsom Fireflies
+# Folsom FLL Team
 
-Expandable static website for the Folsom Fireflies' 2026–27 BIOGLOW season.
+Expandable static website for the Folsom FLL Team' 2026–27 FLL Challenge season.
 
 ## Live site
 
@@ -33,7 +33,7 @@ Open `http://localhost:8000`.
 ```bash
 git init
 git add .
-git commit -m "Launch Folsom Fireflies team site"
+git commit -m "Launch Folsom FLL Team team site"
 git branch -M main
 git remote add origin git@github.com:msriram/folsom-fireflies.git
 git push -u origin main

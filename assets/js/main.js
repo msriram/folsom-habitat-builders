@@ -23,7 +23,7 @@
         <div class="nav-wrap">
           <a class="brand" href="index.html">
             <img src="assets/img/logo.svg" alt="" width="48" height="48">
-            <span>Folsom Fireflies<small>BIOGLOW · 2026–27</small></span>
+            <span>Folsom FLL Team<small>FLL Challenge · 2026–27</small></span>
           </a>
           <nav class="site-nav" id="site-nav" aria-label="Main navigation">
             ${navItems.map(([label, href]) => `<a href="${href}" ${page === label ? 'aria-current="page"' : ''}>${label}</a>`).join("")}
@@ -48,6 +48,7 @@
                 <button class="account-action" type="button" data-google-signin>Continue with Google</button>
                 <a class="account-action" href="profile.html" data-profile-link hidden>My profile</a>
                 <a class="account-action" href="admin.html" data-admin-link hidden>Admin approvals</a>
+                <a class="account-action" href="admin-settings.html" data-settings-link hidden>⚙ Admin settings</a>
                 <button class="account-action" type="button" data-signout hidden>Sign out</button>
               </div>
             </div>
@@ -103,13 +104,13 @@
         <div class="container">
           <div class="footer-grid">
             <div>
-              <a class="brand" href="index.html"><img src="assets/img/logo.svg" alt="" width="48" height="48"><span>Folsom Fireflies<small>Learn · Build · Test · Share</small></span></a>
+              <a class="brand" href="index.html"><img src="assets/img/logo.svg" alt="" width="48" height="48"><span>Folsom FLL Team<small>Learn · Build · Test · Share</small></span></a>
               <p>This family-run team site documents our 2026–27 robotics and biodiversity journey.</p>
             </div>
             <div><strong>Explore</strong><p><a href="season.html">Season plan</a><br><a href="project.html">Innovation Project</a><br><a href="robot.html">Robot Game</a></p></div>
             <div><strong>Privacy</strong><p><small>We avoid publishing children's full names, contact information, school schedules, or identifiable photos without parent permission.</small></p></div>
           </div>
-          <div class="footer-bottom"><small>© <span data-year></span> Folsom Fireflies</small><small>Independent community team site. FIRST® and LEGO® are trademarks of their respective owners.</small></div>
+          <div class="footer-bottom"><small>© <span data-year></span> Folsom FLL Team</small><small>Independent community team site. FIRST® and LEGO® are trademarks of their respective owners.</small></div>
         </div>
       </footer>`;
     footer.querySelector("[data-year]").textContent = new Date().getFullYear();
@@ -158,9 +159,10 @@ async function initializeAccountMenu(header) {
       const outline = header.querySelector(".signed-out-icon");
       const profileLink = header.querySelector("[data-profile-link]");
       const adminLink = header.querySelector("[data-admin-link]");
+      const settingsLink = header.querySelector("[data-settings-link]");
       if (!session) {
         mascot.hidden = true; outline.hidden = false; signIn.hidden = false; signOut.hidden = true;
-        profileLink.hidden = true; adminLink.hidden = true;
+        profileLink.hidden = true; adminLink.hidden = true; settingsLink.hidden = true;
         header.querySelector("[data-account-name]").textContent = "Team account";
         header.querySelector("[data-account-email]").textContent = "Not signed in";
         header.querySelector("[data-account-status]").textContent = "Google account required";
@@ -171,6 +173,7 @@ async function initializeAccountMenu(header) {
       mascot.hidden = false; outline.hidden = true; signIn.hidden = true; signOut.hidden = false;
       profileLink.hidden = profile?.approval_status !== "approved";
       adminLink.hidden = !(profile?.approval_status === "approved" && profile?.role === "coach");
+      settingsLink.hidden = !(profile?.approval_status === "approved" && profile?.role === "coach");
       header.querySelector("[data-account-name]").textContent = profile?.display_name || fallbackName;
       header.querySelector("[data-account-email]").textContent = session.user.email || "Google account";
       header.querySelector("[data-account-status]").textContent = profile?.approval_status === "approved" ? `${profile.role} · approved` : "Waiting for admin approval";
