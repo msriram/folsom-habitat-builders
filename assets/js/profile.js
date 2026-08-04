@@ -4,9 +4,15 @@ const form=document.querySelector('[data-profile-form]');
 const avatarNames=['robotics-engineer','tech-hero','nature-guardian','space-explorer','inventor','firefly-mascot','red-panda-builder','owl-scientist','dragon-coder','ocean-explorer','jungle-adventurer','robot-companion'];
 const picker=document.querySelector('[data-avatar-picker]');
 picker.innerHTML=avatarNames.map((name,index)=>`<label class="avatar-option" title="${label(name)}"><input type="radio" name="avatar_key" value="${name}" ${index===0?'checked':''}><span style="--avatar-x:${index%4};--avatar-y:${Math.floor(index/4)}"></span><small>${label(name)}</small></label>`).join('');
+const preview=document.querySelector('[data-photo-preview]');
+picker.addEventListener('change',event=>{const index=avatarNames.indexOf(event.target.value);if(index>=0)showAvatar(index)});
+form.elements.profile_photo.addEventListener('change',event=>{const file=event.target.files[0];if(file)preview.style.backgroundImage=`url("${URL.createObjectURL(file)}")`});
+showAvatar(0);
 
 if(cfg.forceDemo||!cfg.supabaseUrl||!cfg.supabaseAnonKey){
-  status.textContent='Profile editing is ready but unavailable until Supabase and Google sign-in are connected.';
+  form.hidden=false;
+  status.textContent='Preview mode: choose avatars and preview a photo locally. Saving begins after Supabase and Google sign-in are connected.';
+  form.addEventListener('submit',event=>{event.preventDefault();status.textContent='Preview only—nothing was uploaded or saved.'});
 }else{
   const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2');
   const db=createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
@@ -29,7 +35,7 @@ if(cfg.forceDemo||!cfg.supabaseUrl||!cfg.supabaseAnonKey){
         for(const [name,value] of Object.entries({...details,display_name:person.display_name})) if(form.elements[name]&&value!==null) form.elements[name].value=value;
         if(details?.avatar_key) form.querySelector(`[name="avatar_key"][value="${details.avatar_key}"]`)?.click();
         if(details?.photo_path){const {data:signed}=await db.storage.from('profile-photos').createSignedUrl(details.photo_path,900);if(signed?.signedUrl) document.querySelector('[data-photo-preview]').style.backgroundImage=`url("${signed.signedUrl}")`;}
-        document.querySelector('[data-remove-photo]').onclick=async()=>{if(details?.photo_path){await db.storage.from('profile-photos').remove([details.photo_path]);details.photo_path=null;}document.querySelector('[data-photo-preview]').style.backgroundImage='';status.textContent='Uploaded photo removed. Save to keep the selected avatar.'};
+        document.querySelector('[data-remove-photo]').onclick=async()=>{if(details?.photo_path){await db.storage.from('profile-photos').remove([details.photo_path]);details.photo_path=null;}showAvatar(avatarNames.indexOf(form.elements.avatar_key.value));status.textContent='Uploaded photo removed. Save to keep the selected avatar.'};
         form.onsubmit=async event=>{
           event.preventDefault();
           const values=Object.fromEntries(new FormData(form));
@@ -54,3 +60,4 @@ if(cfg.forceDemo||!cfg.supabaseUrl||!cfg.supabaseAnonKey){
   }
 }
 function label(value){return value.split('-').map(word=>word[0].toUpperCase()+word.slice(1)).join(' ')}
+function showAvatar(index){preview.style.backgroundImage="url('assets/img/profile-avatars.png')";preview.style.backgroundSize='400% 300%';preview.style.backgroundPosition=`${(index%4)*-100/3}% ${Math.floor(index/4)*-100/2}%`}
