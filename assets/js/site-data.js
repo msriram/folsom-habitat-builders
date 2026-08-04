@@ -10,13 +10,13 @@ window.FIREFLIES_DATA = {
     { label: "Team setup", value: 40 },
     { label: "Robot game", value: 5 },
     { label: "Innovation Project", value: 5 },
-    { label: "Presentation", value: 0 }
+    { label: "Tournament preparation", value: 0 }
   ],
   journal: [
     {
       date: "August 2, 2026",
       title: "Season planning begins",
-      text: "We selected Founders Edition, outlined student roles, prepared the parent kickoff discussion, and started exploring a team identity."
+      text: "We selected Founders Edition, established the Friday and Sunday session pattern, prepared the parent kickoff discussion, and assigned the first biodiversity research task."
     },
     {
       date: "August 4, 2026",

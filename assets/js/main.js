@@ -5,12 +5,9 @@
 
   const navItems = [
     ["Home", "index.html"],
-    ["Homework", "homework.html"],
+    ["Homework", "portal.html#homework"],
     ["Team", "roster.html"],
-    ["Season", "season.html"],
-    ["Project", "project.html"],
-    ["Robot", "robot.html"],
-    ["Team Room", "portal.html"]
+    ["Schedule", "season.html"]
   ];
 
   const page = document.body.dataset.page || "Home";
@@ -26,6 +23,16 @@
           </a>
           <nav class="site-nav" id="site-nav" aria-label="Main navigation">
             ${navItems.map(([label, href]) => `<a href="${href}" ${page === label ? 'aria-current="page"' : ''}>${label}</a>`).join("")}
+            <div class="nav-dropdown">
+              <button class="nav-dropdown-toggle" type="button" aria-expanded="false" aria-controls="focus-menu" ${["Robot","Project","Core Values","Tournament"].includes(page)?'aria-current="page"':''}>Focus Areas <span aria-hidden="true">▾</span></button>
+              <div class="nav-dropdown-menu" id="focus-menu">
+                <a href="robot.html" ${page==="Robot"?'aria-current="page"':''}>Robot Challenge</a>
+                <a href="project.html" ${page==="Project"?'aria-current="page"':''}>Innovation Project</a>
+                <a href="core-values.html" ${page==="Core Values"?'aria-current="page"':''}>Core Values</a>
+                <a href="tournament.html" ${page==="Tournament"?'aria-current="page"':''}>Tournament Format</a>
+              </div>
+            </div>
+            <a href="portal.html" ${page === "Team Room" ? 'aria-current="page"' : ''}>Team Room</a>
           </nav>
           <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
           <div class="header-actions">
@@ -60,6 +67,16 @@
     menu.addEventListener("click", () => {
       const open = nav.classList.toggle("open");
       menu.setAttribute("aria-expanded", String(open));
+    });
+    const focusToggle=header.querySelector(".nav-dropdown-toggle");
+    const focusDropdown=header.querySelector(".nav-dropdown");
+    focusToggle.addEventListener("click",event=>{
+      event.stopPropagation();
+      const open=focusDropdown.classList.toggle("open");
+      focusToggle.setAttribute("aria-expanded",String(open));
+    });
+    document.addEventListener("click",event=>{
+      if(!focusDropdown.contains(event.target)){focusDropdown.classList.remove("open");focusToggle.setAttribute("aria-expanded","false");}
     });
 
     const themeButton = header.querySelector(".theme-toggle");
@@ -104,9 +121,9 @@
           <div class="footer-grid">
             <div>
               <a class="brand" href="index.html"><img src="assets/img/logo.svg" alt="" width="48" height="48"><span>Folsom FLL Team<small>Learn · Build · Test · Share</small></span></a>
-              <p>This family-run team site documents our 2026–27 robotics and biodiversity journey.</p>
+              <p>Schedules, assignments, robot work, project research, and family information for the 2026–27 season.</p>
             </div>
-            <div><strong>Explore</strong><p><a href="season.html">Season plan</a><br><a href="project.html">Innovation Project</a><br><a href="robot.html">Robot Game</a></p></div>
+            <div><strong>Focus areas</strong><p><a href="robot.html">Robot Challenge</a><br><a href="project.html">Innovation Project</a><br><a href="core-values.html">Core Values</a><br><a href="tournament.html">Tournament Format</a></p></div>
             <div><strong>Privacy</strong><p><small>We avoid publishing children's full names, contact information, school schedules, or identifiable photos without parent permission.</small></p></div>
           </div>
           <div class="footer-bottom"><small>© <span data-year></span> Folsom FLL Team</small><small>Independent community team site. FIRST® and LEGO® are trademarks of their respective owners.</small></div>
@@ -178,7 +195,7 @@ async function initializeAccountMenu(header) {
       header.querySelector("[data-account-status]").textContent = profile?.approval_status === "approved" ? `${profile.role} · approved` : "Waiting for admin approval";
     };
     signIn.addEventListener("click", async () => {
-      const redirectTo = new URL("homework.html", location.href).href;
+      const redirectTo = new URL("portal.html#homework", location.href).href;
       const { error } = await client.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
       if (error) header.querySelector("[data-account-status]").textContent = error.message;
     });
