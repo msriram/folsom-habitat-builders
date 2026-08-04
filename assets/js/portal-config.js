@@ -3,5 +3,6 @@ window.FIREFLIES_PORTAL_CONFIG = {
   supabaseAnonKey: "",
   teamSlug: "folsom-fireflies",
   forceDemo: true,
+  adminEmails: [],
   functions: { guide: "firefly-guide", notify: "send-notification" }
 };

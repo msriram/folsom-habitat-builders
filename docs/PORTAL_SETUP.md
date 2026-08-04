@@ -24,4 +24,10 @@ Use aliases (`Firefly 1` through `Firefly 5`) in team displays. Do not collect b
 6. Add rate limits, input/output moderation, audit history, and a coach AI shutdown switch.
 7. Test every student/parent/coach access boundary with separate accounts.
 
+## Google login and approval
+
+Enable Google in Supabase Authentication, configure the Google OAuth client and approved redirect URLs, then set `supabaseUrl`, `supabaseAnonKey`, and `forceDemo: false` in `assets/js/portal-config.js`. Create the first coach profile manually as an approved administrator. New accounts remain `pending` until that coach assigns a team, role, and optional linked student.
+
+Apply migrations in order. `002_approval_and_records.sql` adds persistent accounting and reusable team-data policies. Review them in a staging project before production.
+
 See `NOTIFICATIONS.md` for delivery requirements.

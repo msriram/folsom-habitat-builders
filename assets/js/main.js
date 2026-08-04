@@ -1,13 +1,12 @@
 (() => {
   const navItems = [
     ["Home", "index.html"],
+    ["Homework", "homework.html"],
     ["Season", "season.html"],
     ["Team", "team.html"],
     ["Project", "project.html"],
     ["Robot", "robot.html"],
-    ["Journal", "journal.html"],
-    ["Team Room", "portal.html"],
-    ["Accounting", "accounting.html"]
+    ["Team Room", "portal.html"]
   ];
 
   const page = document.body.dataset.page || "Home";
@@ -24,6 +23,7 @@
           <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
           <nav class="site-nav" id="site-nav" aria-label="Main navigation">
             ${navItems.map(([label, href]) => `<a href="${href}" ${page === label ? 'aria-current="page"' : ''}>${label}</a>`).join("")}
+            <a class="nav-login" href="login.html">Sign in</a>
           </nav>
         </div>
       </div>`;
