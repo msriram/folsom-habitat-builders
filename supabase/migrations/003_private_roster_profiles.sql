@@ -8,6 +8,8 @@ create table student_details (
   favorite_hero text check(length(favorite_hero)<=120), favorite_movie text check(length(favorite_movie)<=120),
   favorite_show text check(length(favorite_show)<=120), favorite_place text check(length(favorite_place)<=120),
   favorite_lego text check(length(favorite_lego)<=120), learning_goal text check(length(learning_goal)<=200),
+  avatar_key text check(avatar_key in ('robotics-engineer','tech-hero','nature-guardian','space-explorer','inventor','firefly-mascot','red-panda-builder','owl-scientist','dragon-coder','ocean-explorer','jungle-adventurer','robot-companion')),
+  photo_path text check(length(photo_path)<=300),
   updated_by uuid not null references profiles(id), updated_at timestamptz not null default now()
 );
 alter table student_details enable row level security;
@@ -43,6 +45,12 @@ language sql security definer set search_path=public as $$
   order by p.display_name
 $$;
 revoke all on function public.tshirt_order() from public; grant execute on function public.tshirt_order() to authenticated;
+
+insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
+values('profile-photos','profile-photos',false,5242880,array['image/jpeg','image/png','image/webp']) on conflict(id) do nothing;
+create policy profile_photo_read on storage.objects for select to authenticated using(bucket_id='profile-photos' and can_manage_student(((storage.foldername(name))[1])::uuid));
+create policy profile_photo_add on storage.objects for insert to authenticated with check(bucket_id='profile-photos' and can_manage_student(((storage.foldername(name))[1])::uuid));
+create policy profile_photo_remove on storage.objects for delete to authenticated using(bucket_id='profile-photos' and can_manage_student(((storage.foldername(name))[1])::uuid));
 
 -- Enter the supplied roster only through the private Supabase dashboard or an
 -- authenticated admin import. Never place child/parent names in this public repo.
