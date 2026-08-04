@@ -1,4 +1,8 @@
 (() => {
+  const savedTheme = localStorage.getItem("fireflies-theme");
+  const initialTheme = savedTheme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  document.documentElement.dataset.theme = initialTheme;
+
   const navItems = [
     ["Home", "index.html"],
     ["Homework", "homework.html"],
@@ -21,11 +25,33 @@
             <img src="assets/img/logo.svg" alt="" width="48" height="48">
             <span>Folsom Fireflies<small>BIOGLOW · 2026–27</small></span>
           </a>
-          <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
           <nav class="site-nav" id="site-nav" aria-label="Main navigation">
             ${navItems.map(([label, href]) => `<a href="${href}" ${page === label ? 'aria-current="page"' : ''}>${label}</a>`).join("")}
-            <a class="nav-login" href="login.html">Sign in</a>
           </nav>
+          <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+          <div class="header-actions">
+            <button class="round-control theme-toggle" type="button" aria-label="Switch to night mode" title="Switch to night mode">
+              <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+              <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2Z"/></svg>
+            </button>
+            <div class="account-menu-wrap">
+              <button class="round-control account-button" type="button" aria-label="Open account menu" aria-expanded="false" aria-controls="account-menu">
+                <svg class="signed-out-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.8 20c.7-4 3.1-6 7.2-6s6.5 2 7.2 6"/></svg>
+                <img class="signed-in-mascot" src="assets/img/logo.svg" alt="" hidden>
+              </button>
+              <div class="account-dropdown" id="account-menu" hidden>
+                <div class="account-summary">
+                  <strong data-account-name>Team account</strong>
+                  <span data-account-email>Not signed in</span>
+                  <small data-account-status>Google account required</small>
+                </div>
+                <button class="account-action" type="button" data-google-signin>Continue with Google</button>
+                <a class="account-action" href="profile.html" data-profile-link hidden>My profile</a>
+                <a class="account-action" href="admin.html" data-admin-link hidden>Admin approvals</a>
+                <button class="account-action" type="button" data-signout hidden>Sign out</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>`;
 
@@ -35,6 +61,39 @@
       const open = nav.classList.toggle("open");
       menu.setAttribute("aria-expanded", String(open));
     });
+
+    const themeButton = header.querySelector(".theme-toggle");
+    const setThemeButton = () => {
+      const dark = document.documentElement.dataset.theme === "dark";
+      const label = dark ? "Switch to day mode" : "Switch to night mode";
+      themeButton.setAttribute("aria-label", label);
+      themeButton.title = label;
+    };
+    setThemeButton();
+    themeButton.addEventListener("click", () => {
+      const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem("fireflies-theme", next);
+      setThemeButton();
+    });
+
+    const accountButton = header.querySelector(".account-button");
+    const accountDropdown = header.querySelector(".account-dropdown");
+    const closeAccount = () => {
+      accountDropdown.hidden = true;
+      accountButton.setAttribute("aria-expanded", "false");
+    };
+    accountButton.addEventListener("click", event => {
+      event.stopPropagation();
+      const open = accountDropdown.hidden;
+      accountDropdown.hidden = !open;
+      accountButton.setAttribute("aria-expanded", String(open));
+    });
+    document.addEventListener("click", event => {
+      if (!header.querySelector(".account-menu-wrap").contains(event.target)) closeAccount();
+    });
+    document.addEventListener("keydown", event => { if (event.key === "Escape") closeAccount(); });
+    initializeAccountMenu(header);
   }
 
   const footer = document.querySelector("[data-site-footer]");
@@ -82,3 +141,62 @@
       </article>`).join("");
   }
 })();
+
+async function initializeAccountMenu(header) {
+  const config = await loadPortalConfig();
+  const signIn = header.querySelector("[data-google-signin]");
+  const signOut = header.querySelector("[data-signout]");
+  if (!config || config.forceDemo || !config.supabaseUrl || !config.supabaseAnonKey) {
+    signIn.addEventListener("click", () => { location.href = "login.html"; });
+    return;
+  }
+  try {
+    const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+    const client = createClient(config.supabaseUrl, config.supabaseAnonKey);
+    const render = async session => {
+      const mascot = header.querySelector(".signed-in-mascot");
+      const outline = header.querySelector(".signed-out-icon");
+      const profileLink = header.querySelector("[data-profile-link]");
+      const adminLink = header.querySelector("[data-admin-link]");
+      if (!session) {
+        mascot.hidden = true; outline.hidden = false; signIn.hidden = false; signOut.hidden = true;
+        profileLink.hidden = true; adminLink.hidden = true;
+        header.querySelector("[data-account-name]").textContent = "Team account";
+        header.querySelector("[data-account-email]").textContent = "Not signed in";
+        header.querySelector("[data-account-status]").textContent = "Google account required";
+        return;
+      }
+      const fallbackName = session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "Team member";
+      const { data: profile } = await client.from("profiles").select("display_name,role,approval_status").eq("id", session.user.id).maybeSingle();
+      mascot.hidden = false; outline.hidden = true; signIn.hidden = true; signOut.hidden = false;
+      profileLink.hidden = profile?.approval_status !== "approved";
+      adminLink.hidden = !(profile?.approval_status === "approved" && profile?.role === "coach");
+      header.querySelector("[data-account-name]").textContent = profile?.display_name || fallbackName;
+      header.querySelector("[data-account-email]").textContent = session.user.email || "Google account";
+      header.querySelector("[data-account-status]").textContent = profile?.approval_status === "approved" ? `${profile.role} · approved` : "Waiting for admin approval";
+    };
+    signIn.addEventListener("click", async () => {
+      const redirectTo = new URL("homework.html", location.href).href;
+      const { error } = await client.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
+      if (error) header.querySelector("[data-account-status]").textContent = error.message;
+    });
+    signOut.addEventListener("click", async () => { await client.auth.signOut(); location.reload(); });
+    const { data: { session } } = await client.auth.getSession();
+    await render(session);
+    client.auth.onAuthStateChange((_event, nextSession) => { render(nextSession); });
+  } catch {
+    header.querySelector("[data-account-status]").textContent = "Account service unavailable";
+    signIn.addEventListener("click", () => { location.href = "login.html"; });
+  }
+}
+
+function loadPortalConfig() {
+  if (window.FIREFLIES_PORTAL_CONFIG) return Promise.resolve(window.FIREFLIES_PORTAL_CONFIG);
+  return new Promise(resolve => {
+    const script = document.createElement("script");
+    script.src = "assets/js/portal-config.js?v=auth2";
+    script.onload = () => resolve(window.FIREFLIES_PORTAL_CONFIG);
+    script.onerror = () => resolve(null);
+    document.head.append(script);
+  });
+}
