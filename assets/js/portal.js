@@ -520,8 +520,9 @@ async function setupGuide() {
     button.disabled = false;
     button.textContent = "Ask AI";
     if (error || data?.error) {
-      window.FIREFLIES_DIAGNOSTICS?.report("Ask AI", data?.error || error);
-      message.textContent = "Ask AI is unavailable right now.";
+      const detail = data?.error || error?.message || "Ask AI is unavailable right now.";
+      window.FIREFLIES_DIAGNOSTICS?.report("Ask AI", detail);
+      message.textContent = detail;
       return;
     }
     form.reset();
