@@ -19,10 +19,10 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
   if(!session)setState('Continue with Google to open the team workspace.');
   else{
     document.querySelector('[data-google-login]')?.setAttribute('hidden','');
-    const {data:profile}=await supabase.from('profiles').select('display_name,role,approval_status,team_id').eq('id',session.user.id).maybeSingle();
+    const {data:profile}=await supabase.from('profiles').select('display_name,role,is_admin,approval_status,team_id').eq('id',session.user.id).maybeSingle();
     if(!profile||profile.approval_status!=='approved')setState('Waiting for coach approval.');
     else{
-      setState(`${profile.display_name} · ${profile.role}`);
+      setState(`${profile.display_name} · ${profile.role==='coach'?(profile.is_admin?'coach administrator':'assistant coach'):profile.role}`);
       if(profile.role==='coach')await setupAdmin(supabase,profile);
     }
   }
@@ -36,32 +36,33 @@ async function setupAdmin(supabase,profile){
   if(!pendingRoot||!approvedRoot)return;
 
   const [{data:pending,error:pendingError},{data:approved,error:approvedError}]=await Promise.all([
-    supabase.rpc('pending_users'),
+    profile.is_admin?supabase.rpc('pending_users'):Promise.resolve({data:[],error:null}),
     supabase.rpc('admin_users')
   ]);
+  if(!profile.is_admin){document.querySelector('[data-pending-section]')?.setAttribute('hidden','');pendingRoot.closest('.table-wrap')?.setAttribute('hidden','');}
   const users=approved||[];
   const students=users.filter(user=>user.role==='student');
-  const parents=users.filter(user=>user.role==='parent');
+  const parents=users.filter(user=>user.role==='parent'||user.role==='coach');
 
   if(pendingError){
     window.FIREFLIES_DIAGNOSTICS?.report('Pending accounts',pendingError);
     pendingRoot.innerHTML='<tr><td colspan="5">Accounts are unavailable right now.</td></tr>';
   }else{
-    pendingRoot.innerHTML=(pending||[]).map(user=>`<tr><td>${escapeHtml(user.email||'')}</td><td><select data-role="${user.id}"><option value="student">Student</option><option value="parent">Parent</option><option value="coach">Coach</option></select></td><td><select data-student="${user.id}" disabled>${personOptions(students,'Optional student')}</select></td><td><button type="button" data-approve="${user.id}">Approve</button></td><td><button type="button" class="button danger" data-remove-user="${user.id}">Remove</button></td></tr>`).join('')||'<tr><td colspan="5">No pending users.</td></tr>';
+    pendingRoot.innerHTML=(pending||[]).map(user=>`<tr><td>${escapeHtml(user.email||'')}</td><td><select data-role="${user.id}"><option value="student">Student</option><option value="parent">Parent</option><option value="coach">Coach administrator</option><option value="assistant_coach">Assistant coach</option></select></td><td><select data-student="${user.id}" disabled>${personOptions(students,'Optional student')}</select></td><td><button type="button" data-approve="${user.id}">Approve</button></td><td><button type="button" class="button danger" data-remove-user="${user.id}">Remove</button></td></tr>`).join('')||'<tr><td colspan="5">No pending users.</td></tr>';
   }
 
   if(approvedError){
     window.FIREFLIES_DIAGNOSTICS?.report('Approved accounts',approvedError);
     approvedRoot.innerHTML='<tr><td colspan="5">Accounts are unavailable right now.</td></tr>';
   }else{
-    approvedRoot.innerHTML=users.map(user=>`<tr><td>${escapeHtml(user.display_name||'')}</td><td>${escapeHtml(user.email||'')}</td><td>${escapeHtml(user.role||'')}</td><td>${relationshipEditor(user,students,parents)}</td><td><button type="button" class="button danger" data-remove-user="${user.id}" ${user.id===profile.id?'disabled title="You cannot remove your own coach account"':''}>Remove</button></td></tr>`).join('')||'<tr><td colspan="5">No approved users.</td></tr>';
+    approvedRoot.innerHTML=users.map(user=>`<tr><td>${escapeHtml(user.display_name||'')}</td><td>${escapeHtml(user.email||'')}</td><td>${escapeHtml(user.role||'')}${user.role==='coach'?`<small class="muted"> · ${user.is_admin?'administrator':'assistant'}</small>`:''}</td><td>${relationshipEditor(user,students,parents)}</td><td>${profile.is_admin?`<button type="button" class="button danger" data-remove-user="${user.id}" ${user.id===profile.id?'disabled title="You cannot remove your own coach account"':''}>Remove</button>`:'—'}</td></tr>`).join('')||'<tr><td colspan="5">No approved users.</td></tr>';
   }
 
   pendingRoot.addEventListener('change',event=>{
     const roleSelect=event.target.closest('[data-role]');
     if(!roleSelect)return;
     const studentSelect=pendingRoot.querySelector(`[data-student="${roleSelect.dataset.role}"]`);
-    studentSelect.disabled=roleSelect.value!=='parent';
+    studentSelect.disabled=!['parent','coach'].includes(roleSelect.value);
     if(studentSelect.disabled)studentSelect.value='';
   });
 
@@ -71,11 +72,12 @@ async function setupAdmin(supabase,profile){
     const button=event.target.closest('[data-approve]');
     if(!button)return;
     const id=button.dataset.approve;
-    const role=pendingRoot.querySelector(`[data-role="${id}"]`).value;
-    const student=role==='parent'?pendingRoot.querySelector(`[data-student="${id}"]`).value||null:null;
+    const selectedRole=pendingRoot.querySelector(`[data-role="${id}"]`).value;
+    const role=selectedRole==='assistant_coach'?'coach':selectedRole;
+    const student=['parent','assistant_coach','coach'].includes(selectedRole)?pendingRoot.querySelector(`[data-student="${id}"]`).value||null:null;
     button.disabled=true;
     button.textContent='Approving…';
-    const {error}=await supabase.rpc('approve_user',{target_id:id,target_role:role,target_team:profile.team_id,target_student:student});
+    const {error}=await supabase.rpc('approve_user',{target_id:id,target_role:role,target_team:profile.team_id,target_student:student,target_admin:selectedRole==='coach'});
     if(error){window.FIREFLIES_DIAGNOSTICS?.report('Account approval',error);setState('This account could not be approved right now.');button.disabled=false;button.textContent='Approve';}
     else location.reload();
   });
@@ -117,7 +119,7 @@ async function removeUser(button,supabase){
 }
 
 function relationshipEditor(user,students,parents){
-  if(user.role==='parent')return `<div class="linked-child-editor"><select data-approved-student="${user.id}">${personOptions(students,'Not linked',user.linked_student_id)}</select><button type="button" data-save-parent-link="${user.id}">Save</button></div>`;
+  if(user.role==='parent'||user.role==='coach')return `<div class="linked-child-editor"><select data-approved-student="${user.id}">${personOptions(students,'Not linked',user.linked_student_id)}</select><button type="button" data-save-parent-link="${user.id}">Save</button></div>`;
   if(user.role==='student'){
     const linked=parents.filter(parent=>parent.linked_student_id===user.id);
     return `<div class="student-parent-editor"><select data-student-parent="${user.id}">${personOptions(parents,'Parent 1',linked[0]?.id)}</select><select data-student-parent="${user.id}">${personOptions(parents,'Parent 2',linked[1]?.id)}</select><button type="button" data-save-student-parents="${user.id}">Save</button></div>`;

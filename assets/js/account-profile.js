@@ -35,15 +35,15 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
     if(!session){
       state.innerHTML='Sign in to open your profile. <a href="login.html">Sign in</a>';
     }else{
-      const {data:profile,error:profileError}=await db.from('profiles').select('id,display_name,role,approval_status,linked_student_id,is_active').eq('id',session.user.id).maybeSingle();
+      const {data:profile,error:profileError}=await db.from('profiles').select('id,display_name,role,is_admin,approval_status,linked_student_id,is_active').eq('id',session.user.id).maybeSingle();
       if(profileError)throw profileError;
       if(!profile||profile.approval_status!=='approved'||!profile.is_active){
         state.textContent='Waiting for coach approval.';
       }else if(profile.role==='student'){
         location.replace('profile.html');
       }else{
-        document.querySelector('[data-account-role]').textContent=profile.role==='coach'?'Coach administrator':'Parent account';
-        document.querySelector('[data-account-intro]').textContent=profile.role==='coach'?'Your private profile and team overview.':'Your private profile and family relationship.';
+        document.querySelector('[data-account-role]').textContent=profile.role==='coach'?(profile.is_admin?'Coach administrator':'Assistant coach'):'Parent account';
+        document.querySelector('[data-account-intro]').textContent=profile.role==='coach'?'Your private profile, family relationship, and team overview.':'Your private profile and family relationship.';
         form.elements.display_name.value=profile.display_name;
         const {data:details,error:detailsError}=await db.from('account_details').select('photo_path').eq('profile_id',profile.id).maybeSingle();
         if(detailsError)throw detailsError;
@@ -55,7 +55,7 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
         }
         view.hidden=false;
         state.hidden=true;
-        if(profile.role==='parent')await renderLinkedChild(db,profile);
+        if(profile.role==='parent'||profile.role==='coach')await renderLinkedChild(db,profile);
         if(profile.role==='coach')await renderAdminDashboard(db);
         setupForm(db,session,profile);
       }
