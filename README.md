@@ -1,64 +1,57 @@
-# Folsom FLL Team
+# Folsom FLL Team Hub
 
-Expandable static website for the Folsom FLL Team' 2026–27 FLL Challenge season.
+This repository powers the shared website for a five-student FIRST LEGO League team during the 2026–27 season. It is designed as a practical team workspace—not a marketing site.
 
-## Live site
+## Live website
 
-After GitHub Pages is enabled, the site should be available at:
+[Open the Folsom FLL Team Hub](https://msriram.github.io/folsom-fireflies/)
 
-`https://msriram.github.io/folsom-fireflies/`
+## What the website is for
 
-## Structure
+The site keeps the season’s work connected in one place:
 
-- `index.html` — home and current season dashboard
-- `season.html` — roadmap, meetings, and logistics
-- `team.html` — five-student role model and adult responsibilities
-- `project.html` — Innovation Project direction and prototype ideas
-- `robot.html` — robot design and test strategy
-- `journal.html` — updates rendered from `assets/js/site-data.js`
-- `assets/css/styles.css` — all visual styles
-- `assets/js/site-data.js` — easy-to-edit progress and journal data
-- `.github/workflows/pages.yml` — automatic GitHub Pages deployment
+- Meeting schedule with a dedicated plan for every session
+- Coach-managed completion checklists and week-based progress
+- Weekly homework aligned with upcoming meetings
+- Student homework submissions and coach review
+- Robot mission references, practice links, and test records
+- Beginner coding tutorials with saved team projects
+- Innovation Project research and official season resources
+- Core Values and tournament preparation
+- Private roster and linked student/parent profiles
+- Parent-and-coach accounting records
+- Coach-only user approvals and integration settings
+- A scoped **Ask AI** research assistant planned for approved team accounts
 
-## Local preview
+## How it works
 
-```bash
-python3 -m http.server 8000
-```
+The public interface is hosted by GitHub Pages. Supabase provides Google authentication, account approval, the PostgreSQL database, private file storage, and role-based access controls.
 
-Open `http://localhost:8000`.
+Access is separated by role:
 
-## Publish
+- **Students** see team learning material and manage their own work.
+- **Parents** see only information associated with their linked child.
+- **Coaches** review the whole team, approve accounts, manage assignments, update schedule completion, and administer team records.
 
-```bash
-git init
-git add .
-git commit -m "Launch Folsom FLL Team team site"
-git branch -M main
-git remote add origin git@github.com:msriram/folsom-fireflies.git
-git push -u origin main
-```
+The website avoids publishing children’s contact information, precise meeting locations, private submissions, or identifiable media without appropriate parent permission.
 
-Then, in GitHub:
+## Repository guide
 
-1. Open **Settings → Pages**.
-2. Under **Build and deployment**, select **GitHub Actions**.
-3. The included workflow deploys on every push to `main`.
+- `index.html` — team hub and current schedule
+- `season.html` and `meeting-*.html` — season calendar and session plans
+- `portal.html` — authenticated Team Room
+- `robot.html`, `project.html`, and `resources.html` — season working references
+- `assets/` — shared styles, scripts, and images
+- `supabase/migrations/` — database schema and access policies
+- `supabase/functions/` — server-side integrations
+- `docs/` — operations, deployment, privacy, and development notes
 
-## Routine updates
+## Development
 
-Edit `assets/js/site-data.js` to update progress percentages or add journal entries.
+Local preview, publishing, repository structure, and implementation notes are maintained in [Developer Guide](docs/DEVELOPMENT.md).
 
-```bash
-git add assets/js/site-data.js
-git commit -m "Update season journal"
-git push
-```
-
-## Child privacy
-
-Do not publish children's full names, contact details, school schedules, precise meeting locations, or identifiable media without explicit parent permission.
+Portal architecture and access-control details are documented in [Team Room Deployment](docs/PORTAL_SETUP.md).
 
 ## License
 
-MIT for site code. Team photos and generated artwork should be reused only with appropriate permission.
+The site code is available under the MIT License. Team media and artwork may have separate permissions and should not be reused without authorization.
