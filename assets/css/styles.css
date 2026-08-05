@@ -155,6 +155,8 @@ h3 { font-size: 1.28rem; }
 .role-card .number { color: var(--amber); font-weight: 950; }
 
 .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 18px; background: var(--paper); }
+.table-wrap .danger { color: var(--danger, #9f2d2d); border-color: currentColor; background: transparent; }
+.table-wrap .danger:hover:not(:disabled) { background: color-mix(in srgb, currentColor 10%, transparent); }
 table { width: 100%; border-collapse: collapse; min-width: 650px; }
 th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
 th { background: var(--surface); font-size: .84rem; text-transform: uppercase; letter-spacing: .06em; }

@@ -45,16 +45,16 @@ async function setupAdmin(supabase,profile){
 
   if(pendingError){
     window.FIREFLIES_DIAGNOSTICS?.report('Pending accounts',pendingError);
-    pendingRoot.innerHTML='<tr><td colspan="4">Accounts are unavailable right now.</td></tr>';
+    pendingRoot.innerHTML='<tr><td colspan="5">Accounts are unavailable right now.</td></tr>';
   }else{
-    pendingRoot.innerHTML=(pending||[]).map(user=>`<tr><td>${escapeHtml(user.email||'')}</td><td><select data-role="${user.id}"><option value="student">Student</option><option value="parent">Parent</option><option value="coach">Coach</option></select></td><td><select data-student="${user.id}" disabled>${personOptions(students,'Optional student')}</select></td><td><button type="button" data-approve="${user.id}">Approve</button></td></tr>`).join('')||'<tr><td colspan="4">No pending users.</td></tr>';
+    pendingRoot.innerHTML=(pending||[]).map(user=>`<tr><td>${escapeHtml(user.email||'')}</td><td><select data-role="${user.id}"><option value="student">Student</option><option value="parent">Parent</option><option value="coach">Coach</option></select></td><td><select data-student="${user.id}" disabled>${personOptions(students,'Optional student')}</select></td><td><button type="button" data-approve="${user.id}">Approve</button></td><td><button type="button" class="button danger" data-remove-user="${user.id}">Remove</button></td></tr>`).join('')||'<tr><td colspan="5">No pending users.</td></tr>';
   }
 
   if(approvedError){
     window.FIREFLIES_DIAGNOSTICS?.report('Approved accounts',approvedError);
-    approvedRoot.innerHTML='<tr><td colspan="4">Accounts are unavailable right now.</td></tr>';
+    approvedRoot.innerHTML='<tr><td colspan="5">Accounts are unavailable right now.</td></tr>';
   }else{
-    approvedRoot.innerHTML=users.map(user=>`<tr><td>${escapeHtml(user.display_name||'')}</td><td>${escapeHtml(user.email||'')}</td><td>${escapeHtml(user.role||'')}</td><td>${relationshipEditor(user,students,parents)}</td></tr>`).join('')||'<tr><td colspan="4">No approved users.</td></tr>';
+    approvedRoot.innerHTML=users.map(user=>`<tr><td>${escapeHtml(user.display_name||'')}</td><td>${escapeHtml(user.email||'')}</td><td>${escapeHtml(user.role||'')}</td><td>${relationshipEditor(user,students,parents)}</td><td><button type="button" class="button danger" data-remove-user="${user.id}" ${user.id===profile.id?'disabled title="You cannot remove your own coach account"':''}>Remove</button></td></tr>`).join('')||'<tr><td colspan="5">No approved users.</td></tr>';
   }
 
   pendingRoot.addEventListener('change',event=>{
@@ -66,6 +66,8 @@ async function setupAdmin(supabase,profile){
   });
 
   pendingRoot.addEventListener('click',async event=>{
+    const removeButton=event.target.closest('[data-remove-user]');
+    if(removeButton){await removeUser(removeButton,supabase);return;}
     const button=event.target.closest('[data-approve]');
     if(!button)return;
     const id=button.dataset.approve;
@@ -79,6 +81,8 @@ async function setupAdmin(supabase,profile){
   });
 
   approvedRoot.addEventListener('click',async event=>{
+    const removeButton=event.target.closest('[data-remove-user]');
+    if(removeButton){await removeUser(removeButton,supabase);return;}
     const parentButton=event.target.closest('[data-save-parent-link]');
     const studentButton=event.target.closest('[data-save-student-parents]');
     if(!parentButton&&!studentButton)return;
@@ -99,6 +103,17 @@ async function setupAdmin(supabase,profile){
     if(result.error){window.FIREFLIES_DIAGNOSTICS?.report('Family relationship',result.error);setState('The relationship could not be saved right now.');button.disabled=false;button.textContent='Save';}
     else location.reload();
   });
+}
+
+async function removeUser(button,supabase){
+  const id=button.dataset.removeUser;
+  const label=button.closest('tr')?.querySelector('td')?.textContent?.trim()||'this account';
+  if(!window.confirm(`Remove access for ${label}? Their homework and records will be kept, but they will no longer be able to use the team workspace.`))return;
+  button.disabled=true;
+  button.textContent='Removing…';
+  const {error}=await supabase.rpc('remove_user_access',{target_id:id});
+  if(error){window.FIREFLIES_DIAGNOSTICS?.report('Remove user',error);setState('This account could not be removed right now.');button.disabled=false;button.textContent='Remove';return;}
+  location.reload();
 }
 
 function relationshipEditor(user,students,parents){
