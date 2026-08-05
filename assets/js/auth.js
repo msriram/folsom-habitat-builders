@@ -19,8 +19,13 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
   if(!session)setState('Continue with Google to open the team workspace.');
   else{
     document.querySelector('[data-google-login]')?.setAttribute('hidden','');
-    const {data:profile}=await supabase.from('profiles').select('display_name,role,is_admin,approval_status,team_id').eq('id',session.user.id).maybeSingle();
-    if(!profile||profile.approval_status!=='approved')setState('Waiting for coach approval.');
+    // Keep the login path compatible with projects that have not yet applied
+    // the optional coach-admin migration. A missing is_admin column should
+    // never turn an already-approved coach into a "waiting" user.
+    const {data:profile,error:profileError}=await supabase.from('profiles').select('display_name,role,approval_status,team_id').eq('id',session.user.id).maybeSingle();
+    if(profile)profile.is_admin=profile.role==='coach';
+    if(profileError){window.FIREFLIES_DIAGNOSTICS?.report('Profile lookup',profileError);setState('Your account could not be loaded right now.');}
+    else if(!profile||profile.approval_status!=='approved')setState('Waiting for coach approval.');
     else{
       setState(`${profile.display_name} · ${profile.role==='coach'?(profile.is_admin?'coach administrator':'assistant coach'):profile.role}`);
       if(profile.role==='coach')await setupAdmin(supabase,profile);
