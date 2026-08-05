@@ -5,15 +5,25 @@ const MODEL = "gpt-5.6-luna";
 const DAILY_LIMIT = 12;
 const refusal = "I can only help with biodiversity, ecosystems, conservation, and related FLL Innovation Project research.";
 const topics = /biodiversity|ecosystem|species|habitat|pollinat|conservation|wildlife|environment|food (?:web|chain)|invasive|endangered|innovation project/i;
-const cors = {
-  "Access-Control-Allow-Origin": "https://msriram.github.io",
-  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Content-Type": "application/json",
+const defaultOrigins = ["https://msriram.github.io"];
+const allowedOrigins = new Set([
+  ...defaultOrigins,
+  ...(Deno.env.get("ALLOWED_SITE_ORIGINS") || "").split(",").map(origin => origin.trim()).filter(Boolean),
+]);
+const corsHeaders = (req: Request) => {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": allowedOrigins.has(origin) ? origin : defaultOrigins[0],
+    "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Content-Type": "application/json",
+    "Vary": "Origin",
+  };
 };
-const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: cors });
 
 Deno.serve(async (req) => {
+  const cors = corsHeaders(req);
+  const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: cors });
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return reply({ error: "Method not allowed" }, 405);
 
