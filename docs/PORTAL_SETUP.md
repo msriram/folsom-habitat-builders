@@ -37,6 +37,8 @@ the homework, questions, code, robot tests, and feedback for their linked child.
 
 `003_private_roster_profiles.sql` adds the private roster and optional student profile. Enter real roster names only through the authenticated admin workflow or Supabase dashboard. Do not add a roster seed file to this public repository. Height, weight, and food-safety notes are private and should be collected only with parent agreement, used for a specific purpose, and deleted when no longer needed.
 
-The same migration creates a private `profile-photos` Storage bucket limited to JPEG, PNG, and WebP files up to 5 MB. Access policies use the student folder ID and `can_manage_student`; never make this bucket public.
+The same migration creates a private `profile-photos` Storage bucket limited to JPEG, PNG, and WebP files up to 5 MB. Migration `013_family_relationships_and_team_photos.sql` lets approved members of the same team retrieve student photos for the private roster while keeping the bucket non-public. Upload, replacement, and deletion remain limited to the student, linked parents, and coaches.
+
+Migration `013_family_relationships_and_team_photos.sql` also makes family links reciprocal in the interface. A parent can link to one approved student, a student can link to up to two approved parents, and either side can update the relationship from their own profile. Coaches can manage both directions from the approval directory. A database trigger enforces the two-parent limit regardless of which screen performs the update.
 
 See `NOTIFICATIONS.md` for delivery requirements.

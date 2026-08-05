@@ -1,3 +1,5 @@
+import {attachDirectPhotoEditor} from './photo-editor.js?v=drag1';
+
 const cfg = window.FIREFLIES_PORTAL_CONFIG || {};
 const status = document.querySelector('[data-profile-state]');
 const form = document.querySelector('[data-profile-form]');
@@ -5,6 +7,7 @@ const saveButton = document.querySelector('[data-profile-save]');
 const saveMessage = document.querySelector('[data-profile-message]');
 const avatarNames = ['robotics-engineer','tech-hero','nature-guardian','space-explorer','inventor','firefly-mascot','red-panda-builder','owl-scientist','dragon-coder','ocean-explorer','jungle-adventurer','robot-companion'];
 const picker = document.querySelector('[data-avatar-picker]');
+const previewFrame = document.querySelector('[data-photo-preview]');
 const previewImage = document.querySelector('[data-photo-image]');
 const photoControls = document.querySelector('[data-photo-controls]');
 const zoomControl = document.querySelector('[data-photo-zoom]');
@@ -14,6 +17,20 @@ const verticalControl = document.querySelector('[data-photo-y]');
 let pendingPhoto = null;
 let pendingPhotoUrl = null;
 let keepExistingPhoto = false;
+let photoWasAdjusted = false;
+
+const directPhotoEditor = attachDirectPhotoEditor({
+  frame: previewFrame,
+  image: previewImage,
+  zoom: zoomControl,
+  horizontal: horizontalControl,
+  vertical: verticalControl,
+  enabled: () => !photoControls.hidden,
+  onChange: () => {
+    photoWasAdjusted = true;
+    setMessage('Photo adjusted. Save the profile when it looks right.');
+  }
+});
 
 picker.innerHTML = avatarNames.map((name, index) => `
   <label class="avatar-option" title="${label(name)}">
@@ -26,6 +43,7 @@ picker.addEventListener('change', event => {
   if (!avatarNames.includes(event.target.value)) return;
   clearPendingPhoto();
   keepExistingPhoto = false;
+  photoWasAdjusted = false;
   showAvatar(event.target.value);
   setMessage('Selected avatar will replace the uploaded photo when you save.');
 });
@@ -43,6 +61,7 @@ form.elements.profile_photo.addEventListener('change', event => {
   pendingPhotoUrl = URL.createObjectURL(file);
   previewImage.src = pendingPhotoUrl;
   keepExistingPhoto = false;
+  photoWasAdjusted = false;
   zoomControl.value = '1';
   horizontalControl.value = '50';
   verticalControl.value = '50';
@@ -97,12 +116,16 @@ if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
           if (signed?.signedUrl) {
             previewImage.src = signed.signedUrl;
             keepExistingPhoto = true;
+            photoControls.hidden = false;
+            directPhotoEditor.apply();
           }
         }
+        if (me.role === 'student' || me.role === 'coach') await setupStudentRelationships(db, target);
 
         document.querySelector('[data-remove-photo]').onclick = () => {
           clearPendingPhoto();
           keepExistingPhoto = false;
+          photoWasAdjusted = false;
           showAvatar(form.elements.avatar_key.value);
           setMessage('The selected avatar will replace the uploaded photo when you save.');
         };
@@ -120,8 +143,14 @@ if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
             delete values.display_name;
             for (const key of ['height_inches','weight_pounds']) values[key] = values[key] ? Number(values[key]) : null;
 
-            if (pendingPhoto) {
-              const croppedPhoto = await createSquarePhoto(pendingPhoto);
+            let editablePhoto = pendingPhoto;
+            if (!editablePhoto && photoWasAdjusted && details.photo_path) {
+              const { data: existingPhoto, error: existingPhotoError } = await db.storage.from('profile-photos').download(details.photo_path);
+              if (existingPhotoError) throw existingPhotoError;
+              editablePhoto = existingPhoto;
+            }
+            if (editablePhoto) {
+              const croppedPhoto = await createSquarePhoto(editablePhoto);
               uploadedPath = `${target}/${crypto.randomUUID()}.webp`;
               const { error: uploadError } = await db.storage.from('profile-photos').upload(uploadedPath, croppedPhoto, { contentType: 'image/webp', upsert: false });
               if (uploadError) throw uploadError;
@@ -143,10 +172,18 @@ if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
             if (details.photo_path) {
               const { data: signed } = await db.storage.from('profile-photos').createSignedUrl(details.photo_path, 900);
               headerPhotoUrl = signed?.signedUrl || null;
-              if (headerPhotoUrl) previewImage.src = headerPhotoUrl;
+              if (headerPhotoUrl) {
+                previewImage.src = headerPhotoUrl;
+              }
             } else showAvatar(values.avatar_key);
             window.dispatchEvent(new CustomEvent('fireflies:profile-photo-updated', { detail: { target, url: headerPhotoUrl } }));
             clearPendingPhoto();
+            photoControls.hidden = !details.photo_path;
+            photoWasAdjusted = false;
+            zoomControl.value = '1';
+            horizontalControl.value = '50';
+            verticalControl.value = '50';
+            directPhotoEditor.apply();
             form.elements.profile_photo.value = '';
             setMessage('Saved. Your profile and picture are up to date.');
           } catch (error) {
@@ -176,11 +213,11 @@ function showAvatar(name) {
   previewImage.style.transform = '';
   previewImage.style.transformOrigin = '';
   photoControls.hidden = true;
+  directPhotoEditor.apply();
 }
 
 function applyPhotoPreview() {
-  previewImage.style.transform = `scale(${zoomControl.value})`;
-  previewImage.style.transformOrigin = `${horizontalControl.value}% ${verticalControl.value}%`;
+  directPhotoEditor.apply();
 }
 
 function clearPendingPhoto() {
@@ -188,11 +225,63 @@ function clearPendingPhoto() {
   if (pendingPhotoUrl) URL.revokeObjectURL(pendingPhotoUrl);
   pendingPhotoUrl = null;
   photoControls.hidden = true;
+  directPhotoEditor.apply();
 }
 
 function setMessage(message, isError = false) {
   saveMessage.textContent = message;
   saveMessage.classList.toggle('error', isError);
+}
+
+async function setupStudentRelationships(db, target) {
+  const panel = document.querySelector('[data-student-family]');
+  const parentOne = document.querySelector('[data-student-parent-one]');
+  const parentTwo = document.querySelector('[data-student-parent-two]');
+  const message = document.querySelector('[data-student-family-message]');
+  const button = document.querySelector('[data-save-student-family]');
+  const [{ data: options, error: optionsError }, { data: relationships, error: relationshipsError }] = await Promise.all([
+    db.rpc('family_relationship_options', { option_role: 'parent' }),
+    db.rpc('family_relationships', { target_user: target })
+  ]);
+  if (optionsError || relationshipsError) {
+    window.FIREFLIES_DIAGNOSTICS?.report('Student family relationships', optionsError || relationshipsError);
+    return;
+  }
+  const current = (relationships || []).map(person => person.id);
+  const optionMarkup = `<option value="">Not linked</option>${(options || []).map(person => `<option value="${person.id}">${escapeHtml(person.display_name)}</option>`).join('')}`;
+  parentOne.innerHTML = optionMarkup;
+  parentTwo.innerHTML = optionMarkup;
+  parentOne.value = current[0] || '';
+  parentTwo.value = current[1] || '';
+  panel.hidden = false;
+  button.onclick = async () => {
+    const selected = [parentOne.value, parentTwo.value].filter(Boolean);
+    if (new Set(selected).size !== selected.length) {
+      message.textContent = 'Choose two different parents.';
+      message.classList.add('error');
+      return;
+    }
+    button.disabled = true;
+    button.textContent = 'Updating…';
+    message.textContent = '';
+    message.classList.remove('error');
+    const { error } = await db.rpc('set_student_parents', { target_student: target, target_parents: selected });
+    if (error) {
+      window.FIREFLIES_DIAGNOSTICS?.report('Update student parents', error);
+      message.textContent = 'The family relationship could not be updated right now.';
+      message.classList.add('error');
+      button.disabled = false;
+      button.textContent = 'Update parents';
+      return;
+    }
+    message.textContent = 'Parents updated.';
+    button.disabled = false;
+    button.textContent = 'Update parents';
+  };
+}
+
+function escapeHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
 }
 
 async function createSquarePhoto(file) {

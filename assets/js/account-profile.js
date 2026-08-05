@@ -1,8 +1,11 @@
+import {attachDirectPhotoEditor} from './photo-editor.js?v=drag1';
+
 const config=window.FIREFLIES_PORTAL_CONFIG||{};
 const state=document.querySelector('[data-account-profile-state]');
 const view=document.querySelector('[data-account-profile-view]');
 const form=document.querySelector('[data-account-profile-form]');
 const photo=document.querySelector('[data-account-photo]');
+const photoFrame=photo.closest('.profile-photo-preview');
 const photoControls=document.querySelector('[data-account-photo-controls]');
 const zoom=document.querySelector('[data-account-photo-zoom]');
 const focusX=document.querySelector('[data-account-photo-x]');
@@ -18,6 +21,9 @@ let pendingPhoto=null;
 let pendingPhotoUrl=null;
 let existingPhotoPath=null;
 let removePhoto=false;
+let photoWasAdjusted=false;
+
+const directPhotoEditor=attachDirectPhotoEditor({frame:photoFrame,image:photo,zoom,horizontal:focusX,vertical:focusY,enabled:()=>!photoControls.hidden,onChange:()=>{photoWasAdjusted=true;setMessage('Photo adjusted. Save your profile when it looks right.')}});
 
 if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
   state.textContent='This page is unavailable right now.';
@@ -37,7 +43,7 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
         location.replace('profile.html');
       }else{
         document.querySelector('[data-account-role]').textContent=profile.role==='coach'?'Coach administrator':'Parent account';
-        document.querySelector('[data-account-intro]').textContent=profile.role==='coach'?'Your private profile and team overview.':'Your private profile and linked child.';
+        document.querySelector('[data-account-intro]').textContent=profile.role==='coach'?'Your private profile and team overview.':'Your private profile and family relationship.';
         form.elements.display_name.value=profile.display_name;
         const {data:details,error:detailsError}=await db.from('account_details').select('photo_path').eq('profile_id',profile.id).maybeSingle();
         if(detailsError)throw detailsError;
@@ -45,11 +51,11 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
         if(existingPhotoPath){
           const {data:signed,error:signedError}=await db.storage.from('account-photos').createSignedUrl(existingPhotoPath,900);
           if(signedError)throw signedError;
-          if(signed?.signedUrl)photo.src=signed.signedUrl;
+          if(signed?.signedUrl){photo.src=signed.signedUrl;photoControls.hidden=false;directPhotoEditor.apply();}
         }
         view.hidden=false;
         state.hidden=true;
-        if(profile.role==='parent')await renderLinkedChild(db,profile.linked_student_id);
+        if(profile.role==='parent')await renderLinkedChild(db,profile);
         if(profile.role==='coach')await renderAdminDashboard(db);
         setupForm(db,session,profile);
       }
@@ -61,18 +67,42 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
   }
 }
 
-async function renderLinkedChild(db,studentId){
+async function renderLinkedChild(db,profile){
   familyPanel.hidden=false;
-  if(!studentId){
-    familyChild.innerHTML='<h2>Not linked yet</h2><p>Ask a coach to connect this parent account to the correct student.</p>';
+  const [{data:options,error:optionsError},{data:relationships,error:relationshipsError}]=await Promise.all([
+    db.rpc('family_relationship_options',{option_role:'student'}),
+    db.rpc('family_relationships',{target_user:profile.id})
+  ]);
+  if(optionsError||relationshipsError){
+    window.FIREFLIES_DIAGNOSTICS?.report('Parent family relationship',optionsError||relationshipsError);
+    familyChild.innerHTML='<p>The family relationship is unavailable right now.</p>';
     return;
   }
+  const studentId=relationships?.[0]?.id||null;
+  const optionMarkup=`<option value="">Not linked</option>${(options||[]).map(student=>`<option value="${student.id}" ${student.id===studentId?'selected':''}>${escapeHtml(student.display_name)}</option>`).join('')}`;
+  let childMarkup='<div class="empty-relationship"><h2>Not linked yet</h2><p>Select an approved student account below.</p></div>';
+  if(studentId){
   const {data,error}=await db.rpc('team_student_profile',{target:studentId});
-  if(error){window.FIREFLIES_DIAGNOSTICS?.report('Linked child',error);familyChild.innerHTML='<p>Child details are unavailable right now.</p>';return;}
+    if(error){window.FIREFLIES_DIAGNOSTICS?.report('Linked child',error);familyChild.innerHTML='<p>Child details are unavailable right now.</p>';return;}
   const child=data?.[0];
-  if(!child){familyChild.innerHTML='<p>Child details are unavailable right now.</p>';return;}
-  const avatar=child.avatar_key||'robotics-engineer';
-  familyChild.innerHTML=`<div class="family-child"><img src="assets/img/avatars/${safeAvatar(avatar)}.webp" alt=""><div><h2>${escapeHtml(child.display_name)}</h2>${child.tag_name?`<p>“${escapeHtml(child.tag_name)}”</p>`:''}</div></div><div class="stack"><a class="button secondary" href="student.html?id=${encodeURIComponent(studentId)}">View child profile</a><a class="button secondary" href="profile.html?student=${encodeURIComponent(studentId)}">Edit child details</a><a class="button secondary" href="portal.html?tab=homework">View homework</a></div>`;
+    if(child){
+      let imageUrl=`assets/img/avatars/${safeAvatar(child.avatar_key||'robotics-engineer')}.webp`;
+      if(child.photo_path){const {data:signed}=await db.storage.from('profile-photos').createSignedUrl(child.photo_path,900);if(signed?.signedUrl)imageUrl=signed.signedUrl;}
+      childMarkup=`<div class="family-child"><img src="${escapeHtml(imageUrl)}" alt=""><div><h2>${escapeHtml(child.display_name)}</h2>${child.tag_name?`<p>“${escapeHtml(child.tag_name)}”</p>`:''}</div></div><div class="stack"><a class="button secondary" href="student.html?id=${encodeURIComponent(studentId)}">View team profile</a><a class="button secondary" href="profile.html?student=${encodeURIComponent(studentId)}">Edit child details</a><a class="button secondary" href="portal.html?tab=homework">View homework</a></div>`;
+    }
+  }
+  familyChild.innerHTML=`${childMarkup}<div class="relationship-picker"><label>Student<select data-parent-student>${optionMarkup}</select></label><button class="button primary" type="button" data-save-parent-student>Update relationship</button><span class="profile-save-message" data-parent-student-message aria-live="polite"></span></div>`;
+  familyChild.querySelector('[data-save-parent-student]').onclick=async event=>{
+    const button=event.currentTarget;
+    const selected=familyChild.querySelector('[data-parent-student]').value||null;
+    const message=familyChild.querySelector('[data-parent-student-message]');
+    button.disabled=true;
+    button.textContent='Updating…';
+    const {error}=await db.rpc('set_parent_student',{target_parent:profile.id,target_student:selected});
+    if(error){window.FIREFLIES_DIAGNOSTICS?.report('Update parent student',error);message.textContent='The relationship could not be updated right now.';message.classList.add('error');button.disabled=false;button.textContent='Update relationship';return;}
+    message.textContent='Relationship updated.';
+    location.reload();
+  };
 }
 
 async function renderAdminDashboard(db){
@@ -123,6 +153,7 @@ function setupForm(db,session,profile){
     pendingPhotoUrl=URL.createObjectURL(file);
     photo.src=pendingPhotoUrl;
     removePhoto=false;
+    photoWasAdjusted=false;
     zoom.value='1';focusX.value='50';focusY.value='50';
     photoControls.hidden=false;
     applyPhotoPreview();
@@ -132,6 +163,7 @@ function setupForm(db,session,profile){
   document.querySelector('[data-remove-account-photo]').onclick=()=>{
     clearPendingPhoto();
     removePhoto=true;
+    photoWasAdjusted=false;
     photo.src=mascot;
     photo.style.transform='';
     photo.style.transformOrigin='';
@@ -145,8 +177,10 @@ function setupForm(db,session,profile){
     let uploadedPath=null;
     try{
       let photoPath=removePhoto?null:existingPhotoPath;
-      if(pendingPhoto){
-        const cropped=await createSquarePhoto(pendingPhoto);
+      let editablePhoto=pendingPhoto;
+      if(!editablePhoto&&photoWasAdjusted&&existingPhotoPath){const {data:existingPhoto,error:existingPhotoError}=await db.storage.from('account-photos').download(existingPhotoPath);if(existingPhotoError)throw existingPhotoError;editablePhoto=existingPhoto;}
+      if(editablePhoto){
+        const cropped=await createSquarePhoto(editablePhoto);
         uploadedPath=`${profile.id}/${crypto.randomUUID()}.webp`;
         const {error:uploadError}=await db.storage.from('account-photos').upload(uploadedPath,cropped,{contentType:'image/webp',upsert:false});
         if(uploadError)throw uploadError;
@@ -172,6 +206,10 @@ function setupForm(db,session,profile){
       }else photo.src=mascot;
       window.dispatchEvent(new CustomEvent('fireflies:account-photo-updated',{detail:{target:profile.id,url:signedUrl}}));
       setMessage('Profile saved.');
+      photoWasAdjusted=false;
+      zoom.value='1';focusX.value='50';focusY.value='50';
+      photoControls.hidden=!photoPath;
+      directPhotoEditor.apply();
     }catch(error){
       if(uploadedPath)await db.storage.from('account-photos').remove([uploadedPath]);
       window.FIREFLIES_DIAGNOSTICS?.report('Save account profile',error);
@@ -183,8 +221,8 @@ function setupForm(db,session,profile){
   };
 }
 
-function applyPhotoPreview(){photo.style.transform=`scale(${zoom.value})`;photo.style.transformOrigin=`${focusX.value}% ${focusY.value}%`}
-function clearPendingPhoto(){pendingPhoto=null;if(pendingPhotoUrl)URL.revokeObjectURL(pendingPhotoUrl);pendingPhotoUrl=null;photoControls.hidden=true}
+function applyPhotoPreview(){directPhotoEditor.apply()}
+function clearPendingPhoto(){pendingPhoto=null;if(pendingPhotoUrl)URL.revokeObjectURL(pendingPhotoUrl);pendingPhotoUrl=null;photoControls.hidden=true;directPhotoEditor.apply()}
 function setMessage(text,isError=false){saveMessage.textContent=text;saveMessage.classList.toggle('error',isError)}
 function safeAvatar(value){const allowed=['robotics-engineer','tech-hero','nature-guardian','space-explorer','inventor','firefly-mascot','red-panda-builder','owl-scientist','dragon-coder','ocean-explorer','jungle-adventurer','robot-companion'];return allowed.includes(value)?value:allowed[0]}
 function labelStatus(value){return ({assigned:'Assigned',submitted:'Submitted',review:'In review',revise:'Revision requested',complete:'Complete'})[value]||value}

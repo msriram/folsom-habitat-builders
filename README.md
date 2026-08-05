@@ -18,7 +18,8 @@ The site keeps the season’s work connected in one place:
 - Beginner coding tutorials with saved team projects
 - Innovation Project research and official season resources
 - Core Values and tournament preparation
-- Private roster and linked student/parent profiles
+- Private roster with team-visible student photos and profiles
+- Reciprocal family relationships: one student per parent and up to two parents per student
 - Parent-and-coach accounting records
 - Coach-only user approvals and integration settings
 - A scoped **Ask AI** research assistant planned for approved team accounts

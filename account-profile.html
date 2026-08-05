@@ -6,10 +6,10 @@
   <meta name="robots" content="noindex,nofollow">
   <title>My profile | Folsom FLL Team</title>
   <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="assets/css/styles.css?v=account1">
+  <link rel="stylesheet" href="assets/css/styles.css?v=photoedit1">
   <script defer src="assets/js/main.js?v=account1"></script>
   <script defer src="assets/js/portal-config.js?v=f6b4019"></script>
-  <script type="module" src="assets/js/account-profile.js?v=account1"></script>
+  <script type="module" src="assets/js/account-profile.js?v=account2"></script>
 </head>
 <body>
   <div data-site-header></div>
@@ -41,6 +41,7 @@
                   <label>Photo size<input type="range" min="1" max="3" step="0.05" value="1" data-account-photo-zoom></label>
                   <label>Horizontal focus<input type="range" min="0" max="100" value="50" data-account-photo-x></label>
                   <label>Vertical focus<input type="range" min="0" max="100" value="50" data-account-photo-y></label>
+                  <small class="photo-editor-hint">Scroll over the photo to zoom. Drag the photo to reposition it.</small>
                 </div>
                 <button class="button secondary" type="button" data-remove-account-photo>Use team mascot</button>
               </div>
@@ -53,7 +54,7 @@
         </form>
 
         <aside class="plain-panel family-panel" data-family-panel hidden>
-          <span class="eyebrow">My child</span>
+          <span class="eyebrow">Relationship</span>
           <div data-family-child></div>
         </aside>
       </div>
@@ -65,6 +66,13 @@
         <div class="grid four" data-admin-progress></div>
         <div class="section-title admin-report-heading"><h2>Student report</h2><span class="muted">Homework and saved coding projects</span></div>
         <div class="table-wrap"><table><thead><tr><th>Student</th><th>Homework</th><th>Latest status</th><th>Coding projects</th><th></th></tr></thead><tbody data-admin-student-report></tbody></table></div>
+        <div class="section-title admin-report-heading"><div><span class="eyebrow">Coach notes</span><h2>Content maintenance</h2></div></div>
+        <div class="grid two">
+          <article class="plain-panel"><h3>Schedule</h3><p>The BIOGLOW missions are reflected in the current plan. Dates, parent hosts, session length, and exact locations should be reviewed as family availability and the tournament calendar change.</p></article>
+          <article class="plain-panel"><h3>Official season materials</h3><p>The saved LEGO Education files were downloaded August 4, 2026. A newer Challenge Update takes priority over any saved rule, setup, or scoring document.</p><p><a href="https://education.lego.com/en-us/first-lego-league/season-materials/#founders-edition-challenge" target="_blank" rel="noopener">Open LEGO Education season materials ↗</a></p></article>
+          <article class="plain-panel"><h3>Robot plan</h3><p>The mission plan was reviewed against the August 4 rulebook and setup video. Recheck it after every official Challenge Update.</p></article>
+          <article class="plain-panel"><h3>Tournament details</h3><p>Add the local event schedule and logistics after the organizer publishes them.</p></article>
+        </div>
       </div>
     </section>
   </main>
