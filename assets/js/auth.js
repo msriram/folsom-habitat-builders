@@ -22,8 +22,8 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
     // Keep the login path compatible with projects that have not yet applied
     // the optional coach-admin migration. A missing is_admin column should
     // never turn an already-approved coach into a "waiting" user.
-    const {data:profile,error:profileError}=await supabase.from('profiles').select('display_name,role,approval_status,team_id').eq('id',session.user.id).maybeSingle();
-    if(profile)profile.is_admin=profile.role==='coach';
+    const {data:profile,error:profileError}=await supabase.from('profiles').select('display_name,email,role,approval_status,team_id').eq('id',session.user.id).maybeSingle();
+    if(profile)profile.is_admin=profile.role==='coach'&&profile.email?.toLowerCase()==='sriram87@gmail.com';
     if(profileError){window.FIREFLIES_DIAGNOSTICS?.report('Profile lookup',profileError);setState('Your account could not be loaded right now.');}
     else if(!profile||profile.approval_status!=='approved')setState('Waiting for coach approval.');
     else{
