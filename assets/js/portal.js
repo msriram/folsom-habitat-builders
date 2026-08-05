@@ -188,6 +188,7 @@ $$('[data-tab-jump]').forEach(button => button.addEventListener("click", () => {
   history.replaceState(null, "", `#${button.dataset.tabJump}`);
 }));
 activateTab(location.hash.slice(1) || "dashboard");
+window.addEventListener("hashchange", () => activateTab(location.hash.slice(1) || "dashboard"));
 
 let liveContextPromise;
 async function getLiveContext() {
