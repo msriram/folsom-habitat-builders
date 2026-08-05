@@ -1,4 +1,26 @@
 (() => {
+  const diagnosticsKey = "folsom-fll-diagnostics";
+  const redactDiagnostic = value => String(value || "Unknown error")
+    .replace(/sb_(?:publishable|secret)_[A-Za-z0-9_-]+/g, "[redacted key]")
+    .replace(/eyJ[A-Za-z0-9._-]{20,}/g, "[redacted token]")
+    .replace(/postgres(?:ql)?:\/\/[^\s]+/gi, "[redacted connection string]")
+    .slice(0, 800);
+  const readDiagnostics = () => {
+    try { return JSON.parse(sessionStorage.getItem(diagnosticsKey) || "[]"); }
+    catch { return []; }
+  };
+  window.FIREFLIES_DIAGNOSTICS = {
+    report(area, error) {
+      const entries = readDiagnostics();
+      entries.unshift({ time: new Date().toISOString(), area, detail: redactDiagnostic(error?.message || error) });
+      sessionStorage.setItem(diagnosticsKey, JSON.stringify(entries.slice(0, 20)));
+    },
+    list: readDiagnostics,
+    clear() { sessionStorage.removeItem(diagnosticsKey); }
+  };
+  window.addEventListener("error", event => window.FIREFLIES_DIAGNOSTICS.report("Browser", event.error || event.message));
+  window.addEventListener("unhandledrejection", event => window.FIREFLIES_DIAGNOSTICS.report("Browser", event.reason));
+
   const savedTheme = localStorage.getItem("fireflies-theme");
   const initialTheme = savedTheme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
   document.documentElement.dataset.theme = initialTheme;
@@ -174,6 +196,7 @@ async function initializeAccountMenu(header) {
     const mascot = header.querySelector(".signed-in-mascot");
     const outline = header.querySelector(".signed-out-icon");
     let avatarTarget = null;
+    let avatarKind = null;
     const showSignedInAvatar = photoUrl => {
       mascot.src = photoUrl || "assets/img/logo.svg";
       mascot.classList.toggle("profile-photo", Boolean(photoUrl));
@@ -183,12 +206,16 @@ async function initializeAccountMenu(header) {
     window.addEventListener("fireflies:profile-photo-updated", event => {
       if (avatarTarget && event.detail?.target === avatarTarget) showSignedInAvatar(event.detail.url || null);
     });
+    window.addEventListener("fireflies:account-photo-updated", event => {
+      if (avatarTarget && event.detail?.target === avatarTarget) showSignedInAvatar(event.detail.url || null);
+    });
     const render = async session => {
       const profileLink = header.querySelector("[data-profile-link]");
       const adminLink = header.querySelector("[data-admin-link]");
       const settingsLink = header.querySelector("[data-settings-link]");
       if (!session) {
         avatarTarget = null;
+        avatarKind = null;
         mascot.setAttribute("hidden", ""); outline.removeAttribute("hidden"); signIn.hidden = false; signOut.hidden = true;
         profileLink.hidden = true; adminLink.hidden = true; settingsLink.hidden = true;
         header.querySelector("[data-account-name]").textContent = "Team account";
@@ -198,35 +225,47 @@ async function initializeAccountMenu(header) {
       }
       const fallbackName = session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "Team member";
       const { data: profile } = await client.from("profiles").select("id,display_name,role,approval_status,linked_student_id").eq("id", session.user.id).maybeSingle();
-      avatarTarget = profile?.role === "student" ? profile.id : profile?.role === "parent" ? profile.linked_student_id : null;
+      avatarTarget = profile?.id || null;
+      avatarKind = profile?.role === "student" ? "student" : "account";
       let photoUrl = null;
       if (avatarTarget) {
-        const { data: details } = await client.from("student_details").select("photo_path").eq("student_id", avatarTarget).maybeSingle();
+        const detailsQuery = avatarKind === "student"
+          ? client.from("student_details").select("photo_path").eq("student_id", avatarTarget).maybeSingle()
+          : client.from("account_details").select("photo_path").eq("profile_id", avatarTarget).maybeSingle();
+        const { data: details, error: detailsError } = await detailsQuery;
+        if (detailsError) window.FIREFLIES_DIAGNOSTICS.report("Account photo", detailsError);
         if (details?.photo_path) {
-          const { data: signed } = await client.storage.from("profile-photos").createSignedUrl(details.photo_path, 900);
+          const bucket = avatarKind === "student" ? "profile-photos" : "account-photos";
+          const { data: signed, error: photoError } = await client.storage.from(bucket).createSignedUrl(details.photo_path, 900);
+          if (photoError) window.FIREFLIES_DIAGNOSTICS.report("Account photo", photoError);
           photoUrl = signed?.signedUrl || null;
         }
       }
       showSignedInAvatar(photoUrl); signIn.hidden = true; signOut.hidden = false;
       profileLink.hidden = profile?.approval_status !== "approved";
+      profileLink.href = profile?.role === "student" ? "profile.html" : "account-profile.html";
       adminLink.hidden = !(profile?.approval_status === "approved" && profile?.role === "coach");
       settingsLink.hidden = !(profile?.approval_status === "approved" && profile?.role === "coach");
       header.querySelector("[data-account-name]").textContent = profile?.display_name || fallbackName;
       header.querySelector("[data-account-email]").textContent = session.user.email || "Google account";
-      header.querySelector("[data-account-status]").textContent = profile?.approval_status === "approved" ? `${profile.role} · approved` : "Waiting for admin approval";
+      header.querySelector("[data-account-status]").textContent = profile?.approval_status === "approved" ? profile.role : "Waiting for coach approval";
     };
     signIn.addEventListener("click", async () => {
       // Supabase uses the fragment for OAuth credentials, so the destination
       // tab must travel in the query string instead of a competing hash.
       const redirectTo = new URL("portal.html?tab=homework", location.href).href;
       const { error } = await client.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
-      if (error) header.querySelector("[data-account-status]").textContent = error.message;
+      if (error) {
+        window.FIREFLIES_DIAGNOSTICS.report("Google sign-in", error);
+        header.querySelector("[data-account-status]").textContent = "Sign-in is unavailable right now";
+      }
     });
     signOut.addEventListener("click", async () => { await client.auth.signOut(); location.reload(); });
     const { data: { session } } = await client.auth.getSession();
     await render(session);
     client.auth.onAuthStateChange((_event, nextSession) => { render(nextSession); });
-  } catch {
+  } catch (error) {
+    window.FIREFLIES_DIAGNOSTICS.report("Account menu", error);
     header.querySelector("[data-account-status]").textContent = "Account service unavailable";
     signIn.addEventListener("click", () => { location.href = "login.html"; });
   }

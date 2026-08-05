@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>My profile | Folsom FLL Team</title>
+  <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/styles.css?v=account1">
+  <script defer src="assets/js/main.js?v=account1"></script>
+  <script defer src="assets/js/portal-config.js?v=f6b4019"></script>
+  <script type="module" src="assets/js/account-profile.js?v=account1"></script>
+</head>
+<body>
+  <div data-site-header></div>
+  <main id="main">
+    <section class="page-head">
+      <div class="container">
+        <span class="eyebrow" data-account-role>Private team account</span>
+        <h1>My profile</h1>
+        <p data-account-intro>Your name and photo help team families recognize you.</p>
+        <div class="auth-state" data-account-profile-state>Loading…</div>
+      </div>
+    </section>
+
+    <section class="section compact" data-account-profile-view hidden>
+      <div class="container account-profile-layout">
+        <form class="profile-form" data-account-profile-form>
+          <fieldset>
+            <legend>Account details</legend>
+            <p class="privacy-note">Visible only inside the approved team workspace.</p>
+            <div class="photo-choice">
+              <div class="profile-photo-preview" aria-label="Profile picture preview">
+                <img src="assets/img/logo.svg" data-account-photo alt="Profile picture preview">
+              </div>
+              <div>
+                <label>Name<input name="display_name" maxlength="80" required></label>
+                <label>Profile photo<input type="file" name="account_photo" accept="image/jpeg,image/png,image/webp"></label>
+                <p class="muted">JPEG, PNG, or WebP · maximum 5 MB.</p>
+                <div class="photo-adjustments" data-account-photo-controls hidden>
+                  <label>Photo size<input type="range" min="1" max="3" step="0.05" value="1" data-account-photo-zoom></label>
+                  <label>Horizontal focus<input type="range" min="0" max="100" value="50" data-account-photo-x></label>
+                  <label>Vertical focus<input type="range" min="0" max="100" value="50" data-account-photo-y></label>
+                </div>
+                <button class="button secondary" type="button" data-remove-account-photo>Use team mascot</button>
+              </div>
+            </div>
+          </fieldset>
+          <div class="profile-save-row">
+            <button class="button primary" type="submit" data-account-profile-save>Save profile</button>
+            <span class="profile-save-message" data-account-profile-message aria-live="polite"></span>
+          </div>
+        </form>
+
+        <aside class="plain-panel family-panel" data-family-panel hidden>
+          <span class="eyebrow">My child</span>
+          <div data-family-child></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section compact admin-profile-dashboard" data-admin-profile-dashboard hidden>
+      <div class="container">
+        <div class="section-title"><div><span class="eyebrow">Coach administrator</span><h2>Private team overview</h2></div><a href="admin-homework.html">Open homework review →</a></div>
+        <div class="grid four" data-admin-progress></div>
+        <div class="section-title admin-report-heading"><h2>Student report</h2><span class="muted">Homework and saved coding projects</span></div>
+        <div class="table-wrap"><table><thead><tr><th>Student</th><th>Homework</th><th>Latest status</th><th>Coding projects</th><th></th></tr></thead><tbody data-admin-student-report></tbody></table></div>
+      </div>
+    </section>
+  </main>
+  <div data-site-footer></div>
+</body>
+</html>

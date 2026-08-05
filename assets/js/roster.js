@@ -6,11 +6,11 @@ else{
   if(!session) status.innerHTML='Not signed in. <a href="login.html">Sign in</a>';
   else{
     const {data,error}=await db.rpc('team_roster');
-    if(error)status.textContent=error.message;
+    if(error){status.textContent='Account approval is required to view the private team roster.';document.querySelector('[data-roster-locked]').innerHTML='<h2>Account approval required</h2><p>You are signed in. A coach must approve this account before the roster is available.</p>';}
     else{
       document.querySelector('[data-roster-locked]').hidden=true;
       document.querySelector('[data-roster-view]').hidden=false;
-      status.textContent='Private roster loaded.';
+      status.hidden=true;
       const people=data||[];
       document.querySelector('[data-coaches]').innerHTML=people.filter(p=>p.role==='coach').map(coachCard).join('');
       document.querySelector('[data-students]').innerHTML=people.filter(p=>p.role==='student').map(studentCard).join('');

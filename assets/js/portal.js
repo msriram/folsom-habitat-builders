@@ -214,12 +214,15 @@ async function setupRoleAccess() {
   coachTab.hidden = true;
   const { session, profile } = await getLiveContext();
   if (!session) return;
+  const signInBanner = document.querySelector(".live-alert");
+  if (signInBanner) signInBanner.hidden = true;
   if (profile?.approval_status !== "approved") {
-    $("#workspace-status").textContent = "Waiting for approval";
+    $("#workspace-status").textContent = "Waiting for coach approval";
+    $("#coding-save-status").textContent = "Waiting for coach approval";
     return;
   }
   $("#welcome").textContent = `${profile.display_name || "Team member"}'s dashboard`;
-  $("#workspace-status").textContent = `${profile.role} · live`;
+  $("#workspace-status").textContent = profile.role;
   $("#coding-save-status").textContent = profile.role === "student" ? "Ready to save to the team" : "Team projects available";
   if (profile.role === "parent") parentTab.hidden = false;
   if (profile.role === "coach") coachTab.hidden = false;
@@ -368,10 +371,16 @@ async function loadCodingProjects() {
   const gallery = $("#team-coding-projects");
   const versionList = $("#version-list");
   const { db, session, profile } = await getLiveContext();
-  if (!db || !session || profile?.approval_status !== "approved") return;
+  if (!db || !session) return;
+  if (profile?.approval_status !== "approved") {
+    gallery.innerHTML = '<p class="muted">Account approval is required to view team projects.</p>';
+    versionList.innerHTML = '<li>Account approval is required to load saved work.</li>';
+    return;
+  }
   const { data: projects, error } = await db.from("coding_projects").select("id,title,owner_id,created_at,coding_versions(version_number,javascript,reflection,created_at)").order("created_at", { ascending: false }).limit(50);
   if (error) {
-    gallery.innerHTML = `<p class="muted">Projects could not be loaded: ${escapeHtml(error.message)}</p>`;
+    window.FIREFLIES_DIAGNOSTICS?.report("Coding projects", error);
+    gallery.innerHTML = '<p class="muted">Projects are unavailable right now.</p>';
     return;
   }
   const ownerIds = [...new Set((projects || []).map(project => project.owner_id))];
@@ -420,7 +429,8 @@ async function saveCodingProject() {
     const created = await db.from("coding_projects").insert({ team_id: profile.team_id, owner_id: session.user.id, title, visibility: "team" }).select("id").single();
     if (created.error) {
       button.disabled = false;
-      message.textContent = created.error.message;
+      window.FIREFLIES_DIAGNOSTICS?.report("Create coding project", created.error);
+      message.textContent = "This project could not be saved right now.";
       return;
     }
     project = created.data;
@@ -430,7 +440,8 @@ async function saveCodingProject() {
   const { error } = await db.from("coding_versions").insert({ project_id: project.id, version_number: versionNumber, html: "", css: "", javascript: editor.value, reflection });
   button.disabled = false;
   if (error) {
-    message.textContent = error.message;
+    window.FIREFLIES_DIAGNOSTICS?.report("Save coding project", error);
+    message.textContent = "This project could not be saved right now.";
     return;
   }
   message.textContent = `Saved ${title} version ${versionNumber} for the team.`;
@@ -444,8 +455,13 @@ async function setupRobotTests() {
   const form = $("#robot-form");
   const body = $("#robot-tests");
   const { db, session, profile } = await getLiveContext();
-  if (!db || !session || profile?.approval_status !== "approved") {
+  if (!db || !session) {
     body.innerHTML = '<tr><td colspan="5">Sign in with an approved account to view the team test log.</td></tr>';
+    form.querySelector("button").disabled = true;
+    return;
+  }
+  if (profile?.approval_status !== "approved") {
+    body.innerHTML = '<tr><td colspan="5">Account approval is required to view the team test log.</td></tr>';
     form.querySelector("button").disabled = true;
     return;
   }
@@ -460,7 +476,11 @@ async function setupRobotTests() {
     const successes = Number($("#successes").value);
     if (successes > attempts) return;
     const { error } = await db.from("robot_tests").insert({ team_id: profile.team_id, author_id: session.user.id, mission: $("#mission").value.trim(), attempts, successes, next_change: $("#next-change").value.trim() });
-    if (error) return alert(error.message);
+    if (error) {
+      window.FIREFLIES_DIAGNOSTICS?.report("Robot test", error);
+      alert("This test could not be saved right now.");
+      return;
+    }
     form.reset();
     $("#attempts").value = 10;
     $("#successes").value = 8;
@@ -500,7 +520,8 @@ async function setupGuide() {
     button.disabled = false;
     button.textContent = "Ask AI";
     if (error || data?.error) {
-      message.textContent = data?.error || error.message;
+      window.FIREFLIES_DIAGNOSTICS?.report("Ask AI", data?.error || error);
+      message.textContent = "Ask AI is unavailable right now.";
       return;
     }
     form.reset();

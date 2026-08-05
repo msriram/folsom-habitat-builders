@@ -69,18 +69,22 @@ if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
   else {
     const requested = new URLSearchParams(location.search).get('student');
     const { data: me } = await db.from('profiles').select('id,role,linked_student_id,approval_status').eq('id', session.user.id).single();
-    const target = me?.role === 'student' ? me.id : me?.role === 'parent' ? me.linked_student_id : requested;
+    if (me?.approval_status === 'approved' && me.role !== 'student' && !requested) location.replace('account-profile.html');
+    const target = me?.role === 'student' ? me.id : me?.role === 'parent' && requested === me.linked_student_id ? requested : me?.role === 'coach' ? requested : null;
     if (!me || me.approval_status !== 'approved' || !target) status.textContent = 'No approved student profile is linked to this account.';
     else {
       const [{ data: person, error: personError }, { data: loadedDetails }] = await Promise.all([
         db.from('profiles').select('id,display_name').eq('id', target).single(),
         db.from('student_details').select('*').eq('student_id', target).maybeSingle()
       ]);
-      if (personError) status.textContent = personError.message;
+      if (personError) {
+        window.FIREFLIES_DIAGNOSTICS?.report('Student profile', personError);
+        status.textContent = 'The student profile is unavailable right now.';
+      }
       else {
         let details = loadedDetails || {};
         form.hidden = false;
-        status.textContent = `Editing the private profile for ${person.display_name}.`;
+        status.hidden = true;
         for (const [name, value] of Object.entries({ ...details, display_name: person.display_name })) {
           if (form.elements[name] && value !== null) form.elements[name].value = value;
         }
@@ -145,10 +149,10 @@ if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
             clearPendingPhoto();
             form.elements.profile_photo.value = '';
             setMessage('Saved. Your profile and picture are up to date.');
-            status.textContent = `Editing the private profile for ${displayName}.`;
           } catch (error) {
             if (uploadedPath) await db.storage.from('profile-photos').remove([uploadedPath]);
-            setMessage(error?.message || 'Profile could not be saved. Please try again.', true);
+            window.FIREFLIES_DIAGNOSTICS?.report('Save student profile', error);
+            setMessage('The profile could not be saved right now.', true);
           } finally {
             saveButton.disabled = false;
             saveButton.textContent = 'Save profile';
