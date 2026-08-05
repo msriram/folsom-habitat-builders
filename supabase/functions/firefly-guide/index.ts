@@ -2,9 +2,10 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const MODEL = "gpt-5.6-luna";
-const DAILY_LIMIT = 12;
+const DAILY_LIMIT = 20;
 const refusal = "I can only help with biodiversity, ecosystems, conservation, and related FLL Innovation Project research.";
 const topics = /biodiversity|ecosystem|species|habitat|pollinat|conservation|wildlife|environment|food (?:web|chain)|invasive|endangered|innovation project/i;
+const blockedRequest = /\b(generate|create|design|draw|render|image|photo|picture|video|diagram|logo|illustration|graphic|visual|audio|animate|animation)\b/i;
 const defaultOrigins = ["https://msriram.github.io"];
 const allowedOrigins = new Set([
   ...defaultOrigins,
@@ -49,6 +50,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const question = typeof body.question === "string" ? body.question.trim() : "";
     if (question.length < 5 || question.length > 800) return reply({ error: "Enter a question between 5 and 800 characters." }, 400);
+    if (blockedRequest.test(question)) return reply({ error: "Ask AI supports text research questions only—not image, video, design, or generation requests." }, 400);
 
     const since = new Date();
     since.setUTCHours(0, 0, 0, 0);

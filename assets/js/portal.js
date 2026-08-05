@@ -502,9 +502,17 @@ async function setupGuide() {
     return;
   }
   const allowed = profile?.approval_status === "approved" && ["student", "coach"].includes(profile?.role);
+  const blockedRequest = /\b(generate|create|design|draw|render|image|photo|picture|video|diagram|logo|illustration|graphic|visual|audio|animate|animation)\b/i;
   status.textContent = allowed ? "Live research tool" : "Approval required";
   button.disabled = !allowed;
   if (!allowed) return;
+  const updateQuestionGuard = () => {
+    const blocked = blockedRequest.test($("#question-text").value);
+    button.disabled = blocked;
+    if (blocked) message.textContent = "Ask AI supports text research questions only—not image, video, design, or generation requests.";
+    else if (message.textContent.startsWith("Ask AI supports text research")) message.textContent = "";
+  };
+  $("#question-text").addEventListener("input", updateQuestionGuard);
   const render = async () => {
     const { data: history } = await db.from("questions").select("question,ai_answer,created_at").not("ai_answer", "is", null).order("created_at", { ascending: false }).limit(20);
     $("#question-list").innerHTML = (history || []).map(item => `<article class="card"><span class="status-chip">Team only</span><h3>${escapeHtml(item.question)}</h3><p>${escapeHtml(item.ai_answer)}</p></article>`).join("") || '<p class="muted">No saved questions yet.</p>';
@@ -513,11 +521,15 @@ async function setupGuide() {
     event.preventDefault();
     const question = $("#question-text").value.trim();
     if (!question) return;
+    if (blockedRequest.test(question)) {
+      message.textContent = "Ask AI supports text research questions only—not image, video, design, or generation requests.";
+      return;
+    }
     button.disabled = true;
     button.textContent = "Researching…";
     message.textContent = "";
     const { data, error } = await db.functions.invoke(config.functions?.guide || "firefly-guide", { body: { question } });
-    button.disabled = false;
+    button.disabled = blockedRequest.test($("#question-text").value);
     button.textContent = "Ask AI";
     if (error || data?.error) {
       const detail = data?.error || error?.message || "Ask AI is unavailable right now.";
