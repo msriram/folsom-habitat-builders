@@ -9,7 +9,9 @@ if (config.forceDemo || !config.supabaseUrl || !config.supabaseAnonKey) {
   const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
   document.querySelector('[data-google-login]')?.addEventListener('click', async () => {
     setState('Opening Google sign-in…');
-    const redirectTo = new URL('portal.html#homework', location.href).href;
+    // Supabase returns OAuth credentials in the URL fragment. Keep the desired
+    // Team Room tab in the query string so it cannot collide with that fragment.
+    const redirectTo = new URL('portal.html?tab=homework', location.href).href;
     const { error } = await supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo}});
     if (error) setState(error.message);
   });

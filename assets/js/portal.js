@@ -187,8 +187,9 @@ $$('[data-tab-jump]').forEach(button => button.addEventListener("click", () => {
   activateTab(button.dataset.tabJump);
   history.replaceState(null, "", `#${button.dataset.tabJump}`);
 }));
-activateTab(location.hash.slice(1) || "dashboard");
-window.addEventListener("hashchange", () => activateTab(location.hash.slice(1) || "dashboard"));
+const requestedTab = new URLSearchParams(location.search).get("tab");
+activateTab(requestedTab || location.hash.slice(1) || "dashboard");
+window.addEventListener("hashchange", () => activateTab(location.hash.slice(1) || requestedTab || "dashboard"));
 
 let liveContextPromise;
 async function getLiveContext() {

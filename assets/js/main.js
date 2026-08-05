@@ -196,7 +196,9 @@ async function initializeAccountMenu(header) {
       header.querySelector("[data-account-status]").textContent = profile?.approval_status === "approved" ? `${profile.role} · approved` : "Waiting for admin approval";
     };
     signIn.addEventListener("click", async () => {
-      const redirectTo = new URL("portal.html#homework", location.href).href;
+      // Supabase uses the fragment for OAuth credentials, so the destination
+      // tab must travel in the query string instead of a competing hash.
+      const redirectTo = new URL("portal.html?tab=homework", location.href).href;
       const { error } = await client.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
       if (error) header.querySelector("[data-account-status]").textContent = error.message;
     });
