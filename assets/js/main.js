@@ -171,14 +171,25 @@ async function initializeAccountMenu(header) {
   try {
     const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
     const client = createClient(config.supabaseUrl, config.supabaseAnonKey);
+    const mascot = header.querySelector(".signed-in-mascot");
+    const outline = header.querySelector(".signed-out-icon");
+    let avatarTarget = null;
+    const showSignedInAvatar = photoUrl => {
+      mascot.src = photoUrl || "assets/img/logo.svg";
+      mascot.classList.toggle("profile-photo", Boolean(photoUrl));
+      mascot.removeAttribute("hidden");
+      outline.setAttribute("hidden", "");
+    };
+    window.addEventListener("fireflies:profile-photo-updated", event => {
+      if (avatarTarget && event.detail?.target === avatarTarget) showSignedInAvatar(event.detail.url || null);
+    });
     const render = async session => {
-      const mascot = header.querySelector(".signed-in-mascot");
-      const outline = header.querySelector(".signed-out-icon");
       const profileLink = header.querySelector("[data-profile-link]");
       const adminLink = header.querySelector("[data-admin-link]");
       const settingsLink = header.querySelector("[data-settings-link]");
       if (!session) {
-        mascot.hidden = true; outline.hidden = false; signIn.hidden = false; signOut.hidden = true;
+        avatarTarget = null;
+        mascot.setAttribute("hidden", ""); outline.removeAttribute("hidden"); signIn.hidden = false; signOut.hidden = true;
         profileLink.hidden = true; adminLink.hidden = true; settingsLink.hidden = true;
         header.querySelector("[data-account-name]").textContent = "Team account";
         header.querySelector("[data-account-email]").textContent = "Not signed in";
@@ -186,8 +197,17 @@ async function initializeAccountMenu(header) {
         return;
       }
       const fallbackName = session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "Team member";
-      const { data: profile } = await client.from("profiles").select("display_name,role,approval_status").eq("id", session.user.id).maybeSingle();
-      mascot.hidden = false; outline.hidden = true; signIn.hidden = true; signOut.hidden = false;
+      const { data: profile } = await client.from("profiles").select("id,display_name,role,approval_status,linked_student_id").eq("id", session.user.id).maybeSingle();
+      avatarTarget = profile?.role === "student" ? profile.id : profile?.role === "parent" ? profile.linked_student_id : null;
+      let photoUrl = null;
+      if (avatarTarget) {
+        const { data: details } = await client.from("student_details").select("photo_path").eq("student_id", avatarTarget).maybeSingle();
+        if (details?.photo_path) {
+          const { data: signed } = await client.storage.from("profile-photos").createSignedUrl(details.photo_path, 900);
+          photoUrl = signed?.signedUrl || null;
+        }
+      }
+      showSignedInAvatar(photoUrl); signIn.hidden = true; signOut.hidden = false;
       profileLink.hidden = profile?.approval_status !== "approved";
       adminLink.hidden = !(profile?.approval_status === "approved" && profile?.role === "coach");
       settingsLink.hidden = !(profile?.approval_status === "approved" && profile?.role === "coach");

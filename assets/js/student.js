@@ -14,8 +14,8 @@ else{
     else{
       state.textContent='Team-visible profile loaded.';
       root.hidden=false;
-      const avatarIndex=Math.max(0,avatarNames.indexOf(profile.avatar_key));
-      root.innerHTML=`<div class="student-profile-head"><div class="profile-avatar-large" style="--avatar-x:${avatarIndex%4};--avatar-y:${Math.floor(avatarIndex/4)}"></div><div><span class="eyebrow">Student</span><h2>${esc(profile.display_name)}${profile.tag_name?` <small>“${esc(profile.tag_name)}”</small>`:''}</h2><p><strong>Parents:</strong> ${esc(profile.parent_names||'Not listed')}</p></div></div><div class="grid three">${fact('Favorite character',profile.favorite_hero)}${fact('Favorite movie',profile.favorite_movie)}${fact('Favorite show',profile.favorite_show)}${fact('Favorite place',profile.favorite_place)}${fact('Favorite LEGO build',profile.favorite_lego)}${fact('Wants to learn',profile.learning_goal)}</div>`;
+      const avatar=avatarNames.includes(profile.avatar_key)?profile.avatar_key:avatarNames[0];
+      root.innerHTML=`<div class="student-profile-head"><img class="profile-avatar-large" src="assets/img/avatars/${avatar}.webp" alt=""><div><span class="eyebrow">Student</span><h2>${esc(profile.display_name)}${profile.tag_name?` <small>“${esc(profile.tag_name)}”</small>`:''}</h2><p><strong>Parents:</strong> ${esc(profile.parent_names||'Not listed')}</p></div></div><div class="grid three">${fact('Favorite character',profile.favorite_hero)}${fact('Favorite movie',profile.favorite_movie)}${fact('Favorite show',profile.favorite_show)}${fact('Favorite place',profile.favorite_place)}${fact('Favorite LEGO build',profile.favorite_lego)}${fact('Wants to learn',profile.learning_goal)}</div>`;
     }
   }
 }
