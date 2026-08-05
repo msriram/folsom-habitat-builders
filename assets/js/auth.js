@@ -8,7 +8,9 @@ if (config.forceDemo || !config.supabaseUrl || !config.supabaseAnonKey) {
   const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
   const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
   document.querySelector('[data-google-login]')?.addEventListener('click', async () => {
-    const { error } = await supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo:new URL('homework.html', location.href).href}});
+    setState('Opening Google sign-in…');
+    const redirectTo = new URL('portal.html#homework', location.href).href;
+    const { error } = await supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo}});
     if (error) setState(error.message);
   });
   const { data:{session} } = await supabase.auth.getSession();
