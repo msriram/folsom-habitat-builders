@@ -47,7 +47,7 @@ async function setupAdmin(supabase,profile){
   if(!profile.is_admin){document.querySelector('[data-pending-section]')?.setAttribute('hidden','');pendingRoot.closest('.table-wrap')?.setAttribute('hidden','');}
   const users=approved||[];
   const students=users.filter(user=>user.role==='student');
-  const parents=users.filter(user=>user.role==='parent'||user.role==='coach');
+  const parents=users.filter(user=>user.role==='parent');
 
   if(pendingError){
     window.FIREFLIES_DIAGNOSTICS?.report('Pending accounts',pendingError);
@@ -130,7 +130,7 @@ async function removeUser(button,supabase){
 }
 
 function relationshipEditor(user,students,parents){
-  if(user.role==='parent'||user.role==='coach')return `<div class="linked-child-editor"><select data-approved-student="${user.id}">${personOptions(students,'Not linked',user.linked_student_id)}</select><button type="button" data-save-parent-link="${user.id}">Save</button></div>`;
+  if(user.role==='parent')return `<div class="linked-child-editor"><select data-approved-student="${user.id}">${personOptions(students,'Not linked',user.linked_student_id)}</select><button type="button" data-save-parent-link="${user.id}">Save</button></div>`;
   if(user.role==='student'){
     const linked=parents.filter(parent=>parent.linked_student_id===user.id);
     return `<div class="student-parent-editor"><select data-student-parent="${user.id}">${personOptions(parents,'Parent 1',linked[0]?.id)}</select><select data-student-parent="${user.id}">${personOptions(parents,'Parent 2',linked[1]?.id)}</select><button type="button" data-save-student-parents="${user.id}">Save</button></div>`;
