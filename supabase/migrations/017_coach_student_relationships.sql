@@ -2,6 +2,13 @@
 -- is also that student's parent). This is an administrative relationship only;
 -- it does not consume one of the student's two parent links.
 
+alter table public.profiles
+  drop constraint if exists profiles_parent_linked_child;
+
+alter table public.profiles
+  add constraint profiles_parent_linked_child
+  check (role in ('parent', 'coach') or linked_student_id is null);
+
 create or replace function public.enforce_family_relationship()
 returns trigger
 language plpgsql
