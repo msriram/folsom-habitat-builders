@@ -514,8 +514,18 @@ async function setupGuide() {
   };
   $("#question-text").addEventListener("input", updateQuestionGuard);
   const render = async () => {
-    const { data: history } = await db.from("questions").select("question,ai_answer,created_at").not("ai_answer", "is", null).order("created_at", { ascending: false }).limit(20);
-    $("#question-list").innerHTML = (history || []).map(item => `<article class="card"><span class="status-chip">Team only</span><h3>${escapeHtml(item.question)}</h3><p>${escapeHtml(item.ai_answer)}</p></article>`).join("") || '<p class="muted">No saved questions yet.</p>';
+    const { data: history } = await db.from("questions").select("question,ai_answer,created_at,author_id").not("ai_answer", "is", null).order("created_at", { ascending: false }).limit(20);
+    const authorNames = new Map();
+    if (profile?.role === "coach" && history?.length) {
+      const ids = [...new Set(history.map(item => item.author_id).filter(Boolean))];
+      const { data: authors } = await db.from("profiles").select("id,display_name").in("id", ids);
+      (authors || []).forEach(author => authorNames.set(author.id, author.display_name));
+    }
+    $("#question-list").innerHTML = (history || []).map(item => {
+      const author = authorNames.get(item.author_id);
+      const label = profile?.role === "coach" ? `Asked by ${escapeHtml(author || "Unknown team member")}` : "Team only";
+      return `<article class="card"><span class="status-chip">${label}</span><h3>${escapeHtml(item.question)}</h3><p>${escapeHtml(item.ai_answer)}</p></article>`;
+    }).join("") || '<p class="muted">No saved questions yet.</p>';
   };
   form.addEventListener("submit", async event => {
     event.preventDefault();
