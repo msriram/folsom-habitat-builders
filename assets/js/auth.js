@@ -60,7 +60,7 @@ async function setupAdmin(supabase,profile){
     window.FIREFLIES_DIAGNOSTICS?.report('Approved accounts',approvedError);
     approvedRoot.innerHTML='<tr><td colspan="5">Accounts are unavailable right now.</td></tr>';
   }else{
-    approvedRoot.innerHTML=users.map(user=>`<tr><td>${escapeHtml(user.display_name||'')}</td><td>${escapeHtml(user.email||'')}</td><td>${escapeHtml(user.role||'')}${user.role==='coach'?`<small class="muted"> · ${user.is_admin?'administrator':'assistant'}</small>`:''}</td><td>${relationshipEditor(user,students,parents)}</td><td>${profile.is_admin?`<button type="button" class="button danger" data-remove-user="${user.id}" ${user.id===profile.id?'disabled title="You cannot remove your own coach account"':''}>Remove</button>`:'—'}</td></tr>`).join('')||'<tr><td colspan="5">No approved users.</td></tr>';
+    approvedRoot.innerHTML=users.map(user=>{const primaryCoach=user.role==='coach'&&(user.is_admin||user.email?.toLowerCase()==='sriram87@gmail.com');return `<tr><td>${escapeHtml(user.display_name||'')}</td><td>${escapeHtml(user.email||'')}</td><td>${escapeHtml(user.role||'')}${user.role==='coach'?`<small class="muted"> · ${primaryCoach?'administrator':'assistant'}</small>`:''}</td><td>${relationshipEditor(user,students,parents)}</td><td>${profile.is_admin?`<button type="button" class="button danger" data-remove-user="${user.id}" ${user.id===profile.id?'disabled title="You cannot remove your own coach account"':''}>Remove</button>`:'—'}</td></tr>`}).join('')||'<tr><td colspan="5">No approved users.</td></tr>';
   }
 
   pendingRoot.addEventListener('change',event=>{
