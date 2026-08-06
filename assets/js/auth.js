@@ -82,7 +82,13 @@ async function setupAdmin(supabase,profile){
     const student=['parent','assistant_coach','coach'].includes(selectedRole)?pendingRoot.querySelector(`[data-student="${id}"]`).value||null:null;
     button.disabled=true;
     button.textContent='Approving…';
-    const {error}=await supabase.rpc('approve_user',{target_id:id,target_role:role,target_team:profile.team_id,target_student:student,target_admin:selectedRole==='coach'});
+    // Production may still expose the original four-argument RPC while the
+    // newer admin migration adds target_admin. Retry with the compatible
+    // signature so the on-page Approve action remains usable.
+    let {error}=await supabase.rpc('approve_user',{target_id:id,target_role:role,target_team:profile.team_id,target_student:student,target_admin:selectedRole==='coach'});
+    if(error&&/function .*approve_user|schema cache|does not exist/i.test(error.message||'')){
+      ({error}=await supabase.rpc('approve_user',{target_id:id,target_role:role,target_team:profile.team_id,target_student:student}));
+    }
     if(error){window.FIREFLIES_DIAGNOSTICS?.report('Account approval',error);setState('This account could not be approved right now.');button.disabled=false;button.textContent='Approve';}
     else location.reload();
   });
