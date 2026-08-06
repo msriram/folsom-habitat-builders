@@ -31,7 +31,8 @@ else{
 }
 
 function coachCard(person){
-  return `<article class="roster-card"><span>Coach</span><h3>${escapeHtml(person.display_name)}</h3>${person.team_title?`<p>${escapeHtml(person.team_title)}</p>`:''}</article>`;
+  const title=person.team_title||"Assistant coach";
+  return `<article class="roster-card"><span>Coach</span><h3>${escapeHtml(person.display_name)}</h3><p>${escapeHtml(title)}</p></article>`;
 }
 
 async function studentCard(db,person){
