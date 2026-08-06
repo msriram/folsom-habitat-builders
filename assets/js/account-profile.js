@@ -38,9 +38,9 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
       // `is_admin` is added by the optional coach-admin migration. Keep this
       // page compatible with the existing production schema and treat the
       // designated coach role as the primary coach account.
-      const {data:profile,error:profileError}=await db.from('profiles').select('id,display_name,email,role,approval_status,linked_student_id,is_active').eq('id',session.user.id).maybeSingle();
+      const {data:profile,error:profileError}=await db.from('profiles').select('id,display_name,email,role,approval_status,linked_student_id,is_active,is_admin').eq('id',session.user.id).maybeSingle();
       if(profileError)throw profileError;
-      if(profile)profile.is_admin=profile.role==='coach'&&profile.email?.toLowerCase()==='sriram87@gmail.com';
+      if(profile)profile.is_admin=profile.role==='coach'&&(profile.is_admin||profile.email?.toLowerCase()==='sriram87@gmail.com');
       if(!profile||profile.approval_status!=='approved'||!profile.is_active){
         state.textContent='Waiting for coach approval.';
       }else if(profile.role==='student'){

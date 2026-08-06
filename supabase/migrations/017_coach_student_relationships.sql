@@ -9,6 +9,40 @@ alter table public.profiles
   add constraint profiles_parent_linked_child
   check (role in ('parent', 'coach') or linked_student_id is null);
 
+create or replace function public.family_relationship_options(option_role text)
+returns table(id uuid, display_name text, role text)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  me_role text := public.current_profile_role();
+begin
+  if option_role not in ('student', 'parent', 'adult') then
+    raise exception 'invalid relationship role';
+  end if;
+
+  if me_role not in ('student', 'parent', 'coach')
+     or (me_role = 'student' and option_role not in ('parent', 'adult'))
+     or (me_role in ('parent', 'coach') and option_role <> 'student') then
+    raise exception 'relationship directory is not available';
+  end if;
+
+  return query
+    select person.id, person.display_name, person.role
+    from public.profiles person
+    where person.team_id = public.current_team_id()
+      and (case when option_role = 'adult' then person.role in ('parent', 'coach') else person.role = option_role end)
+      and person.approval_status = 'approved'
+      and person.is_active
+      and (me_role <> 'student' or person.linked_student_id is null or person.linked_student_id = auth.uid())
+    order by person.display_name;
+end;
+$$;
+
+grant execute on function public.family_relationship_options(text) to authenticated;
+
 create or replace function public.family_relationships(target_user uuid)
 returns table(id uuid, display_name text, role text)
 language plpgsql

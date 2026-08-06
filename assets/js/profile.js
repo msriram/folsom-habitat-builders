@@ -240,7 +240,7 @@ async function setupStudentRelationships(db, target) {
   const message = document.querySelector('[data-student-family-message]');
   const button = document.querySelector('[data-save-student-family]');
   const [{ data: options, error: optionsError }, { data: relationships, error: relationshipsError }] = await Promise.all([
-    db.rpc('family_relationship_options', { option_role: 'parent' }),
+    db.rpc('family_relationship_options', { option_role: 'adult' }),
     db.rpc('family_relationships', { target_user: target })
   ]);
   if (optionsError || relationshipsError) {
@@ -257,7 +257,7 @@ async function setupStudentRelationships(db, target) {
   button.onclick = async () => {
     const selected = [parentOne.value, parentTwo.value].filter(Boolean);
     if (new Set(selected).size !== selected.length) {
-      message.textContent = 'Choose two different parents.';
+      message.textContent = 'Choose two different linked adults.';
       message.classList.add('error');
       return;
     }
@@ -271,12 +271,12 @@ async function setupStudentRelationships(db, target) {
       message.textContent = 'The family relationship could not be updated right now.';
       message.classList.add('error');
       button.disabled = false;
-      button.textContent = 'Update parents';
+      button.textContent = 'Update relationships';
       return;
     }
-    message.textContent = 'Parents updated.';
+    message.textContent = 'Relationships updated.';
     button.disabled = false;
-    button.textContent = 'Update parents';
+    button.textContent = 'Update relationships';
   };
 }
 
