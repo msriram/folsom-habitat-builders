@@ -38,7 +38,10 @@ async function setupAdmin(supabase,profile){
   document.querySelector('[data-admin-view]')?.removeAttribute('hidden');
   const pendingRoot=document.querySelector('[data-pending-users]');
   const approvedRoot=document.querySelector('[data-approved-users]');
-  if(!pendingRoot||!approvedRoot)return;
+  const approvedStudentsRoot=document.querySelector('[data-approved-students]');
+  const approvedParentsRoot=document.querySelector('[data-approved-parents]');
+  const approvedCoachesRoot=document.querySelector('[data-approved-coaches]');
+  if(!pendingRoot||!approvedRoot||!approvedStudentsRoot||!approvedParentsRoot||!approvedCoachesRoot)return;
 
   const [{data:pending,error:pendingError},{data:approved,error:approvedError}]=await Promise.all([
     profile.is_admin?supabase.rpc('pending_users'):Promise.resolve({data:[],error:null}),
@@ -58,9 +61,15 @@ async function setupAdmin(supabase,profile){
 
   if(approvedError){
     window.FIREFLIES_DIAGNOSTICS?.report('Approved accounts',approvedError);
-    approvedRoot.innerHTML='<tr><td colspan="5">Accounts are unavailable right now.</td></tr>';
+    [approvedStudentsRoot,approvedParentsRoot,approvedCoachesRoot].forEach(root=>root.innerHTML='<tr><td colspan="5">Accounts are unavailable right now.</td></tr>');
   }else{
-    approvedRoot.innerHTML=users.map(user=>{const primaryCoach=user.role==='coach'&&(user.is_admin||user.email?.toLowerCase()==='sriram87@gmail.com');return `<tr><td>${escapeHtml(user.display_name||'')}</td><td>${escapeHtml(user.email||'')}</td><td>${escapeHtml(user.role||'')}${user.role==='coach'?`<small class="muted"> · ${primaryCoach?'administrator':'assistant'}</small>`:''}</td><td>${relationshipEditor(user,students,parents)}</td><td>${profile.is_admin?`<button type="button" class="button danger" data-remove-user="${user.id}" ${user.id===profile.id?'disabled title="You cannot remove your own coach account"':''}>Remove</button>`:'—'}</td></tr>`}).join('')||'<tr><td colspan="5">No approved users.</td></tr>';
+    const access=user=>profile.is_admin?`<button type="button" class="button danger" data-remove-user="${user.id}" ${user.id===profile.id?'disabled title="You cannot remove your own coach account"':''}>Remove</button>`:'—';
+    const people=users.filter(user=>user.role==='student');
+    const parentAccounts=users.filter(user=>user.role==='parent');
+    const coachAccounts=users.filter(user=>user.role==='coach');
+    approvedStudentsRoot.innerHTML=people.map(user=>`<tr><td>${escapeHtml(user.display_name||'')}</td><td>${escapeHtml(user.email||'')}</td><td>${relationshipEditor(user,students,parents)}</td><td>${access(user)}</td></tr>`).join('')||'<tr><td colspan="4">No approved students.</td></tr>';
+    approvedParentsRoot.innerHTML=parentAccounts.map(user=>`<tr><td>${escapeHtml(user.display_name||'')}</td><td>${escapeHtml(user.email||'')}</td><td>${relationshipEditor(user,students,parents)}</td><td>${access(user)}</td></tr>`).join('')||'<tr><td colspan="4">No approved parents.</td></tr>';
+    approvedCoachesRoot.innerHTML=coachAccounts.map(user=>{const primaryCoach=user.is_admin||user.email?.toLowerCase()==='sriram87@gmail.com';return `<tr><td>${escapeHtml(user.display_name||'')}</td><td>${escapeHtml(user.email||'')}</td><td>${primaryCoach?'Coach administrator':'Assistant coach'}</td><td>${relationshipEditor(user,students,parents)}</td><td>${access(user)}</td></tr>`}).join('')||'<tr><td colspan="5">No approved coaches.</td></tr>';
   }
 
   pendingRoot.addEventListener('change',event=>{

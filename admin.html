@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="assets/css/styles.css?v=photoedit1">
   <script defer src="assets/js/main.js?v=account1"></script>
   <script defer src="assets/js/portal-config.js?v=f6b4019"></script>
-  <script type="module" src="assets/js/auth.js?v=relationship1"></script>
+  <script type="module" src="assets/js/auth.js?v=usergroups1"></script>
 </head>
 <body>
   <div data-site-header></div>
@@ -31,11 +31,23 @@
           <thead><tr><th>Google account</th><th>Role</th><th>Relationship</th><th>Approval</th><th>Access</th></tr></thead>
           <tbody data-pending-users><tr><td colspan="5">Loading…</td></tr></tbody>
         </table></div>
-        <div class="section-title"><h2>Approved users</h2></div>
-        <div class="table-wrap"><table>
-          <thead><tr><th>Name</th><th>Google account</th><th>Role</th><th>Relationship</th><th>Access</th></tr></thead>
-          <tbody data-approved-users><tr><td colspan="5">Loading…</td></tr></tbody>
-        </table></div>
+        <div data-approved-users>
+          <div class="section-title"><h2>Approved students</h2></div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Name</th><th>Google account</th><th>Parents / coaches</th><th>Access</th></tr></thead>
+            <tbody data-approved-students><tr><td colspan="4">Loading…</td></tr></tbody>
+          </table></div>
+          <div class="section-title"><h2>Approved parents</h2></div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Name</th><th>Google account</th><th>Linked student</th><th>Access</th></tr></thead>
+            <tbody data-approved-parents><tr><td colspan="4">Loading…</td></tr></tbody>
+          </table></div>
+          <div class="section-title"><h2>Approved coaches</h2></div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Name</th><th>Google account</th><th>Team role</th><th>Linked student</th><th>Access</th></tr></thead>
+            <tbody data-approved-coaches><tr><td colspan="5">Loading…</td></tr></tbody>
+          </table></div>
+        </div>
       </div>
     </div></section>
   </main>
