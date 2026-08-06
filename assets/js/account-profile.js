@@ -60,7 +60,7 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
         view.hidden=false;
         state.hidden=true;
         if(profile.role==='parent'||profile.role==='coach')await renderLinkedChild(db,profile);
-        if(profile.role==='coach')await renderAdminDashboard(db);
+        if(profile.is_admin)await renderAdminDashboard(db);
         setupForm(db,session,profile);
       }
     }

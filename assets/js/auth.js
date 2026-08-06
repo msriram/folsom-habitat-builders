@@ -28,7 +28,7 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
     else if(!profile||profile.approval_status!=='approved')setState('Waiting for coach approval.');
     else{
       setState(`${profile.display_name} · ${profile.role==='coach'?(profile.is_admin?'coach administrator':'assistant coach'):profile.role}`);
-      if(profile.role==='coach')await setupAdmin(supabase,profile);
+      if(profile.is_admin)await setupAdmin(supabase,profile);
     }
   }
 }

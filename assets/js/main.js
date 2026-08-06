@@ -213,18 +213,21 @@ async function initializeAccountMenu(header) {
       const profileLink = header.querySelector("[data-profile-link]");
       const adminLink = header.querySelector("[data-admin-link]");
       const settingsLink = header.querySelector("[data-settings-link]");
+      const setAdminOnly = isAdmin => document.querySelectorAll("[data-admin-only]").forEach(element => element.hidden = !isAdmin);
       if (!session) {
         avatarTarget = null;
         avatarKind = null;
         mascot.setAttribute("hidden", ""); outline.removeAttribute("hidden"); signIn.hidden = false; signOut.hidden = true;
         profileLink.hidden = true; adminLink.hidden = true; settingsLink.hidden = true;
+        setAdminOnly(false);
         header.querySelector("[data-account-name]").textContent = "Team account";
         header.querySelector("[data-account-email]").textContent = "Not signed in";
         header.querySelector("[data-account-status]").textContent = "Google account required";
         return;
       }
       const fallbackName = session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "Team member";
-      const { data: profile } = await client.from("profiles").select("id,display_name,role,approval_status,linked_student_id").eq("id", session.user.id).maybeSingle();
+      const { data: profile } = await client.from("profiles").select("id,display_name,email,role,approval_status,linked_student_id,is_admin").eq("id", session.user.id).maybeSingle();
+      const isAdmin = profile?.approval_status === "approved" && profile?.role === "coach" && (profile.is_admin || profile.email?.toLowerCase() === "sriram87@gmail.com");
       avatarTarget = profile?.id || null;
       avatarKind = profile?.role === "student" ? "student" : "account";
       let photoUrl = null;
@@ -244,8 +247,9 @@ async function initializeAccountMenu(header) {
       showSignedInAvatar(photoUrl); signIn.hidden = true; signOut.hidden = false;
       profileLink.hidden = profile?.approval_status !== "approved";
       profileLink.href = profile?.role === "student" ? "profile.html" : "account-profile.html";
-      adminLink.hidden = !(profile?.approval_status === "approved" && profile?.role === "coach");
-      settingsLink.hidden = !(profile?.approval_status === "approved" && profile?.role === "coach");
+      adminLink.hidden = !isAdmin;
+      settingsLink.hidden = !isAdmin;
+      setAdminOnly(isAdmin);
       header.querySelector("[data-account-name]").textContent = profile?.display_name || fallbackName;
       header.querySelector("[data-account-email]").textContent = session.user.email || "Google account";
       header.querySelector("[data-account-status]").textContent = profile?.approval_status === "approved" ? profile.role : "Waiting for coach approval";

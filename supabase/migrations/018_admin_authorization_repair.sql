@@ -130,3 +130,22 @@ revoke all on function public.approve_user(uuid, text, uuid, uuid) from public;
 grant execute on function public.approve_user(uuid, text, uuid, uuid) to authenticated;
 revoke all on function public.remove_user_access(uuid) from public;
 grant execute on function public.remove_user_access(uuid) to authenticated;
+
+create or replace function public.tshirt_order()
+returns table(display_name text, tshirt_size text)
+language sql
+security definer
+set search_path = public
+as $$
+  select p.display_name, d.tshirt_size
+  from public.profiles p
+  left join public.student_details d on d.student_id = p.id
+  where p.team_id = public.current_team_id()
+    and p.role = 'student'
+    and p.approval_status = 'approved'
+    and public.current_profile_is_admin()
+  order by p.display_name
+$$;
+
+revoke all on function public.tshirt_order() from public;
+grant execute on function public.tshirt_order() to authenticated;

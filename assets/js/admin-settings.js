@@ -14,8 +14,9 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
     if(!session){
       state.innerHTML='Sign in with an approved coach account. <a href="login.html">Sign in</a>';
     }else{
-      const {data:profile,error}=await client.from('profiles').select('role,approval_status,is_active').eq('id',session.user.id).maybeSingle();
-      if(error||!profile||profile.approval_status!=='approved'||profile.role!=='coach'||!profile.is_active){
+      const {data:profile,error}=await client.from('profiles').select('email,role,approval_status,is_active,is_admin').eq('id',session.user.id).maybeSingle();
+      const isAdmin=profile?.role==='coach'&&(profile.is_admin||profile.email?.toLowerCase()==='sriram87@gmail.com');
+      if(error||!profile||profile.approval_status!=='approved'||!isAdmin||!profile.is_active){
         if(error)window.FIREFLIES_DIAGNOSTICS?.report('Admin access',error);
         state.textContent='Coach administrator access required.';
       }else{
