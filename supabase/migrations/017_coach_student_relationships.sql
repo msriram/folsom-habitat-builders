@@ -9,6 +9,52 @@ alter table public.profiles
   add constraint profiles_parent_linked_child
   check (role in ('parent', 'coach') or linked_student_id is null);
 
+create or replace function public.family_relationships(target_user uuid)
+returns table(id uuid, display_name text, role text)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  target_role text;
+  target_team uuid;
+begin
+  select p.role, p.team_id
+    into target_role, target_team
+  from public.profiles p
+  where p.id = target_user
+    and p.approval_status = 'approved'
+    and p.is_active;
+
+  if target_team is distinct from current_team_id()
+     or (target_user <> auth.uid() and current_profile_role() <> 'coach') then
+    raise exception 'relationship access denied';
+  end if;
+
+  if target_role in ('parent', 'coach') then
+    return query
+      select child.id, child.display_name, child.role
+      from public.profiles adult
+      join public.profiles child on child.id = adult.linked_student_id
+      where adult.id = target_user
+        and child.approval_status = 'approved'
+        and child.is_active;
+  elsif target_role = 'student' then
+    return query
+      select adult.id, adult.display_name, adult.role
+      from public.profiles adult
+      where adult.role in ('parent', 'coach')
+        and adult.linked_student_id = target_user
+        and adult.approval_status = 'approved'
+        and adult.is_active
+      order by adult.display_name;
+  end if;
+end;
+$$;
+
+grant execute on function public.family_relationships(uuid) to authenticated;
+
 create or replace function public.enforce_family_relationship()
 returns trigger
 language plpgsql
