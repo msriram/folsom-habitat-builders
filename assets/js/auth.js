@@ -113,7 +113,7 @@ async function setupAdmin(supabase,profile){
       if(new Set(parentIds).size!==parentIds.length){setState('Choose two different parents.');button.disabled=false;button.textContent='Save';return;}
       result=await supabase.rpc('set_student_parents',{target_student:id,target_parents:parentIds});
     }
-    if(result.error){window.FIREFLIES_DIAGNOSTICS?.report('Family relationship',result.error);setState('The relationship could not be saved right now.');button.disabled=false;button.textContent='Save';}
+    if(result.error){window.FIREFLIES_DIAGNOSTICS?.report('Family relationship',result.error);setState(`The relationship could not be saved: ${result.error.message||'please try again'}`);button.disabled=false;button.textContent='Save';}
     else location.reload();
   });
 }
