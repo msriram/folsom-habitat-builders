@@ -9,6 +9,10 @@ else{
   const {data:{session}}=await db.auth.getSession();
   if(!session)status.innerHTML='Not signed in. <a href="login.html">Sign in</a>';
   else{
+    const privacyNote=document.querySelector('.privacy-note');
+    privacyNote?.setAttribute('hidden','');
+    const {data:me}=await db.from('profiles').select('email,role').eq('id',session.user.id).maybeSingle();
+    if(me?.role==='coach'&&me.email?.toLowerCase()==='sriram87@gmail.com')privacyNote?.removeAttribute('hidden');
     const {data,error}=await db.rpc('team_roster');
     if(error){
       window.FIREFLIES_DIAGNOSTICS?.report('Team roster',error);
