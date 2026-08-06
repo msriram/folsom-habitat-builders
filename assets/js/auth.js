@@ -142,7 +142,7 @@ function relationshipEditor(user,students,parents){
   if(user.role==='parent'||user.role==='coach')return `<div class="linked-child-editor"><select data-approved-student="${user.id}">${personOptions(students,'Not linked',user.linked_student_id)}</select><button type="button" data-save-parent-link="${user.id}">Save</button></div>`;
   if(user.role==='student'){
     const linked=parents.filter(parent=>parent.linked_student_id===user.id);
-    return `<div class="student-parent-editor"><select data-student-parent="${user.id}">${personOptions(parents,'Parent 1',linked[0]?.id)}</select><select data-student-parent="${user.id}">${personOptions(parents,'Parent 2',linked[1]?.id)}</select><button type="button" data-save-student-parents="${user.id}">Save</button></div>`;
+    return `<div class="student-parent-editor"><select aria-label="First linked parent" data-student-parent="${user.id}">${personOptions(parents,'Parent 1',linked[0]?.id)}</select><select aria-label="Second linked parent" data-student-parent="${user.id}">${personOptions(parents,'Parent 2',linked[1]?.id)}</select><button type="button" data-save-student-parents="${user.id}">Save</button></div>`;
   }
   return '—';
 }
