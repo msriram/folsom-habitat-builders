@@ -225,7 +225,7 @@ async function setupRoleAccess() {
   $("#workspace-status").textContent = profile.role;
   $("#coding-save-status").textContent = profile.role === "student" ? "Ready to save to the team" : "Team projects available";
   if (profile.role === "parent") parentTab.hidden = false;
-  if (profile.role === "coach") coachTab.hidden = false;
+  if (["coach", "student_coach"].includes(profile.role)) coachTab.hidden = false;
 }
 
 function renderProgress(values) {
@@ -516,14 +516,14 @@ async function setupGuide() {
   const render = async () => {
     const { data: history } = await db.from("questions").select("question,ai_answer,created_at,author_id").not("ai_answer", "is", null).order("created_at", { ascending: false }).limit(20);
     const authorNames = new Map();
-    if (profile?.role === "coach" && history?.length) {
+    if (["coach", "student_coach"].includes(profile?.role) && history?.length) {
       const ids = [...new Set(history.map(item => item.author_id).filter(Boolean))];
       const { data: authors } = await db.from("profiles").select("id,display_name").in("id", ids);
       (authors || []).forEach(author => authorNames.set(author.id, author.display_name));
     }
     $("#question-list").innerHTML = (history || []).map(item => {
       const author = authorNames.get(item.author_id);
-      const label = profile?.role === "coach" ? `Asked by ${escapeHtml(author || "Unknown team member")}` : "Team only";
+      const label = ["coach", "student_coach"].includes(profile?.role) ? `Asked by ${escapeHtml(author || "Unknown team member")}` : "Team only";
       return `<article class="card"><span class="status-chip">${label}</span><h3>${escapeHtml(item.question)}</h3><p>${escapeHtml(item.ai_answer)}</p></article>`;
     }).join("") || '<p class="muted">No saved questions yet.</p>';
   };

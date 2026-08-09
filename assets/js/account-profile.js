@@ -46,8 +46,8 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
       }else if(profile.role==='student'){
         location.replace('profile.html');
       }else{
-        document.querySelector('[data-account-role]').textContent=profile.role==='coach'?(profile.is_admin?'Coach administrator':'Assistant coach'):'Parent account';
-        document.querySelector('[data-account-intro]').textContent=profile.role==='coach'?'Your private profile, family relationship, and team overview.':'Your private profile and family relationship.';
+        document.querySelector('[data-account-role]').textContent=profile.role==='coach'?(profile.is_admin?'Coach administrator':'Assistant coach'):profile.role==='student_coach'?'Student coach':'Parent account';
+        document.querySelector('[data-account-intro]').textContent=profile.role==='student_coach'?'Your private team profile and coaching workspace.':profile.role==='coach'?'Your private profile, family relationship, and team overview.':'Your private profile and family relationship.';
         form.elements.display_name.value=profile.display_name;
         const {data:details,error:detailsError}=await db.from('account_details').select('photo_path').eq('profile_id',profile.id).maybeSingle();
         if(detailsError)throw detailsError;

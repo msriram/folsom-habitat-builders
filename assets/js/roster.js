@@ -23,7 +23,7 @@ else{
       document.querySelector('[data-roster-view]').hidden=false;
       status.hidden=true;
       const people=data||[];
-      document.querySelector('[data-coaches]').innerHTML=people.filter(person=>person.role==='coach').map(coachCard).join('');
+      document.querySelector('[data-coaches]').innerHTML=people.filter(person=>['coach','student_coach'].includes(person.role)).map(coachCard).join('');
       const studentCards=await Promise.all(people.filter(person=>person.role==='student').map(person=>studentCard(db,person)));
       document.querySelector('[data-students]').innerHTML=studentCards.join('');
     }

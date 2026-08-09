@@ -27,7 +27,7 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
     if(profileError){window.FIREFLIES_DIAGNOSTICS?.report('Profile lookup',profileError);setState('Your account could not be loaded right now.');}
     else if(!profile||profile.approval_status!=='approved')setState('Waiting for coach approval.');
     else{
-      setState(`${profile.display_name} · ${profile.role==='coach'?(profile.is_admin?'coach administrator':'assistant coach'):profile.role}`);
+      setState(`${profile.display_name} · ${profile.role==='coach'?(profile.is_admin?'coach administrator':'assistant coach'):profile.role==='student_coach'?'student coach':profile.role}`);
       if(profile.is_admin)await setupAdmin(supabase,profile);
     }
   }
@@ -56,7 +56,7 @@ async function setupAdmin(supabase,profile){
     window.FIREFLIES_DIAGNOSTICS?.report('Pending accounts',pendingError);
     pendingRoot.innerHTML='<tr><td colspan="5">Accounts are unavailable right now.</td></tr>';
   }else{
-    pendingRoot.innerHTML=(pending||[]).map(user=>`<tr><td>${escapeHtml(user.email||'')}</td><td><select data-role="${user.id}"><option value="student">Student</option><option value="parent">Parent</option><option value="coach">Coach administrator</option><option value="assistant_coach">Assistant coach</option></select></td><td><select data-student="${user.id}" disabled>${personOptions(students,'Optional student')}</select></td><td><button type="button" data-approve="${user.id}">Approve</button></td><td><button type="button" class="button danger" data-remove-user="${user.id}">Remove</button></td></tr>`).join('')||'<tr><td colspan="5">No pending users.</td></tr>';
+    pendingRoot.innerHTML=(pending||[]).map(user=>`<tr><td>${escapeHtml(user.email||'')}</td><td><select data-role="${user.id}"><option value="student">Student</option><option value="parent">Parent</option><option value="coach">Coach administrator</option><option value="assistant_coach">Assistant coach</option><option value="student_coach">Student coach</option></select></td><td><select data-student="${user.id}" disabled>${personOptions(students,'Optional student')}</select></td><td><button type="button" data-approve="${user.id}">Approve</button></td><td><button type="button" class="button danger" data-remove-user="${user.id}">Remove</button></td></tr>`).join('')||'<tr><td colspan="5">No pending users.</td></tr>';
   }
 
   if(approvedError){
@@ -66,10 +66,10 @@ async function setupAdmin(supabase,profile){
     const access=user=>profile.is_admin?`<button type="button" class="button danger" data-remove-user="${user.id}" ${user.id===profile.id?'disabled title="You cannot remove your own coach account"':''}>Remove</button>`:'—';
     const people=users.filter(user=>user.role==='student');
     const parentAccounts=users.filter(user=>user.role==='parent');
-    const coachAccounts=users.filter(user=>user.role==='coach');
+    const coachAccounts=users.filter(user=>user.role==='coach'||user.role==='student_coach');
     approvedStudentsRoot.innerHTML=people.map(user=>`<tr><td>${escapeHtml(user.display_name||'')}</td><td>${escapeHtml(user.email||'')}</td><td>${relationshipEditor(user,students,parents)}</td><td>${access(user)}</td></tr>`).join('')||'<tr><td colspan="4">No approved students.</td></tr>';
     approvedParentsRoot.innerHTML=parentAccounts.map(user=>`<tr><td>${escapeHtml(user.display_name||'')}</td><td>${escapeHtml(user.email||'')}</td><td>${relationshipEditor(user,students,parents)}</td><td>${access(user)}</td></tr>`).join('')||'<tr><td colspan="4">No approved parents.</td></tr>';
-    approvedCoachesRoot.innerHTML=coachAccounts.map(user=>{const primaryCoach=user.is_admin||user.email?.toLowerCase()==='sriram87@gmail.com';return `<tr><td>${escapeHtml(user.display_name||'')}</td><td>${escapeHtml(user.email||'')}</td><td>${primaryCoach?'Coach administrator':'Assistant coach'}</td><td>${relationshipEditor(user,students,parents)}</td><td>${access(user)}</td></tr>`}).join('')||'<tr><td colspan="5">No approved coaches.</td></tr>';
+    approvedCoachesRoot.innerHTML=coachAccounts.map(user=>{const primaryCoach=user.is_admin||user.email?.toLowerCase()==='sriram87@gmail.com';const title=user.role==='student_coach'?'Student coach':primaryCoach?'Coach administrator':'Assistant coach';return `<tr><td>${escapeHtml(user.display_name||'')}</td><td>${escapeHtml(user.email||'')}</td><td>${title}</td><td>${relationshipEditor(user,students,parents)}</td><td>${access(user)}</td></tr>`}).join('')||'<tr><td colspan="5">No approved coaches.</td></tr>';
   }
 
   pendingRoot.addEventListener('change',event=>{
