@@ -181,6 +181,7 @@
       </article>`).join("");
   }
 })();
+if (document.body.dataset.session) import('./session-materials.js?v=1');
 
 async function initializeAccountMenu(header) {
   const config = await loadPortalConfig();
