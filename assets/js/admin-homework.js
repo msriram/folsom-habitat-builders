@@ -16,7 +16,7 @@ if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
 } else {
   const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
   db = createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
-  const { data: { session } } = await db.auth.getSession();
+  const session = await readSession(db);
   if (!session) {
     state.innerHTML = 'Coach sign-in required. <a href="login.html">Sign in</a>';
   } else {
@@ -138,5 +138,13 @@ async function publish(assignment) {
 }
 
 function showError(message) { state.hidden = false; state.textContent = message; shell.hidden = true; }
+async function readSession(client) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const { data: { session } } = await client.auth.getSession();
+    if (session) return session;
+    if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 250));
+  }
+  return null;
+}
 function label(value) { return ({ topic: 'Chosen topic', paragraph: 'What interests the student', sources: 'Sources used', team_name: 'Proposed team name', cause: 'Cause anchor', reason: 'Why this fits', next_step: 'Next step' })[value] || value; }
 function esc(value) { return String(value || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }

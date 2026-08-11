@@ -10,7 +10,7 @@ if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
 } else {
   const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
   const db = createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
-  const { data: { session } } = await db.auth.getSession();
+  const session = await readSession(db);
   if (!session) {
     state.innerHTML = 'Sign in with an approved account to view the team roll-up. <a href="login.html">Sign in</a>';
   } else {
@@ -30,6 +30,18 @@ if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
       }
     }
   }
+}
+
+// The shared header initializes Supabase at the same time as this page module.
+// Give the OAuth client a moment to finish restoring a persisted Google session
+// before showing the signed-out state.
+async function readSession(db) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const { data: { session } } = await db.auth.getSession();
+    if (session) return session;
+    if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 250));
+  }
+  return null;
 }
 
 async function load(db, assignmentId) {
