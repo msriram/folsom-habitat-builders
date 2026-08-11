@@ -225,7 +225,11 @@ async function setupRoleAccess() {
   $("#workspace-status").textContent = profile.role;
   $("#coding-save-status").textContent = profile.role === "student" ? "Ready to save to the team" : "Team projects available";
   if (profile.role === "parent") parentTab.hidden = false;
-  if (["coach", "student_coach"].includes(profile.role)) coachTab.hidden = false;
+  if (["coach", "student_coach"].includes(profile.role)) {
+    coachTab.hidden = false;
+    document.querySelector("[data-coach-review-link]")?.removeAttribute("hidden");
+    document.querySelector("[data-coach-homework-view]")?.removeAttribute("hidden");
+  }
 }
 
 function renderProgress(values) {

@@ -22,7 +22,7 @@ if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
   } else {
     const { data: me } = await db.from('profiles').select('role,approval_status').eq('id', session.user.id).single();
     if (!['coach', 'student_coach'].includes(me?.role) || me.approval_status !== 'approved') {
-      state.textContent = 'Coach administrator access required.';
+      state.textContent = 'Approved coach access required.';
     } else {
       state.hidden = true;
       shell.hidden = false;
