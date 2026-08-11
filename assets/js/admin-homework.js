@@ -48,14 +48,16 @@ async function load(assignment, selectedStudentId = null) {
   currentAssignmentId = assignment.id;
   publishPanel.hidden = false;
   publishMessage.textContent = '';
-  const [{ data: users, error: userError }, { data: submissions, error }] = await Promise.all([
+  const [{ data: users, error: userError }, { data: submissions, error }, { data: questions, error: questionError }] = await Promise.all([
     db.rpc('admin_users'),
-    db.from('submissions').select('id,student_id,status,submitted_at,coach_feedback,submission_answers(question_key,display_order,answer_type,answer_text,answer_json),submission_files(id,file_name,storage_path,mime_type,size_bytes)').eq('assignment_id', assignment.id)
+    db.from('submissions').select('id,student_id,status,submitted_at,coach_feedback,submission_answers(question_key,display_order,answer_type,answer_text,answer_json),submission_files(id,file_name,storage_path,mime_type,size_bytes)').eq('assignment_id', assignment.id),
+    db.from('assignment_questions').select('question_key,prompt,display_order').eq('assignment_id', assignment.id).order('display_order')
   ]);
-  if (error || userError) {
+  if (error || userError || questionError) {
     showError('Homework review is unavailable right now.');
     return;
   }
+  const questionMap = new Map((questions || []).map(question => [question.question_key, question.prompt]));
   const students = (users || []).filter(u => u.role === 'student');
   const byStudent = new Map((submissions || []).map(s => [s.student_id, s]));
   const reviewed = students.filter(s => (byStudent.get(s.id)?.coach_feedback || '').trim()).length;
@@ -76,17 +78,17 @@ async function load(assignment, selectedStudentId = null) {
     if (!button) return;
     tabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
     button.classList.add('active');
-    show(assignment, students.find(s => s.id === button.dataset.student), byStudent.get(button.dataset.student));
+    show(assignment, students.find(s => s.id === button.dataset.student), byStudent.get(button.dataset.student), questionMap);
   };
   const first = selectedStudentId || students[0]?.id;
   if (first) {
     const button = tabs.querySelector(`[data-student="${first}"]`);
     button?.classList.add('active');
-    show(assignment, students.find(s => s.id === first), byStudent.get(first));
+    show(assignment, students.find(s => s.id === first), byStudent.get(first), questionMap);
   }
 }
 
-async function show(assignment, student, submission) {
+async function show(assignment, student, submission, questionMap = new Map()) {
   if (!student) return;
   if (!submission) {
     detail.innerHTML = `<div class="section-title"><div><h2>${esc(student.display_name)}</h2><p class="status-chip">Not submitted</p></div></div><p>This student can still be included in the roll-up once a coach records feedback.</p>${feedbackEditor(assignment, student, '', null)}`;
@@ -97,7 +99,7 @@ async function show(assignment, student, submission) {
     const { data } = await db.storage.from('homework-files').createSignedUrl(file.storage_path, 900);
     return { ...file, url: data?.signedUrl };
   }));
-  detail.innerHTML = `<div class="section-title"><div><h2>${esc(student.display_name)}</h2><p>${submission.submitted_at ? new Date(submission.submitted_at).toLocaleString() : 'Coach record'}</p></div><span class="status-chip">${esc(submission.status)}</span></div>${(submission.submission_answers || []).sort((a, b) => a.display_order - b.display_order).map(answer => `<article class="answer-card"><h3>${label(answer.question_key)}</h3><p>${esc(answer.answer_text || JSON.stringify(answer.answer_json || ''))}</p></article>`).join('')}<div class="submission-gallery">${files.map(file => file.mime_type.startsWith('image/') ? `<a href="${file.url}" target="_blank"><img src="${file.url}" alt="${esc(file.file_name)}"><span>${esc(file.file_name)}</span></a>` : `<a class="file-chip" href="${file.url}" target="_blank">${esc(file.file_name)}</a>`).join('')}</div>${feedbackEditor(assignment, student, submission.coach_feedback || '', submission)}`;
+  detail.innerHTML = `<div class="section-title"><div><h2>${esc(student.display_name)}</h2><p>${submission.submitted_at ? new Date(submission.submitted_at).toLocaleString() : 'Coach record'}</p></div><span class="status-chip">${esc(submission.status)}</span></div>${(submission.submission_answers || []).sort((a, b) => a.display_order - b.display_order).map(answer => `<article class="answer-card"><span class="eyebrow">Question</span><h3>${esc(questionMap.get(answer.question_key) || label(answer.question_key))}</h3><p>${esc(answer.answer_text || JSON.stringify(answer.answer_json || ''))}</p></article>`).join('')}<div class="submission-gallery">${files.map(file => file.mime_type.startsWith('image/') ? `<a href="${file.url}" target="_blank"><img src="${file.url}" alt="${esc(file.file_name)}"><span>${esc(file.file_name)}</span></a>` : `<a class="file-chip" href="${file.url}" target="_blank">${esc(file.file_name)}</a>`).join('')}</div>${feedbackEditor(assignment, student, submission.coach_feedback || '', submission)}`;
   bindFeedback(assignment, student, submission);
 }
 
