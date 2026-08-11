@@ -38,6 +38,10 @@ if (!forms.length) {
   }
 }
 
+// Remove the initial paint guard only after the role/session check has finished.
+// This prevents a coach from seeing student homework flash briefly on refresh.
+document.body.removeAttribute('data-homework-auth-loading');
+
 function configureHomeworkView(profile) {
   const approved = profile?.approval_status === 'approved';
   const isCoach = approved && ['coach', 'student_coach'].includes(profile.role);

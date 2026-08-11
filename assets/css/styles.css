@@ -244,6 +244,7 @@ tr:last-child td { border-bottom: 0; }
 .portal-primary { min-width:0; }
 .portal-panels { padding:24px 0 80px; }
 .portal-panel { display:none; }.portal-panel.active { display:block; }
+body[data-homework-auth-loading] [data-homework-week], body[data-homework-auth-loading] [data-coach-homework-view], body[data-homework-auth-loading] [data-coach-review-link] { visibility:hidden; }
 .guide-sidebar { position:sticky; top:92px; max-height:calc(100vh - 112px); overflow:auto; border:1px solid var(--border); border-radius:16px; background:white; box-shadow:var(--shadow); }
 .guide-sidebar-inner { padding:20px; }
 .guide-sidebar h2 { margin:.25rem 0; font-size:1.55rem; }
