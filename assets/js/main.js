@@ -182,6 +182,7 @@
   }
 })();
 if (document.body.dataset.session) import('./session-materials.js?v=1');
+import('./meeting-time.js?v=1');
 
 async function initializeAccountMenu(header) {
   const config = await loadPortalConfig();
