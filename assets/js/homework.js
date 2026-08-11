@@ -3,6 +3,8 @@ const forms = [...document.querySelectorAll('[data-homework-form]')];
 const gates = [...document.querySelectorAll('[data-homework-gate]')];
 const homeworkDetails = [...document.querySelectorAll('[data-homework-week]')];
 const coachQueue = document.querySelector('#coach-session-queue');
+const coachSessionsTab = document.querySelector('[data-tab="sessions"]');
+const coachQueueHost = document.querySelector('#coach-session-queue-host');
 
 // Future assignments are never exposed in the page's default (signed-out/student) view.
 homeworkDetails.filter(detail => Number(detail.dataset.homeworkWeek) > 1).forEach(detail => { detail.hidden = true; });
@@ -40,7 +42,9 @@ function configureHomeworkView(profile) {
   const approved = profile?.approval_status === 'approved';
   const isCoach = approved && ['coach', 'student_coach'].includes(profile.role);
   if (isCoach) {
-    homeworkDetails.forEach(detail => { detail.hidden = false; detail.open = false; });
+    homeworkDetails.forEach(detail => { detail.hidden = true; detail.open = false; });
+    if (coachSessionsTab) coachSessionsTab.hidden = false;
+    if (coachQueue && coachQueueHost) coachQueueHost.append(coachQueue);
     if (coachQueue) {
       coachQueue.hidden = false;
       const descriptions = [
@@ -57,7 +61,7 @@ function configureHomeworkView(profile) {
         'Complete a full practice cycle and fix the largest reliability risk.',
         'Pack, rehearse, and record the final questions for tournament preparation.'
       ];
-      coachQueue.innerHTML = `<div class="section-title"><div><span class="eyebrow">Coach view</span><h3>All 12 session assignments</h3></div><span class="status-chip">Collapsed queue</span></div>${descriptions.map((description, index) => { const session = index + 1; const link = session === 1 ? 'meeting-01.html' : session === 2 ? 'meeting-02.html' : 'resources.html'; return `<details class="homework-notebook coach-session" data-session-number="${session}"><summary class="notebook-title"><div><span>Session ${session}</span><h3>Session ${session} preparation</h3></div><strong>Friday practice</strong><em>Click to expand</em></summary><section class="notebook-cell"><div class="cell-prompt"><span>Coach assignment</span><p>${description}</p></div><a class="button secondary" href="${link}">${session <= 2 ? 'Open session plan →' : 'Open official resources →'}</a></section></details>`; }).join('')}`;
+      coachQueue.innerHTML = `<div class="section-title"><div><span class="eyebrow">Coach view</span><h3>All 12 session assignments</h3></div><span class="status-chip">Collapsed queue</span></div>${descriptions.map((description, index) => { const session = index + 1; const link = session === 1 ? 'meeting-01.html' : session === 2 ? 'meeting-02.html' : 'resources.html'; return `<details class="homework-notebook coach-session" data-session-number="${session}"><summary class="notebook-title"><div><span>Session ${session}</span><h3>Session ${session} preparation</h3></div><strong aria-hidden="true"></strong><em>Click to expand</em></summary><section class="notebook-cell"><div class="cell-prompt"><span>Coach assignment</span><p>${description}</p></div><a class="button secondary" href="${link}">${session <= 2 ? 'Open session plan →' : 'Open official resources →'}</a></section></details>`; }).join('')}`;
     }
   }
 }
