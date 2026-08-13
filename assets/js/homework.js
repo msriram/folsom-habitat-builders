@@ -28,7 +28,7 @@ if (!forms.length) {
       if (profile?.approval_status === 'approved' && profile.role === 'student') {
         await openStudentForm(db, session.user.id, form, gate, week);
       } else if (gate && profile?.approval_status === 'approved' && profile.role === 'parent') {
-        gate.innerHTML = '<h2>Linked student homework</h2><p>Parents can review submitted work and coach feedback. Student accounts submit assignments.</p>';
+        await openParentSubmission(db, profile.linked_student_id, gate, week);
       } else if (gate && profile?.approval_status === 'approved' && ['coach', 'student_coach'].includes(profile.role)) {
         gate.innerHTML = '<h2>Coach review</h2><p>View every student and submission in the homework review workspace.</p><a class="button primary" href="admin-homework.html">Open homework review</a>';
       } else if (gate && session) {
@@ -36,6 +36,28 @@ if (!forms.length) {
       }
     }
   }
+}
+
+async function openParentSubmission(db, studentId, gate, week) {
+  if (!studentId) {
+    gate.innerHTML = '<h2>Student link needed</h2><p>Your account is not linked to a student yet. Ask a coach to connect your account on the Team page.</p>';
+    return;
+  }
+  const { data: assignment, error: assignmentError } = await db.from('assignments').select('id,title').eq('week_number', week).eq('published', true).maybeSingle();
+  if (assignmentError || !assignment) { gate.innerHTML = '<p>Homework is unavailable right now.</p>'; return; }
+  const { data: submission, error: submissionError } = await db.from('submissions').select('id,status,submitted_at,coach_feedback,submission_answers(question_key,display_order,answer_text),submission_files(id,file_name,storage_path,mime_type)').eq('assignment_id', assignment.id).eq('student_id', studentId).maybeSingle();
+  if (submissionError) { window.FIREFLIES_DIAGNOSTICS?.report('Parent homework view', submissionError); gate.innerHTML = '<p>Your child’s homework is unavailable right now.</p>'; return; }
+  if (!submission) { gate.innerHTML = `<h2>${esc(assignment.title)}</h2><p>Your child has not submitted this homework yet.</p>`; return; }
+  const answers = (submission.submission_answers || []).sort((a, b) => a.display_order - b.display_order).map(answer => `<article class="answer-card"><h4>${esc(questionLabel(answer.question_key))}</h4><p>${esc(answer.answer_text || 'No response yet.')}</p></article>`).join('');
+  const files = await Promise.all((submission.submission_files || []).map(async file => {
+    const { data } = await db.storage.from('homework-files').createSignedUrl(file.storage_path, 900);
+    return data?.signedUrl ? `<a class="file-chip" href="${esc(data.signedUrl)}" target="_blank" rel="noopener">${esc(file.file_name)}</a>` : `<span class="file-chip">${esc(file.file_name)}</span>`;
+  }));
+  gate.innerHTML = `<div class="section-title"><div><span class="eyebrow">Linked student submission</span><h2>${esc(assignment.title)}</h2></div><span class="status-chip">${esc(submission.status || 'Submitted')}</span></div><p class="muted">Submitted ${submission.submitted_at ? esc(new Date(submission.submitted_at).toLocaleString()) : 'recently'}.</p><div class="parent-submission">${answers || '<p>No written responses yet.</p>'}${files.length ? `<div class="submission-files">${files.join('')}</div>` : ''}${submission.coach_feedback ? `<article class="coach-feedback"><h3>Coach feedback</h3><p>${esc(submission.coach_feedback)}</p></article>` : ''}</div>`;
+}
+
+function questionLabel(key) {
+  return ({ topic: 'Chosen topic', paragraph: 'What interests your child', sources: 'Sources or links', three_parts: 'The three parts of FLL Challenge', biodiversity_question: 'Biodiversity question', core_value: 'Core Value', session1_plan: 'Session 1 plan', team_name: 'Proposed team name', cause: 'Biodiversity cause', reason: 'Why this name fits', next_step: 'Next step' })[key] || key.replace(/_/g, ' ');
 }
 
 // Remove the initial paint guard only after the role/session check has finished.
