@@ -84,14 +84,15 @@
                 <a class="account-action" href="profile.html" data-profile-link hidden>My profile</a>
                 <a class="account-action" href="admin.html" data-admin-link hidden>Admin approvals</a>
                 <a class="account-action" href="admin-settings.html" data-settings-link hidden>⚙ Admin settings</a>
-                <label class="theme-picker">Color theme
-                  <select data-color-theme aria-label="Color theme">
-                    <option value="forest">Forest</option>
-                    <option value="ocean">Ocean</option>
-                    <option value="violet">Violet</option>
-                    <option value="sunset">Sunset</option>
-                  </select>
-                </label>
+                <div class="theme-picker" aria-label="Color theme">
+                  <span>Color theme</span>
+                  <div class="theme-swatches" role="group" aria-label="Choose color theme">
+                    <button type="button" class="theme-swatch forest" data-color-theme="forest" aria-label="Forest theme" title="Forest theme"></button>
+                    <button type="button" class="theme-swatch ocean" data-color-theme="ocean" aria-label="Ocean theme" title="Ocean theme"></button>
+                    <button type="button" class="theme-swatch violet" data-color-theme="violet" aria-label="Violet theme" title="Violet theme"></button>
+                    <button type="button" class="theme-swatch sunset" data-color-theme="sunset" aria-label="Sunset theme" title="Sunset theme"></button>
+                  </div>
+                </div>
                 <button class="account-action" type="button" data-signout hidden>Sign out</button>
               </div>
             </div>
@@ -117,7 +118,6 @@
     });
 
     const themeButton = header.querySelector(".theme-toggle");
-    const colorThemeSelect = header.querySelector("[data-color-theme]");
     const setThemeButton = () => {
       const dark = document.documentElement.dataset.theme === "dark";
       const label = dark ? "Switch to day mode" : "Switch to night mode";
@@ -131,8 +131,6 @@
       localStorage.setItem("fireflies-theme", next);
       setThemeButton();
     });
-    colorThemeSelect.value = document.documentElement.dataset.colorTheme;
-
     const accountButton = header.querySelector(".account-button");
     const accountDropdown = header.querySelector(".account-dropdown");
     const closeAccount = () => {
@@ -204,15 +202,15 @@ async function initializeAccountMenu(header) {
   const config = await loadPortalConfig();
   const signIn = header.querySelector("[data-google-signin]");
   const signOut = header.querySelector("[data-signout]");
-  const colorThemeSelect = header.querySelector("[data-color-theme]");
+  const colorThemeButtons = [...header.querySelectorAll("[data-color-theme]")];
   let activeColorThemeKey = "fireflies-color-theme";
   const selectColorTheme = theme => {
     const safeTheme = ["forest", "ocean", "violet", "sunset"].includes(theme) ? theme : "forest";
     document.documentElement.dataset.colorTheme = safeTheme;
-    colorThemeSelect.value = safeTheme;
+    colorThemeButtons.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.colorTheme === safeTheme)));
     localStorage.setItem(activeColorThemeKey, safeTheme);
   };
-  colorThemeSelect.addEventListener("change", () => selectColorTheme(colorThemeSelect.value));
+  colorThemeButtons.forEach(button => button.addEventListener("click", () => selectColorTheme(button.dataset.colorTheme)));
   if (!config || config.forceDemo || !config.supabaseUrl || !config.supabaseAnonKey) {
     signIn.addEventListener("click", () => { location.href = "login.html"; });
     return;
