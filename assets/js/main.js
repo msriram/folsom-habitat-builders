@@ -84,15 +84,6 @@
                 <a class="account-action" href="profile.html" data-profile-link hidden>My profile</a>
                 <a class="account-action" href="admin.html" data-admin-link hidden>Admin approvals</a>
                 <a class="account-action" href="admin-settings.html" data-settings-link hidden>⚙ Admin settings</a>
-                <div class="theme-picker" aria-label="Color theme">
-                  <span>Color theme</span>
-                  <div class="theme-swatches" role="group" aria-label="Choose color theme">
-                    <button type="button" class="theme-swatch forest" data-color-theme="forest" aria-label="Forest theme" title="Forest theme"></button>
-                    <button type="button" class="theme-swatch ocean" data-color-theme="ocean" aria-label="Ocean theme" title="Ocean theme"></button>
-                    <button type="button" class="theme-swatch violet" data-color-theme="violet" aria-label="Violet theme" title="Violet theme"></button>
-                    <button type="button" class="theme-swatch sunset" data-color-theme="sunset" aria-label="Sunset theme" title="Sunset theme"></button>
-                  </div>
-                </div>
                 <button class="account-action" type="button" data-signout hidden>Sign out</button>
               </div>
             </div>
@@ -202,7 +193,7 @@ async function initializeAccountMenu(header) {
   const config = await loadPortalConfig();
   const signIn = header.querySelector("[data-google-signin]");
   const signOut = header.querySelector("[data-signout]");
-  const colorThemeButtons = [...header.querySelectorAll("[data-color-theme]")];
+  const colorThemeButtons = [...document.querySelectorAll("[data-color-theme]")];
   let activeColorThemeKey = "fireflies-color-theme";
   const selectColorTheme = theme => {
     const safeTheme = ["forest", "ocean", "violet", "sunset"].includes(theme) ? theme : "forest";
