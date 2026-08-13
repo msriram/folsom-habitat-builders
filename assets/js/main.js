@@ -24,6 +24,12 @@
   const savedTheme = localStorage.getItem("fireflies-theme");
   const initialTheme = savedTheme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
   document.documentElement.dataset.theme = initialTheme;
+  const colorThemeKey = "fireflies-color-theme";
+  const colorThemes = ["forest", "ocean", "violet", "sunset"];
+  const applyColorTheme = theme => {
+    document.documentElement.dataset.colorTheme = colorThemes.includes(theme) ? theme : "forest";
+  };
+  applyColorTheme(localStorage.getItem(colorThemeKey) || "forest");
 
   const navItems = [
     ["Home", "index.html"],
@@ -78,6 +84,14 @@
                 <a class="account-action" href="profile.html" data-profile-link hidden>My profile</a>
                 <a class="account-action" href="admin.html" data-admin-link hidden>Admin approvals</a>
                 <a class="account-action" href="admin-settings.html" data-settings-link hidden>⚙ Admin settings</a>
+                <label class="theme-picker">Color theme
+                  <select data-color-theme aria-label="Color theme">
+                    <option value="forest">Forest</option>
+                    <option value="ocean">Ocean</option>
+                    <option value="violet">Violet</option>
+                    <option value="sunset">Sunset</option>
+                  </select>
+                </label>
                 <button class="account-action" type="button" data-signout hidden>Sign out</button>
               </div>
             </div>
@@ -103,6 +117,7 @@
     });
 
     const themeButton = header.querySelector(".theme-toggle");
+    const colorThemeSelect = header.querySelector("[data-color-theme]");
     const setThemeButton = () => {
       const dark = document.documentElement.dataset.theme === "dark";
       const label = dark ? "Switch to day mode" : "Switch to night mode";
@@ -116,6 +131,7 @@
       localStorage.setItem("fireflies-theme", next);
       setThemeButton();
     });
+    colorThemeSelect.value = document.documentElement.dataset.colorTheme;
 
     const accountButton = header.querySelector(".account-button");
     const accountDropdown = header.querySelector(".account-dropdown");
@@ -188,6 +204,15 @@ async function initializeAccountMenu(header) {
   const config = await loadPortalConfig();
   const signIn = header.querySelector("[data-google-signin]");
   const signOut = header.querySelector("[data-signout]");
+  const colorThemeSelect = header.querySelector("[data-color-theme]");
+  let activeColorThemeKey = "fireflies-color-theme";
+  const selectColorTheme = theme => {
+    const safeTheme = ["forest", "ocean", "violet", "sunset"].includes(theme) ? theme : "forest";
+    document.documentElement.dataset.colorTheme = safeTheme;
+    colorThemeSelect.value = safeTheme;
+    localStorage.setItem(activeColorThemeKey, safeTheme);
+  };
+  colorThemeSelect.addEventListener("change", () => selectColorTheme(colorThemeSelect.value));
   if (!config || config.forceDemo || !config.supabaseUrl || !config.supabaseAnonKey) {
     signIn.addEventListener("click", () => { location.href = "login.html"; });
     return;
@@ -217,6 +242,8 @@ async function initializeAccountMenu(header) {
       const settingsLink = header.querySelector("[data-settings-link]");
       const setAdminOnly = isAdmin => document.querySelectorAll("[data-admin-only]").forEach(element => element.hidden = !isAdmin);
       if (!session) {
+        activeColorThemeKey = "fireflies-color-theme";
+        selectColorTheme(localStorage.getItem(activeColorThemeKey) || "forest");
         avatarTarget = null;
         avatarKind = null;
         mascot.setAttribute("hidden", ""); outline.removeAttribute("hidden"); signIn.hidden = false; signOut.hidden = true;
@@ -229,6 +256,8 @@ async function initializeAccountMenu(header) {
       }
       const fallbackName = session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "Team member";
       const { data: profile } = await client.from("profiles").select("id,display_name,email,role,approval_status,linked_student_id,is_admin").eq("id", session.user.id).maybeSingle();
+      activeColorThemeKey = profile?.id ? `fireflies-color-theme-${profile.id}` : "fireflies-color-theme";
+      selectColorTheme(localStorage.getItem(activeColorThemeKey) || localStorage.getItem("fireflies-color-theme") || "forest");
       const isAdmin = profile?.approval_status === "approved" && profile?.role === "coach" && (profile.is_admin || profile.email?.toLowerCase() === "sriram87@gmail.com");
       avatarTarget = profile?.id || null;
       avatarKind = profile?.role === "student" ? "student" : "account";

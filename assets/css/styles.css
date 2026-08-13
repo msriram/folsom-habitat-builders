@@ -31,6 +31,58 @@ html[data-theme="dark"] {
   --shadow: 0 18px 50px rgba(0, 0, 0, .38);
 }
 
+html[data-color-theme="ocean"] {
+  --forest: #176b8c;
+  --leaf: #2789b4;
+  --glow: #f4c95d;
+  --amber: #e99d34;
+  --sky: #236f9b;
+  --border: rgba(20, 89, 120, .16);
+  --shadow: 0 18px 50px rgba(20, 89, 120, .13);
+}
+html[data-theme="dark"][data-color-theme="ocean"] {
+  --forest: #7acbea;
+  --leaf: #4db0d4;
+  --glow: #f4cf6b;
+  --amber: #ffc46e;
+  --sky: #95d9f1;
+  --border: rgba(190, 238, 255, .17);
+}
+html[data-color-theme="violet"] {
+  --forest: #6246a3;
+  --leaf: #8a68c8;
+  --glow: #f2c75c;
+  --amber: #e78d3f;
+  --sky: #6f63b7;
+  --border: rgba(78, 55, 135, .16);
+  --shadow: 0 18px 50px rgba(78, 55, 135, .13);
+}
+html[data-theme="dark"][data-color-theme="violet"] {
+  --forest: #c7afff;
+  --leaf: #a988ed;
+  --glow: #f2ce71;
+  --amber: #ffbd73;
+  --sky: #c1b5ff;
+  --border: rgba(227, 216, 255, .17);
+}
+html[data-color-theme="sunset"] {
+  --forest: #b64d35;
+  --leaf: #d66d42;
+  --glow: #f3c34b;
+  --amber: #e98927;
+  --sky: #4f88a1;
+  --border: rgba(154, 60, 42, .16);
+  --shadow: 0 18px 50px rgba(154, 60, 42, .13);
+}
+html[data-theme="dark"][data-color-theme="sunset"] {
+  --forest: #ffaf8d;
+  --leaf: #f2875d;
+  --glow: #f6d36b;
+  --amber: #ffc06b;
+  --sky: #9ccfe0;
+  --border: rgba(255, 220, 205, .17);
+}
+
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { scroll-behavior: smooth; }
@@ -87,6 +139,7 @@ html[data-theme="dark"] .moon-icon { display:block; }
 .account-summary span { color:var(--muted); font-size:.88rem; }.account-summary small { margin-top:5px; color:var(--forest); font-weight:800; text-transform:capitalize; }
 .account-action { width:100%; display:block; padding:.72rem .8rem; border:0; border-radius:9px; color:var(--ink); background:transparent; text-align:left; text-decoration:none; font:inherit; font-weight:750; cursor:pointer; }
 .account-action:hover { background:var(--surface-strong); }
+.theme-picker{display:grid;gap:5px;margin:8px 4px;padding:9px 8px 3px;border-top:1px solid var(--border);color:var(--muted);font-size:.78rem;font-weight:800}.theme-picker select{width:100%;padding:.5rem .6rem;border:1px solid var(--border);border-radius:8px;background:var(--paper);color:var(--ink);font:inherit;font-size:.9rem}
 
 main { overflow: clip; }
 .container { width: min(var(--content), calc(100% - 48px)); margin-inline: auto; }
