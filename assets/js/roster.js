@@ -24,7 +24,7 @@ else{
       status.hidden=true;
       const people=data||[];
       document.querySelector('[data-coaches]').innerHTML=people.filter(person=>['coach','student_coach'].includes(person.role)).map(coachCard).join('');
-      const studentCards=await Promise.all(people.filter(person=>person.role==='student').map(person=>studentCard(db,person)));
+      const studentCards=await Promise.all(people.filter(person=>person.role==='student').map(person=>studentCard(db,person,session.user.id)));
       document.querySelector('[data-students]').innerHTML=studentCards.join('');
     }
   }
@@ -35,13 +35,16 @@ function coachCard(person){
   return `<article class="roster-card"><span>Coach</span><h3>${escapeHtml(person.display_name)}</h3><p>${escapeHtml(title)}</p></article>`;
 }
 
-async function studentCard(db,person){
+async function studentCard(db,person,currentUserId){
   let imageUrl=avatarUrl(person.avatar_key);
   if(person.photo_path){
     const {data:signed,error}=await db.storage.from('profile-photos').createSignedUrl(person.photo_path,900);
     if(!error&&signed?.signedUrl)imageUrl=signed.signedUrl;
   }
-  return `<a class="student-roster-card" href="student.html?id=${encodeURIComponent(person.id)}" aria-label="View ${escapeHtml(person.display_name)}"><img src="${escapeHtml(imageUrl)}" alt=""><strong>${escapeHtml(person.display_name)}</strong></a>`;
+  const isOwnProfile=person.id===currentUserId;
+  const destination=isOwnProfile?'profile.html':'student.html?id='+encodeURIComponent(person.id);
+  const action=isOwnProfile?'Edit team profile':'View team profile';
+  return `<a class="student-roster-card" href="${destination}" aria-label="${action}: ${escapeHtml(person.display_name)}"><img src="${escapeHtml(imageUrl)}" alt=""><strong>${escapeHtml(person.display_name)}</strong>${isOwnProfile?'<small>Edit team profile →</small>':''}</a>`;
 }
 
 function avatarUrl(value){return `assets/img/avatars/${avatarNames.includes(value)?value:avatarNames[0]}.webp`}
