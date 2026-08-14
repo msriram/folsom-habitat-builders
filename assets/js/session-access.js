@@ -1,4 +1,5 @@
 const sessionConfig=window.FIREFLIES_PORTAL_CONFIG||{};
+const sessionNotesStyle=document.createElement('style');sessionNotesStyle.textContent='.session-notes textarea{display:block;width:100%;min-height:18rem;box-sizing:border-box;resize:vertical;line-height:1.55;padding:1rem;border:1px solid var(--line,#d8dfd8);border-radius:.65rem;background:var(--surface,#fff);color:inherit}';document.head.append(sessionNotesStyle);
 const sessionKey=document.body.dataset.session;
 if(!sessionConfig.forceDemo&&sessionConfig.supabaseUrl&&sessionConfig.supabaseAnonKey){
   const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2');
