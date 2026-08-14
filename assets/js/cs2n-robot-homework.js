@@ -2,6 +2,7 @@ const config = window.FIREFLIES_PORTAL_CONFIG || {};
 const homeworkHost = document.querySelector('[data-cs2n-robot-homework]');
 const robotHost = document.querySelector('[data-cs2n-robot-drills]');
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const DAY = 24 * 60 * 60 * 1000;
 let db;
 
 if ((homeworkHost || robotHost) && !config.forceDemo && config.supabaseUrl && config.supabaseAnonKey) {
@@ -25,13 +26,20 @@ async function load(userId) {
   const own = new Map(allSubmissions.filter(item => item.student_id === studentId).map(item => [item.task_id, item]));
   const byTask = new Map(); allSubmissions.forEach(item => byTask.set(item.task_id, [...(byTask.get(item.task_id) || []), item]));
   const context = { isStudent: profile.role === 'student', isCoach: ['coach','student_coach'].includes(profile.role), own, byTask };
-  renderHomework(visibleTasks, context); renderRobotLab(visibleTasks);
+  const homeworkTasks = context.isCoach ? visibleTasks : visibleTasks.filter(task => task.week_number <= releasedHomeworkWeek());
+  renderHomework(homeworkTasks, context); renderRobotLab(visibleTasks);
+}
+function releasedHomeworkWeek() {
+  const now = new Date();
+  const localToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const firstRelease = new Date(2026, 7, 12); // Wednesday before Week 2 begins.
+  return Math.max(1, Math.floor((localToday - firstRelease) / (7 * DAY)) + 2);
 }
 function renderHomework(tasks, context) {
   if (!homeworkHost) return;
   const weekTwo = document.querySelector('[data-homework-week="2"]'); const weekTwoTask = tasks.find(task => task.week_number === 2);
   if (weekTwo && weekTwoTask && !context.isCoach) weekTwo.querySelector('footer')?.insertAdjacentHTML('beforebegin', homeworkTask(weekTwoTask, context));
-  homeworkHost.innerHTML = tasks.filter(task => context.isCoach ? task.week_number >= 2 : task.week_number > 2).map(task => `<details class="homework-notebook homework-next cs2n-week" data-homework-week="${task.week_number}"><summary class="notebook-title"><div><span>Week ${task.week_number} · ${task.phase === 'optional' ? 'Optional extension' : 'Programming homework'}</span><h3>${esc(task.title)}</h3></div><strong>${task.phase === 'optional' ? 'Optional' : 'CS2N'}</strong><em>Click to expand</em></summary><section class="notebook-cell">${homeworkTask(task, context)}</section></details>`).join('');
+  homeworkHost.innerHTML = tasks.filter(task => context.isCoach ? task.week_number >= 2 : task.week_number > 2).map(task => `<details class="homework-notebook homework-next cs2n-week" data-homework-week="${task.week_number}"><summary class="notebook-title"><div><span>Week ${task.week_number} · ${task.phase === 'optional' ? 'Optional extension' : 'Homework'}</span><h3>${esc(task.title)}</h3></div><strong>${task.phase === 'optional' ? 'Optional' : 'CS2N'}</strong><em>Click to expand</em></summary><section class="notebook-cell">${homeworkTask(task, context)}</section></details>`).join('');
   if (context.isStudent) bindStudent(); if (context.isCoach) bindCoach();
 }
 function homeworkTask(task, context) {
