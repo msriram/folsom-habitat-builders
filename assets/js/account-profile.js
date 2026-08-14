@@ -20,7 +20,6 @@ const mascot='assets/img/logo.svg';
 let pendingPhoto=null;
 let pendingPhotoUrl=null;
 let existingPhotoPath=null;
-let removePhoto=false;
 let photoWasAdjusted=false;
 
 const directPhotoEditor=attachDirectPhotoEditor({frame:photoFrame,image:photo,zoom,horizontal:focusX,vertical:focusY,enabled:()=>!photoControls.hidden,onChange:()=>{photoWasAdjusted=true;setMessage('Photo adjusted. Save your profile when it looks right.')}});
@@ -156,7 +155,6 @@ function setupForm(db,session,profile){
     pendingPhoto=file;
     pendingPhotoUrl=URL.createObjectURL(file);
     photo.src=pendingPhotoUrl;
-    removePhoto=false;
     photoWasAdjusted=false;
     zoom.value='1';focusX.value='50';focusY.value='50';
     photoControls.hidden=false;
@@ -164,15 +162,6 @@ function setupForm(db,session,profile){
     setMessage('Adjust the photo, then save your profile.');
   });
   [zoom,focusX,focusY].forEach(control=>control.addEventListener('input',applyPhotoPreview));
-  document.querySelector('[data-remove-account-photo]').onclick=()=>{
-    clearPendingPhoto();
-    removePhoto=true;
-    photoWasAdjusted=false;
-    photo.src=mascot;
-    photo.style.transform='';
-    photo.style.transformOrigin='';
-    setMessage('The team mascot will be used after you save.');
-  };
   form.onsubmit=async event=>{
     event.preventDefault();
     saveButton.disabled=true;
@@ -180,7 +169,7 @@ function setupForm(db,session,profile){
     setMessage('Saving…');
     let uploadedPath=null;
     try{
-      let photoPath=removePhoto?null:existingPhotoPath;
+      let photoPath=existingPhotoPath;
       let editablePhoto=pendingPhoto;
       if(!editablePhoto&&photoWasAdjusted&&existingPhotoPath){const {data:existingPhoto,error:existingPhotoError}=await db.storage.from('account-photos').download(existingPhotoPath);if(existingPhotoError)throw existingPhotoError;editablePhoto=existingPhoto;}
       if(editablePhoto){
@@ -199,7 +188,6 @@ function setupForm(db,session,profile){
         if(removeError)window.FIREFLIES_DIAGNOSTICS?.report('Old account photo',removeError);
       }
       existingPhotoPath=photoPath;
-      removePhoto=false;
       clearPendingPhoto();
       form.elements.account_photo.value='';
       let signedUrl=null;
