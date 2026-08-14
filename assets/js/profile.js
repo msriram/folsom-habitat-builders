@@ -122,14 +122,6 @@ if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
         }
         if (me.role === 'student' || me.role === 'coach') await setupStudentRelationships(db, target);
 
-        document.querySelector('[data-remove-photo]').onclick = () => {
-          clearPendingPhoto();
-          keepExistingPhoto = false;
-          photoWasAdjusted = false;
-          showAvatar(form.elements.avatar_key.value);
-          setMessage('The selected avatar will replace the uploaded photo when you save.');
-        };
-
         form.onsubmit = async event => {
           event.preventDefault();
           saveButton.disabled = true;
