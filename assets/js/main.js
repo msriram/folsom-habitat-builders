@@ -25,7 +25,7 @@
   const initialTheme = savedTheme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
   document.documentElement.dataset.theme = initialTheme;
   const colorThemeKey = "fireflies-color-theme";
-  const colorThemes = ["forest", "ocean", "violet", "sunset"];
+  const colorThemes = ["forest", "ocean", "violet", "sunset", "rose", "cobalt", "citrus", "slate", "berry", "mint"];
   const applyColorTheme = theme => {
     document.documentElement.dataset.colorTheme = colorThemes.includes(theme) ? theme : "forest";
   };
