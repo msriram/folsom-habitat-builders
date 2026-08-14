@@ -191,12 +191,14 @@ import('./meeting-time.js?v=1');
 
 async function initializeAccountMenu(header) {
   const config = await loadPortalConfig();
+  const colorThemeKey = "fireflies-color-theme";
+  const colorThemes = ["forest", "ocean", "violet", "sunset", "rose", "cobalt", "citrus", "slate", "berry", "mint"];
   const signIn = header.querySelector("[data-google-signin]");
   const signOut = header.querySelector("[data-signout]");
   const colorThemeButtons = [...document.querySelectorAll("[data-color-theme]")];
   let activeColorThemeKey = "fireflies-color-theme";
   const selectColorTheme = theme => {
-    const safeTheme = ["forest", "ocean", "violet", "sunset", "rose", "cobalt", "citrus", "slate", "berry", "mint"].includes(theme) ? theme : "forest";
+    const safeTheme = colorThemes.includes(theme) ? theme : "forest";
       document.documentElement.dataset.colorTheme = safeTheme;
       colorThemeButtons.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.colorTheme === safeTheme)));
       localStorage.setItem(activeColorThemeKey, safeTheme);
