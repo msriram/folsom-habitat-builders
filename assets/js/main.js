@@ -196,7 +196,7 @@ async function initializeAccountMenu(header) {
   const colorThemeButtons = [...document.querySelectorAll("[data-color-theme]")];
   let activeColorThemeKey = "fireflies-color-theme";
   const selectColorTheme = theme => {
-    const safeTheme = ["forest", "ocean", "violet", "sunset"].includes(theme) ? theme : "forest";
+    const safeTheme = ["forest", "ocean", "violet", "sunset", "rose", "cobalt", "citrus", "slate", "berry", "mint"].includes(theme) ? theme : "forest";
       document.documentElement.dataset.colorTheme = safeTheme;
       colorThemeButtons.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.colorTheme === safeTheme)));
       localStorage.setItem(activeColorThemeKey, safeTheme);
