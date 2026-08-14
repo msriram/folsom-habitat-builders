@@ -37,7 +37,9 @@ function releasedHomeworkWeek() {
 }
 function renderHomework(tasks, context) {
   if (!homeworkHost) return;
-  homeworkHost.innerHTML = tasks.filter(task => context.isCoach ? task.week_number >= 2 : task.week_number > 2).map(task => `<details class="homework-notebook homework-next cs2n-week" data-homework-week="${task.week_number}"><summary class="notebook-title"><div><span>Week ${task.week_number} · ${task.phase === 'optional' ? 'Optional extension' : 'Homework'}</span><h3>${esc(task.title)}</h3></div><strong>${task.phase === 'optional' ? 'Optional' : 'CS2N'}</strong><em>Click to expand</em></summary><section class="notebook-cell">${homeworkTask(task, context)}</section></details>`).join('');
+  if (context.isCoach) { homeworkHost.hidden = true; homeworkHost.innerHTML = ''; return; }
+  homeworkHost.hidden = false;
+  homeworkHost.innerHTML = tasks.filter(task => task.week_number > 2).map(task => `<details class="homework-notebook homework-next cs2n-week" data-homework-week="${task.week_number}"><summary class="notebook-title"><div><span>Week ${task.week_number} · ${task.phase === 'optional' ? 'Optional extension' : 'Homework'}</span><h3>${esc(task.title)}</h3></div><strong>${task.phase === 'optional' ? 'Optional' : 'CS2N'}</strong><em>Click to expand</em></summary><section class="notebook-cell">${homeworkTask(task, context)}</section></details>`).join('');
   if (context.isStudent) bindStudent(); if (context.isCoach) bindCoach();
 }
 function homeworkTask(task, context) {
