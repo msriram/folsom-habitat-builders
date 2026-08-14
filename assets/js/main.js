@@ -25,10 +25,10 @@
   const initialTheme = savedTheme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
   document.documentElement.dataset.theme = initialTheme;
   const colorThemeKey = "fireflies-color-theme";
-  const colorThemes = ["forest", "ocean", "violet", "sunset", "rose", "cobalt", "citrus", "slate", "berry", "mint"];
+  const colorThemes = ["forest", "ocean", "violet", "sunset", "rose", "cobalt", "citrus", "slate", "berry", "mint", "lagoon", "ember"];
   const colorThemeOptions = [
     ["forest", "Firefly Forest"], ["ocean", "Blue Current"], ["violet", "Electric Violet"], ["sunset", "Sunset Glow"], ["rose", "Rose Quartz"],
-    ["cobalt", "Cobalt Circuit"], ["citrus", "Crunchy Citrus"], ["slate", "Cool Slate"], ["berry", "Berry Burst"], ["mint", "Fresh Mint"]
+    ["cobalt", "Cobalt Circuit"], ["citrus", "Crunchy Citrus"], ["slate", "Cool Slate"], ["berry", "Berry Burst"], ["mint", "Fresh Mint"], ["lagoon", "Lagoon Glow"], ["ember", "Ember Trail"]
   ];
   const applyColorTheme = theme => {
     document.documentElement.dataset.colorTheme = colorThemes.includes(theme) ? theme : "forest";
@@ -218,8 +218,8 @@ import('./meeting-time.js?v=1');
 async function initializeAccountMenu(header) {
   const config = await loadPortalConfig();
   const colorThemeKey = "fireflies-color-theme";
-  const colorThemes = ["forest", "ocean", "violet", "sunset", "rose", "cobalt", "citrus", "slate", "berry", "mint"];
-  const colorThemeNames = {forest:"Firefly Forest",ocean:"Blue Current",violet:"Electric Violet",sunset:"Sunset Glow",rose:"Rose Quartz",cobalt:"Cobalt Circuit",citrus:"Crunchy Citrus",slate:"Cool Slate",berry:"Berry Burst",mint:"Fresh Mint"};
+  const colorThemes = ["forest", "ocean", "violet", "sunset", "rose", "cobalt", "citrus", "slate", "berry", "mint", "lagoon", "ember"];
+  const colorThemeNames = {forest:"Firefly Forest",ocean:"Blue Current",violet:"Electric Violet",sunset:"Sunset Glow",rose:"Rose Quartz",cobalt:"Cobalt Circuit",citrus:"Crunchy Citrus",slate:"Cool Slate",berry:"Berry Burst",mint:"Fresh Mint",lagoon:"Lagoon Glow",ember:"Ember Trail"};
   const signIn = header.querySelector("[data-google-signin]");
   const signOut = header.querySelector("[data-signout]");
   const colorThemeButtons = [...document.querySelectorAll("[data-color-theme]")];
@@ -230,6 +230,7 @@ async function initializeAccountMenu(header) {
     button.setAttribute("aria-label", name);
   });
   let activeColorThemeKey = "fireflies-color-theme";
+  let saveProfileColorTheme = null;
   const selectColorTheme = theme => {
     const safeTheme = colorThemes.includes(theme) ? theme : "forest";
       document.documentElement.dataset.colorTheme = safeTheme;
@@ -243,7 +244,9 @@ async function initializeAccountMenu(header) {
       localStorage.setItem(colorThemeKey, safeTheme);
   };
   colorThemeButtons.forEach(button => button.addEventListener("click", () => {
-    selectColorTheme(button.dataset.colorTheme);
+    const theme = button.dataset.colorTheme;
+    selectColorTheme(theme);
+    saveProfileColorTheme?.(theme);
     const menu = header.querySelector(".theme-palette-menu");
     if (menu) { menu.hidden = true; colorPaletteToggle?.setAttribute("aria-expanded", "false"); }
   }));
@@ -289,12 +292,13 @@ async function initializeAccountMenu(header) {
         return;
       }
       const fallbackName = session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "Team member";
-      const { data: profile } = await client.from("profiles").select("id,display_name,email,role,approval_status,linked_student_id,is_admin").eq("id", session.user.id).maybeSingle();
+      const { data: profile } = await client.from("profiles").select("id,display_name,email,role,approval_status,linked_student_id,is_admin,color_theme").eq("id", session.user.id).maybeSingle();
       activeColorThemeKey = profile?.id ? `fireflies-color-theme-${profile.id}` : "fireflies-color-theme";
-      // The shared key is updated on every selection and is available before
-      // authentication finishes on the next page. Prefer it over old
-      // account-specific values so a recent choice cannot snap back to Forest.
-      selectColorTheme(localStorage.getItem(colorThemeKey) || localStorage.getItem(activeColorThemeKey) || "forest");
+      saveProfileColorTheme = async theme => {
+        const { error } = await client.rpc("set_my_color_theme", { new_theme: theme });
+        if (error) window.FIREFLIES_DIAGNOSTICS?.report("Save color theme", error);
+      };
+      selectColorTheme(profile?.color_theme || localStorage.getItem(colorThemeKey) || localStorage.getItem(activeColorThemeKey) || "forest");
       const isAdmin = profile?.approval_status === "approved" && profile?.role === "coach" && (profile.is_admin || profile.email?.toLowerCase() === "sriram87@gmail.com");
       avatarTarget = profile?.id || null;
       avatarKind = profile?.role === "student" ? "student" : "account";
