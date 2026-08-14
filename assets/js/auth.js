@@ -36,6 +36,17 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
 async function setupAdmin(supabase,profile){
   document.querySelector('[data-admin-locked]')?.setAttribute('hidden','');
   document.querySelector('[data-admin-view]')?.removeAttribute('hidden');
+  const gmailButton=document.querySelector('[data-connect-gmail]');
+  const gmailMessage=document.querySelector('[data-gmail-message]');
+  if(gmailButton){
+    if(new URLSearchParams(location.search).get('gmail')==='connected')gmailMessage.textContent='Gmail connected. Weekly reminders will send from this account.';
+    gmailButton.onclick=async()=>{
+      gmailButton.disabled=true; gmailButton.textContent='Opening Gmail…'; gmailMessage.textContent='';
+      const {data,error}=await supabase.functions.invoke('gmail-oauth-start');
+      if(error||!data?.url){window.FIREFLIES_DIAGNOSTICS?.report('Connect Gmail',error);gmailMessage.textContent='Gmail could not be connected right now.';gmailButton.disabled=false;gmailButton.textContent='Connect Gmail reminders';return;}
+      location.assign(data.url);
+    };
+  }
   const pendingRoot=document.querySelector('[data-pending-users]');
   const approvedRoot=document.querySelector('[data-approved-users]');
   const approvedStudentsRoot=document.querySelector('[data-approved-students]');
