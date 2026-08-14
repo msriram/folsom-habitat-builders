@@ -108,6 +108,10 @@ async function openStudentForm(db, studentId, form, gate, week) {
   }
   form.onsubmit = async event => {
     event.preventDefault();
+    if (form.dataset.submitting === 'true') return;
+    form.dataset.submitting = 'true';
+    const submitButton = form.querySelector('button[type="submit"]');
+    if (submitButton) { submitButton.disabled = true; submitButton.textContent = 'Submitting…'; }
     message.textContent = 'Saving…';
     const fileField = form.elements.files;
     const programmingScreenshot = form.elements.cs2n_screenshot;
