@@ -54,7 +54,7 @@ async function openParentSubmission(db, studentId, gate, week) {
 }
 
 function questionLabel(key) {
-  return ({ topic: 'Chosen topic', paragraph: 'What interests your child', sources: 'Sources or links', three_parts: 'The three parts of FLL Challenge', biodiversity_question: 'Biodiversity question', core_value: 'Core Value', session1_plan: 'Session 1 plan', team_name: 'Proposed team name', cause: 'Biodiversity cause', reason: 'Why this name fits', next_step: 'Next step' })[key] || key.replace(/_/g, ' ');
+  return ({ topic: 'Chosen topic', paragraph: 'What interests your child', sources: 'Sources or links', three_parts: 'The three parts of FLL Challenge', biodiversity_question: 'Biodiversity question', core_value: 'Core Value', session1_plan: 'Session 1 plan', team_name: 'Proposed team name', cause: 'Biodiversity cause', reason: 'Why this name fits', next_step: 'Next step', cs2n_reflection: 'How the CS2N program worked' })[key] || key.replace(/_/g, ' ');
 }
 
 // Remove the initial paint guard only after the role/session check has finished.
@@ -110,11 +110,12 @@ async function openStudentForm(db, studentId, form, gate, week) {
     event.preventDefault();
     message.textContent = 'Saving…';
     const fileField = form.elements.files;
-    const files = fileField ? [...fileField.files] : [];
+    const programmingScreenshot = form.elements.cs2n_screenshot;
+    const files = [...(fileField ? fileField.files : []), ...(programmingScreenshot ? programmingScreenshot.files : [])];
     if (files.length > 5 || files.some(file => file.size > 8 * 1024 * 1024)) { message.textContent = 'One or more files could not be added.'; return; }
     const { data: saved, error: submissionError } = await db.from('submissions').upsert({ assignment_id: assignment.id, student_id: studentId, status: 'submitted', submitted_at: new Date().toISOString() }, { onConflict: 'assignment_id,student_id' }).select('id').single();
     if (submissionError) { window.FIREFLIES_DIAGNOSTICS?.report('Save homework', submissionError); message.textContent = 'Homework could not be saved right now.'; return; }
-    const answers = [...form.querySelectorAll('[name]')].filter(field => field.name !== 'files').map((field, index) => ({ submission_id: saved.id, question_key: field.name, display_order: index, answer_type: field.tagName === 'TEXTAREA' ? 'long_text' : 'text', answer_text: field.value }));
+    const answers = [...form.querySelectorAll('[name]')].filter(field => !['files', 'cs2n_screenshot'].includes(field.name)).map((field, index) => ({ submission_id: saved.id, question_key: field.name, display_order: index, answer_type: field.tagName === 'TEXTAREA' ? 'long_text' : 'text', answer_text: field.value }));
     const { error: answerError } = await db.from('submission_answers').upsert(answers, { onConflict: 'submission_id,question_key' });
     if (answerError) { window.FIREFLIES_DIAGNOSTICS?.report('Save homework answers', answerError); message.textContent = 'Homework could not be saved right now.'; return; }
     for (const file of files) {
@@ -128,6 +129,7 @@ async function openStudentForm(db, studentId, form, gate, week) {
     status.textContent = 'Submitted';
     message.textContent = `${assignment.title} submitted.`;
     if (fileField) fileField.value = '';
+    if (programmingScreenshot) programmingScreenshot.value = '';
   };
 }
 
