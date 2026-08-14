@@ -26,6 +26,10 @@
   document.documentElement.dataset.theme = initialTheme;
   const colorThemeKey = "fireflies-color-theme";
   const colorThemes = ["forest", "ocean", "violet", "sunset", "rose", "cobalt", "citrus", "slate", "berry", "mint"];
+  const colorThemeOptions = [
+    ["forest", "Firefly Forest"], ["ocean", "Blue Current"], ["violet", "Electric Violet"], ["sunset", "Sunset Glow"], ["rose", "Rose Quartz"],
+    ["cobalt", "Cobalt Circuit"], ["citrus", "Crunchy Citrus"], ["slate", "Cool Slate"], ["berry", "Berry Burst"], ["mint", "Fresh Mint"]
+  ];
   const applyColorTheme = theme => {
     document.documentElement.dataset.colorTheme = colorThemes.includes(theme) ? theme : "forest";
   };
@@ -69,6 +73,14 @@
               <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
               <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2Z"/></svg>
             </button>
+            <div class="theme-menu-wrap">
+              <button class="round-control theme-palette-toggle" type="button" aria-label="Choose color theme" aria-expanded="false" aria-controls="theme-palette-menu" title="Choose color theme">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><circle cx="8" cy="16" r="3"/><circle cx="16" cy="16" r="3"/></svg>
+              </button>
+              <div class="theme-palette-menu" id="theme-palette-menu" hidden>
+                <div class="theme-swatches" role="group" aria-label="Choose color theme">${colorThemeOptions.map(([value,name])=>`<button type="button" class="theme-swatch ${value}" data-color-theme="${value}" aria-label="${name}" title="${name}"></button>`).join("")}</div>
+              </div>
+            </div>
             <div class="account-menu-wrap">
               <button class="round-control account-button" type="button" aria-label="Open account menu" aria-expanded="false" aria-controls="account-menu">
                 <svg class="signed-out-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.8 20c.7-4 3.1-6 7.2-6s6.5 2 7.2 6"/></svg>
@@ -122,6 +134,18 @@
       localStorage.setItem("fireflies-theme", next);
       setThemeButton();
     });
+    const paletteWrap = header.querySelector(".theme-menu-wrap");
+    const paletteToggle = header.querySelector(".theme-palette-toggle");
+    const paletteMenu = header.querySelector(".theme-palette-menu");
+    const closePalette = () => { paletteMenu.hidden = true; paletteToggle.setAttribute("aria-expanded", "false"); };
+    paletteToggle.addEventListener("click", event => {
+      event.stopPropagation();
+      const open = paletteMenu.hidden;
+      paletteMenu.hidden = !open;
+      paletteToggle.setAttribute("aria-expanded", String(open));
+    });
+    document.addEventListener("click", event => { if (!paletteWrap.contains(event.target)) closePalette(); });
+    document.addEventListener("keydown", event => { if (event.key === "Escape") closePalette(); });
     const accountButton = header.querySelector(".account-button");
     const accountDropdown = header.querySelector(".account-dropdown");
     const closeAccount = () => {
@@ -193,18 +217,34 @@ async function initializeAccountMenu(header) {
   const config = await loadPortalConfig();
   const colorThemeKey = "fireflies-color-theme";
   const colorThemes = ["forest", "ocean", "violet", "sunset", "rose", "cobalt", "citrus", "slate", "berry", "mint"];
+  const colorThemeNames = {forest:"Firefly Forest",ocean:"Blue Current",violet:"Electric Violet",sunset:"Sunset Glow",rose:"Rose Quartz",cobalt:"Cobalt Circuit",citrus:"Crunchy Citrus",slate:"Cool Slate",berry:"Berry Burst",mint:"Fresh Mint"};
   const signIn = header.querySelector("[data-google-signin]");
   const signOut = header.querySelector("[data-signout]");
   const colorThemeButtons = [...document.querySelectorAll("[data-color-theme]")];
+  const colorPaletteToggle = header.querySelector(".theme-palette-toggle");
+  colorThemeButtons.forEach(button => {
+    const name = colorThemeNames[button.dataset.colorTheme] || "Color theme";
+    button.title = name;
+    button.setAttribute("aria-label", name);
+  });
   let activeColorThemeKey = "fireflies-color-theme";
   const selectColorTheme = theme => {
     const safeTheme = colorThemes.includes(theme) ? theme : "forest";
       document.documentElement.dataset.colorTheme = safeTheme;
       colorThemeButtons.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.colorTheme === safeTheme)));
+      if (colorPaletteToggle) {
+        const name = colorThemeNames[safeTheme];
+        colorPaletteToggle.title = name;
+        colorPaletteToggle.setAttribute("aria-label", `Color theme: ${name}`);
+      }
       localStorage.setItem(activeColorThemeKey, safeTheme);
       localStorage.setItem(colorThemeKey, safeTheme);
   };
-  colorThemeButtons.forEach(button => button.addEventListener("click", () => selectColorTheme(button.dataset.colorTheme)));
+  colorThemeButtons.forEach(button => button.addEventListener("click", () => {
+    selectColorTheme(button.dataset.colorTheme);
+    const menu = header.querySelector(".theme-palette-menu");
+    if (menu) { menu.hidden = true; colorPaletteToggle?.setAttribute("aria-expanded", "false"); }
+  }));
   if (!config || config.forceDemo || !config.supabaseUrl || !config.supabaseAnonKey) {
     signIn.addEventListener("click", () => { location.href = "login.html"; });
     return;

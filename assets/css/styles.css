@@ -214,6 +214,7 @@ html[data-theme="dark"] .site-header { background: var(--header); }
 .round-control { width:44px; height:44px; flex:0 0 44px; display:grid; place-items:center; padding:0; border:1px solid var(--border); border-radius:50%; color:var(--ink); background:var(--paper); cursor:pointer; box-shadow:0 4px 14px rgba(23,49,38,.08); }
 .round-control:hover,.round-control:focus-visible { background:var(--surface-strong); outline:3px solid color-mix(in srgb,var(--glow) 55%,transparent); }
 .round-control svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.theme-menu-wrap{position:relative}.theme-palette-menu{position:absolute;top:52px;right:0;width:178px;padding:12px;border:1px solid var(--border);border-radius:15px;background:var(--paper);box-shadow:var(--shadow);z-index:60}.theme-palette-menu .theme-swatches{gap:9px}.theme-palette-menu .theme-swatch{width:28px;height:28px}
 .moon-icon,html[data-theme="dark"] .sun-icon { display:none; }
 html[data-theme="dark"] .moon-icon { display:block; }
 .account-menu-wrap { position:relative; }
