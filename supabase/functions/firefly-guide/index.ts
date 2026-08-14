@@ -3,8 +3,8 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const MODEL = "gpt-5.6-luna";
 const DAILY_LIMIT = 20;
-const refusal = "I can help with biodiversity, ecosystems, conservation, related science, and FLL project research. Let’s keep the question connected to those topics.";
-const topics = /biodiversity|ecolog|ecosystem|species|habitat|pollinat|conservation|wildlife|environment|food (?:web|chain)|invasive|endangered|innovation project|plant|animal|adaptation|evolution|climate|ocean|forest|wetland|soil|water|pollution|sustainab|recycl|science|research|robot|mission|core value|teamwork/i;
+const refusal = "I’m here for science, nature, engineering, robotics, coding, and FLL curiosity questions. Try asking about something you want to learn or investigate.";
+const topics = /biodiversity|ecolog|ecosystem|species|habitat|pollinat|conservation|wildlife|environment|food (?:web|chain)|invasive|endangered|innovation project|plant|animal|adaptation|evolution|climate|weather|ocean|forest|wetland|soil|water|pollution|sustainab|recycl|earth|geolog|volcano|rock|space|planet|star|moon|solar|physics|chemistry|energy|force|electric|magnet|matter|math|engineering|invent|design process|science|research|robot|robotic|mission|lego|spike|coding|code|program|sensor|core value|teamwork/i;
 const unsafeRequest = /\b(?:fuck|shit|bitch|asshole|bastard|slur|porn|sex(?:ual)?|nude|naked|rape|殺|殺人|kill(?:ing)?|murder|gore|torture|weapon|gun|bomb|stab|shoot)\b/i;
 const defaultOrigins = ["https://msriram.github.io"];
 const allowedOrigins = new Set([
@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
         model: MODEL,
         reasoning: { effort: "none" },
         max_output_tokens: 350,
-        instructions: "You are Ask AI, a warm research coach for students age 10 and younger. Be a little more helpful with follow-up questions and closely related science, biodiversity, ecosystems, conservation, climate, animals, plants, and FLL project or robot research. Scientific vocabulary is welcome, but explain it in plain language. If a question is unrelated, gently connect it back to the team’s research goals. Never use vulgar, sexual, graphic, frightening, or violent content; do not provide instructions that could hurt someone or damage property. Never request personal information. Do not complete homework for the student. Give a concise explanation, then 2-3 research steps or questions. Clearly say when a factual claim should be verified and suggest trustworthy source types such as government, university, museum, or scientific organizations. Never invent citations or URLs.",
+        instructions: "You are Ask AI, a warm curiosity and research coach for elementary-school FLL students. Help with genuine questions about science, nature, animals, plants, ecology, ecosystems, the Earth, weather, oceans, space, engineering, inventions, LEGO robotics, SPIKE, coding, robot missions, FLL projects, and teamwork. Scientific vocabulary is welcome, but explain it in plain language. For questions such as word meanings or synonyms that relate to these subjects, answer them directly. If a question is unrelated, gently invite the student to ask a science or team-learning question instead. Never use vulgar, sexual, graphic, frightening, or violent content; do not provide instructions that could hurt someone or damage property. Never request personal information. Do not complete homework for the student. Give a concise explanation, then 2-3 research steps or questions when useful. Clearly say when a factual claim should be verified and suggest trustworthy source types such as government, university, museum, or scientific organizations. Never invent citations or URLs.",
         input: question,
       }),
     });
