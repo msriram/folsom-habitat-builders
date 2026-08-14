@@ -169,6 +169,12 @@ print("Final heading:", heading, "degrees");`
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
 const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+const formatAiAnswer = value => escapeHtml(value)
+  .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+  .replace(/__([^_]+?)__/g, '<strong>$1</strong>')
+  .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>')
+  .replace(/`([^`\n]+?)`/g, '<code>$1</code>')
+  .replace(/\n/g, '<br>');
 
 function activateTab(name) {
   const button = $(`[data-tab="${name}"]`);
@@ -526,7 +532,7 @@ async function setupGuide() {
     $("#question-list").innerHTML = (history || []).map(item => {
       const author = authorNames.get(item.author_id);
       const label = ["coach", "student_coach"].includes(profile?.role) ? `Asked by ${escapeHtml(author || "Unknown team member")}` : "Team only";
-      return `<article class="card"><span class="status-chip">${label}</span><h3>${escapeHtml(item.question)}</h3><p>${escapeHtml(item.ai_answer)}</p></article>`;
+      return `<article class="card"><span class="status-chip">${label}</span><h3>${escapeHtml(item.question)}</h3><p class="ai-answer">${formatAiAnswer(item.ai_answer)}</p></article>`;
     }).join("") || '<p class="muted">No saved questions yet.</p>';
   };
   form.addEventListener("submit", async event => {
