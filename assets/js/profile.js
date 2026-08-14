@@ -141,8 +141,6 @@ if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
             delete values.profile_photo;
             const displayName = values.display_name;
             delete values.display_name;
-            for (const key of ['height_inches','weight_pounds']) values[key] = values[key] ? Number(values[key]) : null;
-
             let editablePhoto = pendingPhoto;
             if (!editablePhoto && photoWasAdjusted && details.photo_path) {
               const { data: existingPhoto, error: existingPhotoError } = await db.storage.from('profile-photos').download(details.photo_path);
