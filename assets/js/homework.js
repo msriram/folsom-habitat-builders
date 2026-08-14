@@ -42,15 +42,25 @@ async function openParentSubmission(db, studentId, gate, week) {
   }
   const { data: assignment, error: assignmentError } = await db.from('assignments').select('id,title').eq('week_number', week).eq('published', true).maybeSingle();
   if (assignmentError || !assignment) { gate.innerHTML = '<p>Homework is unavailable right now.</p>'; return; }
-  const { data: submission, error: submissionError } = await db.from('submissions').select('id,status,submitted_at,coach_feedback,submission_answers(question_key,display_order,answer_text),submission_files(id,file_name,storage_path,mime_type)').eq('assignment_id', assignment.id).eq('student_id', studentId).maybeSingle();
+  const { data: submission, error: submissionError } = await db.from('submissions').select('id,status,submitted_at,coach_feedback,submission_answers(question_key,display_order,answer_text),submission_files(id,file_name,storage_path,mime_type,size_bytes)').eq('assignment_id', assignment.id).eq('student_id', studentId).maybeSingle();
   if (submissionError) { window.FIREFLIES_DIAGNOSTICS?.report('Parent homework view', submissionError); gate.innerHTML = '<p>Your child’s homework is unavailable right now.</p>'; return; }
   if (!submission) { gate.innerHTML = `<h2>${esc(assignment.title)}</h2><p>Your child has not submitted this homework yet.</p>`; return; }
   const answers = (submission.submission_answers || []).sort((a, b) => a.display_order - b.display_order).map(answer => `<article class="answer-card"><h4>${esc(questionLabel(answer.question_key))}</h4><p>${esc(answer.answer_text || 'No response yet.')}</p></article>`).join('');
-  const files = await Promise.all((submission.submission_files || []).map(async file => {
+  const files = await Promise.all(distinctSubmissionFiles(submission.submission_files).map(async file => {
     const { data } = await db.storage.from('homework-files').createSignedUrl(file.storage_path, 900);
-    return data?.signedUrl ? `<a class="file-chip" href="${esc(data.signedUrl)}" target="_blank" rel="noopener">${esc(file.file_name)}</a>` : `<span class="file-chip">${esc(file.file_name)}</span>`;
+    const open = data?.signedUrl ? `<a href="${esc(data.signedUrl)}" target="_blank" rel="noopener">${esc(file.file_name)}</a>` : `<span>${esc(file.file_name)}</span>`;
+    return `<span class="file-chip managed-file">${open}<button type="button" class="remove-file" data-remove-file="${file.id}" data-storage-path="${esc(file.storage_path)}" title="Remove attachment" aria-label="Remove ${esc(file.file_name)}">×</button></span>`;
   }));
   gate.innerHTML = `<div class="section-title"><div><span class="eyebrow">Linked student submission</span><h2>${esc(assignment.title)}</h2></div><span class="status-chip">${esc(submission.status || 'Submitted')}</span></div><p class="muted">Submitted ${submission.submitted_at ? esc(new Date(submission.submitted_at).toLocaleString()) : 'recently'}.</p><div class="parent-submission">${answers || '<p>No written responses yet.</p>'}${files.length ? `<div class="submission-files">${files.join('')}</div>` : ''}${submission.coach_feedback ? `<article class="coach-feedback"><h3>Coach feedback</h3><p>${esc(submission.coach_feedback)}</p></article>` : ''}</div>`;
+  gate.querySelectorAll('[data-remove-file]').forEach(button => {
+    button.onclick = async () => {
+      if (!confirm('Remove this attachment?')) return;
+      const target = (submission.submission_files || []).find(file => file.id === button.dataset.removeFile);
+      const removed = target && await removeMatchingAttachments(db, submission.submission_files, target);
+      if (!removed) return;
+      await openParentSubmission(db, studentId, gate, week);
+    };
+  });
 }
 
 function questionLabel(key) {
@@ -97,12 +107,12 @@ async function openStudentForm(db, studentId, form, gate, week) {
   if (assignmentError) { if (gate) gate.innerHTML = '<p>Homework is unavailable right now.</p>'; return; }
   if (gate) gate.hidden = true;
   form.hidden = false;
-  let { data: submission } = await db.from('submissions').select('id,status,submitted_at,submission_answers(question_key,answer_text),submission_files(id,file_name,storage_path,mime_type)').eq('assignment_id', assignment.id).eq('student_id', studentId).maybeSingle();
+  let { data: submission } = await db.from('submissions').select('id,status,submitted_at,submission_answers(question_key,answer_text),submission_files(id,file_name,storage_path,mime_type,size_bytes)').eq('assignment_id', assignment.id).eq('student_id', studentId).maybeSingle();
   if (submission) {
     const answers = Object.fromEntries((submission.submission_answers || []).map(answer => [answer.question_key, answer.answer_text]));
     for (const field of form.querySelectorAll('[name]')) if (field.name !== 'files') field.value = answers[field.name] || '';
     status.textContent = submission.status === 'submitted' ? 'Submitted' : 'Draft';
-    existing.innerHTML = (submission.submission_files || []).map(file => `<span class="file-chip">${esc(file.file_name)}</span>`).join('');
+    renderStudentFiles(existing, submission.submission_files, db);
     const detail = form.closest('[data-homework-week]');
     if (detail && week === 0) detail.open = false;
   }
@@ -115,7 +125,12 @@ async function openStudentForm(db, studentId, form, gate, week) {
     message.textContent = 'Saving…';
     const fileField = form.elements.files;
     const programmingScreenshot = form.elements.cs2n_screenshot;
-    const files = [...(fileField ? fileField.files : []), ...(programmingScreenshot ? programmingScreenshot.files : [])];
+    const selectedFiles = [...(fileField ? fileField.files : []), ...(programmingScreenshot ? programmingScreenshot.files : [])];
+    const existingKeys = new Set(distinctSubmissionFiles(submission?.submission_files).map(fileKey));
+    const files = selectedFiles.filter((file, index) => {
+      const key = fileKey(file);
+      return selectedFiles.findIndex(candidate => fileKey(candidate) === key) === index && !existingKeys.has(key);
+    });
     if (files.length > 5 || files.some(file => file.size > 8 * 1024 * 1024)) { message.textContent = 'One or more files could not be added.'; return; }
     const { data: saved, error: submissionError } = await db.from('submissions').upsert({ assignment_id: assignment.id, student_id: studentId, status: 'submitted', submitted_at: new Date().toISOString() }, { onConflict: 'assignment_id,student_id' }).select('id').single();
     if (submissionError) { window.FIREFLIES_DIAGNOSTICS?.report('Save homework', submissionError); message.textContent = 'Homework could not be saved right now.'; return; }
@@ -137,5 +152,42 @@ async function openStudentForm(db, studentId, form, gate, week) {
   };
 }
 
+function distinctSubmissionFiles(files = []) {
+  const seen = new Set();
+  return files.filter(file => {
+    const key = fileKey(file);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+function renderStudentFiles(host, files, db) {
+  host.innerHTML = distinctSubmissionFiles(files).map(file => `<span class="file-chip managed-file"><span>${esc(file.file_name)}</span><button type="button" class="remove-file" data-remove-file="${file.id}" data-storage-path="${esc(file.storage_path)}" title="Remove attachment" aria-label="Remove ${esc(file.file_name)}">×</button></span>`).join('');
+  host.querySelectorAll('[data-remove-file]').forEach(button => {
+    button.onclick = async () => {
+      if (!confirm('Remove this attachment?')) return;
+      const target = files.find(file => file.id === button.dataset.removeFile);
+      const removed = target && await removeMatchingAttachments(db, files, target);
+      if (!removed) return;
+      files.filter(file => fileKey(file) === fileKey(target)).forEach(file => { file._removed = true; });
+      button.closest('.managed-file')?.remove();
+    };
+  });
+}
+async function removeMatchingAttachments(db, files, target) {
+  const matches = files.filter(file => fileKey(file) === fileKey(target));
+  for (const file of matches) {
+    if (!await removeAttachment(db, file.id, file.storage_path)) return false;
+  }
+  return true;
+}
+async function removeAttachment(db, fileId, storagePath) {
+  const { error: storageError } = await db.storage.from('homework-files').remove([storagePath]);
+  if (storageError) { alert('This attachment could not be removed right now.'); return false; }
+  const { error: recordError } = await db.from('submission_files').delete().eq('id', fileId);
+  if (recordError) { alert('This attachment could not be removed right now.'); return false; }
+  return true;
+}
+function fileKey(file) { return `${file.file_name || file.name}::${file.size_bytes ?? file.size ?? ''}`; }
 function safeName(value) { return String(value).replace(/[^a-zA-Z0-9._-]/g, '_').slice(-100); }
 function esc(value) { return String(value || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }

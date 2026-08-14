@@ -95,7 +95,7 @@ async function show(assignment, student, submission, questionMap = new Map()) {
     bindFeedback(assignment, student, null);
     return;
   }
-  const files = await Promise.all((submission.submission_files || []).map(async file => {
+  const files = await Promise.all(distinctSubmissionFiles(submission.submission_files).map(async file => {
     const { data } = await db.storage.from('homework-files').createSignedUrl(file.storage_path, 900);
     return { ...file, url: data?.signedUrl };
   }));
@@ -151,4 +151,13 @@ async function readSession(client) {
   return null;
 }
 function label(value) { return ({ topic: 'Chosen topic', paragraph: 'What interests the student', sources: 'Sources used', team_name: 'Proposed team name', cause: 'Cause anchor', reason: 'Why this fits', next_step: 'Next step', cs2n_reflection: 'How the CS2N program worked' })[value] || value; }
+function distinctSubmissionFiles(files = []) {
+  const seen = new Set();
+  return files.filter(file => {
+    const key = `${file.file_name}::${file.size_bytes ?? ''}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 function esc(value) { return String(value || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }

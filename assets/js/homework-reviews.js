@@ -58,7 +58,17 @@ async function load(db, assignmentId) {
 }
 
 function renderFiles(files) {
-  if (!files.length) return '';
-  return `<div class="review-files"><h3>Submitted files</h3>${files.map(file => `<a data-review-file="${esc(file.storage_path)}" href="#" target="_blank" rel="noopener">${esc(file.file_name)}</a>`).join('')}</div>`;
+  const uniqueFiles = distinctFiles(files);
+  if (!uniqueFiles.length) return '';
+  return `<div class="review-files"><h3>Submitted files</h3>${uniqueFiles.map(file => `<a data-review-file="${esc(file.storage_path)}" href="#" target="_blank" rel="noopener">${esc(file.file_name)}</a>`).join('')}</div>`;
+}
+function distinctFiles(files = []) {
+  const seen = new Set();
+  return files.filter(file => {
+    const key = `${file.file_name}::${file.size_bytes ?? ''}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 function esc(value) { return String(value || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
