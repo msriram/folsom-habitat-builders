@@ -291,7 +291,7 @@ async function initializeAccountMenu(header) {
       }
     });
     signOut.addEventListener("click", async () => { await client.auth.signOut(); location.reload(); });
-    const { data: { session } } = await client.auth.getSession();
+    const session = await restoreAccountSession(client);
     await render(session);
     client.auth.onAuthStateChange((_event, nextSession) => { render(nextSession); });
   } catch (error) {
@@ -299,6 +299,15 @@ async function initializeAccountMenu(header) {
     header.querySelector("[data-account-status]").textContent = "Account service unavailable";
     signIn.addEventListener("click", () => { location.href = "login.html"; });
   }
+}
+
+async function restoreAccountSession(client) {
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const { data: { session } } = await client.auth.getSession();
+    if (session) return session;
+    if (attempt < 3) await new Promise(resolve => setTimeout(resolve, 250));
+  }
+  return null;
 }
 
 function loadPortalConfig() {
