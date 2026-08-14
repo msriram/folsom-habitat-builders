@@ -495,19 +495,17 @@ async function setupRobotTests() {
 
 async function setupGuide() {
   const form = $("#question-form");
-  const status = $("#guide-status");
   const message = $("#guide-message");
   const button = form.querySelector("button");
   const { config, db, session, profile } = await getLiveContext();
   if (!db || !session) {
-    status.textContent = "Sign in required";
+    // The launcher stays available even when the account is not approved.
     button.disabled = true;
     message.textContent = "Use the account button above to sign in with Google.";
     return;
   }
   const allowed = profile?.approval_status === "approved" && ["student", "coach"].includes(profile?.role);
   const unsafeRequest = /\b(?:fuck|shit|bitch|asshole|bastard|slur|porn|sex(?:ual)?|nude|naked|rape|kill(?:ing)?|murder|gore|torture|weapon|gun|bomb|stab|shoot)\b/i;
-  status.textContent = allowed ? "Live research tool" : "Approval required";
   button.disabled = !allowed;
   if (!allowed) return;
   const updateQuestionGuard = () => {
