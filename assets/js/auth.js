@@ -39,7 +39,12 @@ async function setupAdmin(supabase,profile){
   const gmailButton=document.querySelector('[data-connect-gmail]');
   const gmailMessage=document.querySelector('[data-gmail-message]');
   if(gmailButton){
-    if(new URLSearchParams(location.search).get('gmail')==='connected')gmailMessage.textContent='Gmail connected. Weekly reminders will send from this account.';
+    if(new URLSearchParams(location.search).get('gmail')==='connected'){
+      gmailMessage.textContent='Gmail connected. Sending a test email…';
+      const {error}=await supabase.functions.invoke('gmail-send-test');
+      gmailMessage.textContent=error?'Gmail is connected, but the test email could not be sent.':'Gmail connected. A test email was sent to your Gmail inbox.';
+      history.replaceState({},'',location.pathname);
+    }
     gmailButton.onclick=async()=>{
       gmailButton.disabled=true; gmailButton.textContent='Opening Gmail…'; gmailMessage.textContent='';
       const {data,error}=await supabase.functions.invoke('gmail-oauth-start');
