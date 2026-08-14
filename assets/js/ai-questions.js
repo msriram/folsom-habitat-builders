@@ -2,7 +2,6 @@ const config = window.FIREFLIES_PORTAL_CONFIG || {};
 const state = document.querySelector('[data-ai-questions-state]');
 const list = document.querySelector('[data-ai-questions-list]');
 const categoryList = document.querySelector('[data-ai-category-list]');
-const deleteCategoryButton = document.querySelector('[data-delete-category]');
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[character]));
 const formatAnswer = value => escapeHtml(value).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
 const categories = [
@@ -55,10 +54,9 @@ if (config.forceDemo || !config.supabaseUrl || !config.supabaseAnonKey) {
         const visible = activeCategory === 'All questions' ? questions : (grouped.get(activeCategory) || []);
         state.hidden = true;
         categoryList.innerHTML = [['All questions', questions], ...[...grouped.entries()]].map(([category, items]) => `<button class="${activeCategory === category ? 'active' : ''}" type="button" data-category="${escapeHtml(category)}"><span>${escapeHtml(category)}</span><strong>${items.length}</strong></button>`).join('');
-        deleteCategoryButton.hidden = !canManage || activeCategory === 'All questions' || !visible.length;
         list.innerHTML = visible.map(item => {
           const label = canIdentifyAuthors ? `Asked by ${escapeHtml(names.get(item.author_id) || 'Team member')}` : 'Team question';
-          const remove = canManage ? `<button class="mini-action danger" type="button" data-remove-question="${item.id}">Remove</button>` : '';
+          const remove = canManage ? `<button class="icon-delete" type="button" data-remove-question="${item.id}" aria-label="Delete question" title="Delete question"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8v10m4-10v10m4-10v10M5 6h14m-9-3h4l1 3H9l1-3Zm-4 3 1 14h10l1-14"/></svg></button>` : '';
           return `<article class="card research-question"><div class="research-question-head"><span class="status-chip">${label}</span>${remove}</div><h2>${escapeHtml(item.question)}</h2><p class="ai-answer">${formatAnswer(item.ai_answer)}</p><small class="muted">${new Date(item.created_at).toLocaleDateString()}</small></article>`;
         }).join('') || '<p class="muted">No questions in this topic yet.</p>';
         categoryList.querySelectorAll('[data-category]').forEach(button => button.addEventListener('click', () => { activeCategory = button.dataset.category; render(); }));
@@ -69,14 +67,6 @@ if (config.forceDemo || !config.supabaseUrl || !config.supabaseAnonKey) {
           render();
         }));
       };
-      deleteCategoryButton.addEventListener('click', async () => {
-        const matching = questions.filter(item => categoryFor(item.question) === activeCategory);
-        if (!matching.length || !confirm(`Remove all ${matching.length} questions in “${activeCategory}”?`)) return;
-        const { error } = await db.from('questions').delete().in('id', matching.map(item => item.id));
-        if (error) { state.hidden = false; state.textContent = 'Those questions could not be removed right now.'; return; }
-        activeCategory = 'All questions';
-        render();
-      });
       render();
     }
   }
