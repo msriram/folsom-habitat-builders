@@ -5,9 +5,9 @@ const SEASON_START = new Date(2026, 7, 2);
 const DAY = 24 * 60 * 60 * 1000;
 
 const fallbackAssignments = {
-  0: { title: 'Explore biodiversity and understand the game', due: 'Friday, August 7', priority: 'Finish the biodiversity paragraph and bring one rules question to Session 1.' },
-  1: { title: 'Read the official slides and prepare for our first practice', due: 'Friday, August 14', priority: 'Read the Introduction and Session 1 decks, then bring one thing to build, one thing to test, and one question.' },
-  2: { title: 'Choose a team name and a cause anchor', due: 'Friday, August 21', priority: 'Connect our biodiversity interests to a team name, a cause, and one question we can investigate together.' }
+  0: { title: 'Explore biodiversity and understand the game', due: 'Wednesday, August 5', priority: 'Finish the biodiversity paragraph and bring one rules question to Session 1.' },
+  1: { title: 'Read the official slides and prepare for our first practice', due: 'Wednesday, August 12', priority: 'Read the Introduction and Session 1 decks, then bring one thing to build, one thing to test, and one question.' },
+  2: { title: 'Choose a team name and a cause anchor', due: 'Wednesday, August 19', priority: 'Connect our biodiversity interests to a team name, a cause, and one question we can investigate together.' }
 };
 
 function currentWeek() {
