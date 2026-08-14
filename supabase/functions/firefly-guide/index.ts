@@ -5,7 +5,7 @@ const MODEL = "gpt-5.6-luna";
 const DAILY_LIMIT = 20;
 // A negative safety gate: normal curiosity remains open, while categories
 // unsuitable for this student workspace never reach the model.
-const blockedRequest = /\b(?:fuck|shit|bitch|asshole|bastard|slur|porn|sex(?:ual)?|nude|naked|rape|殺|殺人|kill(?:ing)?|murder|gore|torture|weapon|gun|bomb|stab|shoot|self[ -]?harm|suicide|hack|password|bypass|doxx|address|phone number|answer key|cheat|do my homework|generate|create|design|draw|render|image|photo|picture|video|diagram|logo|illustration|graphic|visual|audio|animate|animation)\b/i;
+const blockedRequest = /\b(?:fuck|shit|bitch|asshole|bastard|slur|porn|sex(?:ual)?|nude|naked|rape|殺|殺人|kill(?:ing)?|murder|gore|torture|weapon|gun|bomb|stab|shoot|self[ -]?harm|suicide|hack|password|bypass|doxx|address|phone number|answer key|cheat|generate|create|design|draw|render|image|photo|picture|video|diagram|logo|illustration|graphic|visual|audio|animate|animation)\b/i;
 const defaultOrigins = ["https://msriram.github.io"];
 const allowedOrigins = new Set([
   ...defaultOrigins,
@@ -43,14 +43,14 @@ Deno.serve(async (req) => {
     const { data: profile } = await admin.from("profiles")
       .select("id,team_id,role,approval_status,is_active")
       .eq("id", user.id).maybeSingle();
-    if (!profile || profile.approval_status !== "approved" || !profile.is_active || !["student", "coach"].includes(profile.role)) {
+    if (!profile || profile.approval_status !== "approved" || !profile.is_active || !["student", "coach", "student_coach"].includes(profile.role)) {
       return reply({ error: "Only approved students and coaches can use Ask AI." }, 403);
     }
 
     const body = await req.json().catch(() => ({}));
     const question = typeof body.question === "string" ? body.question.trim() : "";
     if (question.length < 5 || question.length > 800) return reply({ error: "Enter a question between 5 and 800 characters." }, 400);
-    if (blockedRequest.test(question)) return reply({ error: "Ask AI is for safe text questions only. It cannot help with unsafe topics, personal information, cheating, or image/video/design requests." }, 400);
+    if (blockedRequest.test(question)) return reply({ error: "Ask AI cannot help with profanity, unsafe requests, personal information, cheating, or media generation." }, 400);
 
     const since = new Date();
     since.setUTCHours(0, 0, 0, 0);
@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
         model: MODEL,
         reasoning: { effort: "none" },
         max_output_tokens: 350,
-        instructions: "You are Ask AI, a warm curiosity and research coach for elementary-school FLL students. Help with genuine questions about science, nature, animals, plants, ecology, ecosystems, the Earth, weather, oceans, space, engineering, inventions, LEGO robotics, SPIKE, coding, robot missions, FLL projects, and teamwork. Scientific vocabulary is welcome, but explain it in plain language. For questions such as word meanings or synonyms that relate to these subjects, answer them directly. If a question is unrelated, gently invite the student to ask a science or team-learning question instead. Never use vulgar, sexual, graphic, frightening, or violent content; do not provide instructions that could hurt someone or damage property. Never request personal information, passwords, addresses, or contact details. Never help with cheating, answer keys, or completing homework. Do not offer image, video, design, or other media-generation help. Give a concise explanation, then 2-3 research steps or questions when useful. Clearly say when a factual claim should be verified and suggest trustworthy source types such as government, university, museum, or scientific organizations. Never invent citations or URLs.",
+        instructions: "You are Ask AI, a warm curiosity and research coach for elementary-school FLL students. Help with genuine questions about science, nature, animals, plants, ecology, ecosystems, the Earth, weather, oceans, space, engineering, inventions, LEGO robotics, SPIKE, coding, robot missions, FLL projects, and teamwork. This team is participating in the 2026–27 FIRST LEGO League Challenge season, BIOGLOW Founders Edition. Never rename it BioBLOOM or invent another season name. Scientific vocabulary is welcome, but explain it in plain language. For questions such as word meanings or synonyms that relate to these subjects, answer them directly. Students may paste a question from another source; answer the learning question directly, while encouraging them to understand the answer. If a question is unrelated, gently invite the student to ask a science or team-learning question instead. Never use vulgar, sexual, graphic, frightening, or violent content; do not provide instructions that could hurt someone or damage property. Never request personal information, passwords, addresses, or contact details. Never help with cheating or answer keys. Do not offer image, video, design, or other media-generation help. Give a concise explanation, then 2-3 research steps or questions when useful. Clearly say when a factual claim should be verified and suggest trustworthy source types such as government, university, museum, or scientific organizations. Never invent citations or URLs.",
         input: question,
       }),
     });
@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
 
     const { data: saved, error: saveError } = await admin.from("questions").insert({
       team_id: profile.team_id, author_id: user.id, question, ai_answer: answer,
-      visibility: "team", moderation_status: "ai_answered", model: MODEL,
+      visibility: profile.role === "student" ? "team" : "private", moderation_status: "ai_answered", model: MODEL,
       input_tokens: result.usage?.input_tokens || null, output_tokens: result.usage?.output_tokens || null,
       response_id: result.id || null,
     }).select("id,created_at").single();

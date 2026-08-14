@@ -510,16 +510,16 @@ async function setupGuide() {
     message.textContent = "Use the account button above to sign in with Google.";
     return;
   }
-  const allowed = profile?.approval_status === "approved" && ["student", "coach"].includes(profile?.role);
-  const blockedRequest = /\b(?:fuck|shit|bitch|asshole|bastard|slur|porn|sex(?:ual)?|nude|naked|rape|kill(?:ing)?|murder|gore|torture|weapon|gun|bomb|stab|shoot|self[ -]?harm|suicide|hack|password|bypass|doxx|address|phone number|answer key|cheat|do my homework|generate|create|design|draw|render|image|photo|picture|video|diagram|logo|illustration|graphic|visual|audio|animate|animation)\b/i;
-  const blockedMessage = "Ask AI is for safe text questions only. It cannot help with unsafe topics, personal information, cheating, or image/video/design requests.";
+  const allowed = profile?.approval_status === "approved" && ["student", "coach", "student_coach"].includes(profile?.role);
+  const blockedRequest = /\b(?:fuck|shit|bitch|asshole|bastard|slur|porn|sex(?:ual)?|nude|naked|rape|kill(?:ing)?|murder|gore|torture|weapon|gun|bomb|stab|shoot|self[ -]?harm|suicide|hack|password|bypass|doxx|address|phone number|answer key|cheat|generate|create|design|draw|render|image|photo|picture|video|diagram|logo|illustration|graphic|visual|audio|animate|animation)\b/i;
+  const blockedMessage = "Ask AI cannot help with profanity, unsafe requests, personal information, cheating, or media generation.";
   button.disabled = !allowed;
   if (!allowed) return;
   const updateQuestionGuard = () => {
     const blocked = blockedRequest.test($("#question-text").value);
     button.disabled = blocked;
     if (blocked) message.textContent = blockedMessage;
-    else if (message.textContent.startsWith("Ask AI is for safe text")) message.textContent = "";
+    else if (message.textContent.startsWith("Ask AI cannot help")) message.textContent = "";
   };
   $("#question-text").addEventListener("input", updateQuestionGuard);
   const render = async () => {
