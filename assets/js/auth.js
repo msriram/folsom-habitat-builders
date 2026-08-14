@@ -45,6 +45,12 @@ async function setupAdmin(supabase,profile){
       gmailMessage.textContent=error?'Gmail is connected, but the test email could not be sent.':'Gmail connected. A test email was sent to your Gmail inbox.';
       history.replaceState({},'',location.pathname);
     }
+    if(new URLSearchParams(location.search).get('gmail')==='week2-preview'){
+      gmailMessage.textContent='Sending Week 2 preview…';
+      const {error}=await supabase.functions.invoke('gmail-send-test',{body:{kind:'week2'}});
+      gmailMessage.textContent=error?'The Week 2 preview could not be sent.':'Week 2 homework preview sent to your Gmail inbox.';
+      history.replaceState({},'',location.pathname);
+    }
     gmailButton.onclick=async()=>{
       gmailButton.disabled=true; gmailButton.textContent='Opening Gmail…'; gmailMessage.textContent='';
       const {data,error}=await supabase.functions.invoke('gmail-oauth-start');

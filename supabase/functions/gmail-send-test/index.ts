@@ -22,8 +22,19 @@ Deno.serve(async req=>{
   const tokenResponse=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:clientId,client_secret:clientSecret,refresh_token:credential.refresh_token,grant_type:"refresh_token"})});
   const tokens=await tokenResponse.json();
   if(!tokenResponse.ok||!tokens.access_token)return reply({error:"Gmail authorization expired. Connect Gmail again."},401);
-  const subject="Folsom Fireflies homework reminders are connected";
-  const raw=`To: ${credential.email}\r\nSubject: ${subject}\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<div style="font-family:Arial,sans-serif;line-height:1.5"><h2>Gmail is connected</h2><p>This is a test message from the Folsom Fireflies Team Room.</p><p>Weekly homework reminders will be sent here from this Gmail account once the schedule is enabled.</p></div>`;
+  const body=await req.json().catch(()=>({}));
+  let subject="Folsom Fireflies homework reminders are connected";
+  let content=`<h2>Gmail is connected</h2><p>This is a test message from the Folsom Fireflies Team Room.</p><p>Weekly homework reminders will be sent here from this Gmail account once the schedule is enabled.</p>`;
+  if(body?.kind==="week2"){
+    const {data:assignment}=await admin.from("assignments").select("id,title,description,due_at").eq("week_number",2).eq("published",true).order("due_at").limit(1).maybeSingle();
+    if(!assignment)return reply({error:"Week 2 homework is not available"},404);
+    const {data:questions}=await admin.from("assignment_questions").select("prompt,display_order").eq("assignment_id",assignment.id).order("display_order");
+    const esc=(value:unknown)=>String(value??"").replace(/[&<>'\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]!));
+    const due=new Intl.DateTimeFormat("en-US",{dateStyle:"full",timeStyle:"short",timeZone:"America/Los_Angeles"}).format(new Date(assignment.due_at));
+    subject=`Homework is ready: ${assignment.title}`;
+    content=`<p style="margin:0;color:#64746d;font-size:12px;letter-spacing:.1em;text-transform:uppercase">Folsom Fireflies · Week 2</p><h1 style="font-size:25px">${esc(assignment.title)}</h1><p>Hello Sriram,</p><p>Week 2 homework is now ready. Please help your student set aside time to explore, create their own response, and upload any required work.</p><p><strong>Due:</strong> ${esc(due)}</p><div style="background:#f2f7ef;border-left:4px solid #175b3c;padding:14px 16px">${esc(assignment.description)}</div><h2 style="font-size:18px">What to complete</h2><ol>${(questions||[]).map(q=>`<li style="margin:8px 0">${esc(q.prompt)}</li>`).join("")}</ol><p><a href="https://msriram.github.io/folsom-fireflies/portal.html?tab=homework" style="display:inline-block;background:#175b3c;color:#fff;padding:11px 16px;border-radius:6px;text-decoration:none">Open homework</a></p>`;
+  }
+  const raw=`To: ${credential.email}\r\nSubject: ${subject}\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<div style="font-family:Arial,sans-serif;line-height:1.5;color:#173a2a;max-width:680px">${content}</div>`;
   const sent=await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send",{method:"POST",headers:{Authorization:`Bearer ${tokens.access_token}`,"Content-Type":"application/json"},body:JSON.stringify({raw:encode(raw)})});
   if(!sent.ok)return reply({error:"Gmail could not send the test message"},502);
   return reply({sent:true});
