@@ -197,9 +197,10 @@ async function initializeAccountMenu(header) {
   let activeColorThemeKey = "fireflies-color-theme";
   const selectColorTheme = theme => {
     const safeTheme = ["forest", "ocean", "violet", "sunset"].includes(theme) ? theme : "forest";
-    document.documentElement.dataset.colorTheme = safeTheme;
-    colorThemeButtons.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.colorTheme === safeTheme)));
-    localStorage.setItem(activeColorThemeKey, safeTheme);
+      document.documentElement.dataset.colorTheme = safeTheme;
+      colorThemeButtons.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.colorTheme === safeTheme)));
+      localStorage.setItem(activeColorThemeKey, safeTheme);
+      localStorage.setItem(colorThemeKey, safeTheme);
   };
   colorThemeButtons.forEach(button => button.addEventListener("click", () => selectColorTheme(button.dataset.colorTheme)));
   if (!config || config.forceDemo || !config.supabaseUrl || !config.supabaseAnonKey) {
