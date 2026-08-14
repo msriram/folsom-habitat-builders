@@ -25,9 +25,9 @@ function formatDue(value) {
 function applyRhythm() {
   const week = currentWeek();
   const assignments = { ...fallbackAssignments };
-  document.body.dataset.homeworkWeek = String(week);
+  document.body.dataset.currentHomeworkWeek = String(week);
 
-  const details = [...document.querySelectorAll('[data-homework-week]')];
+  const details = [...document.querySelectorAll('details[data-homework-week]')];
   details.forEach(detail => {
     const number = Number(detail.dataset.homeworkWeek);
     const active = number === week;
@@ -61,4 +61,3 @@ function applyRhythm() {
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyRhythm, { once: true });
 else applyRhythm();
-

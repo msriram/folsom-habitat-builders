@@ -1,7 +1,7 @@
 const cfg = window.FIREFLIES_PORTAL_CONFIG || {};
 const forms = [...document.querySelectorAll('[data-homework-form]')];
 const gates = [...document.querySelectorAll('[data-homework-gate]')];
-const homeworkDetails = [...document.querySelectorAll('[data-homework-week]')];
+const homeworkDetails = [...document.querySelectorAll('details[data-homework-week]')];
 const coachQueue = document.querySelector('#coach-session-queue');
 const coachSessionsTab = document.querySelector('[data-tab="sessions"]');
 const coachQueueHost = document.querySelector('#coach-session-queue-host');
