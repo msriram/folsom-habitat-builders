@@ -4,7 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const MODEL = "gpt-5.6-luna";
 const DAILY_LIMIT = 20;
 const refusal = "I can help with biodiversity, ecosystems, conservation, related science, and FLL project research. Let’s keep the question connected to those topics.";
-const topics = /biodiversity|ecosystem|species|habitat|pollinat|conservation|wildlife|environment|food (?:web|chain)|invasive|endangered|innovation project|plant|animal|adaptation|evolution|climate|ocean|forest|wetland|soil|water|pollution|sustainab|recycl|science|research|robot|mission|core value|teamwork/i;
+const topics = /biodiversity|ecolog|ecosystem|species|habitat|pollinat|conservation|wildlife|environment|food (?:web|chain)|invasive|endangered|innovation project|plant|animal|adaptation|evolution|climate|ocean|forest|wetland|soil|water|pollution|sustainab|recycl|science|research|robot|mission|core value|teamwork/i;
 const unsafeRequest = /\b(?:fuck|shit|bitch|asshole|bastard|slur|porn|sex(?:ual)?|nude|naked|rape|殺|殺人|kill(?:ing)?|murder|gore|torture|weapon|gun|bomb|stab|shoot)\b/i;
 const defaultOrigins = ["https://msriram.github.io"];
 const allowedOrigins = new Set([
