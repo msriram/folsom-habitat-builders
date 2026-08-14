@@ -511,14 +511,15 @@ async function setupGuide() {
     return;
   }
   const allowed = profile?.approval_status === "approved" && ["student", "coach"].includes(profile?.role);
-  const unsafeRequest = /\b(?:fuck|shit|bitch|asshole|bastard|slur|porn|sex(?:ual)?|nude|naked|rape|kill(?:ing)?|murder|gore|torture|weapon|gun|bomb|stab|shoot)\b/i;
+  const blockedRequest = /\b(?:fuck|shit|bitch|asshole|bastard|slur|porn|sex(?:ual)?|nude|naked|rape|kill(?:ing)?|murder|gore|torture|weapon|gun|bomb|stab|shoot|self[ -]?harm|suicide|hack|password|bypass|doxx|address|phone number|answer key|cheat|do my homework|generate|create|design|draw|render|image|photo|picture|video|diagram|logo|illustration|graphic|visual|audio|animate|animation)\b/i;
+  const blockedMessage = "Ask AI is for safe text questions only. It cannot help with unsafe topics, personal information, cheating, or image/video/design requests.";
   button.disabled = !allowed;
   if (!allowed) return;
   const updateQuestionGuard = () => {
-    const blocked = unsafeRequest.test($("#question-text").value);
+    const blocked = blockedRequest.test($("#question-text").value);
     button.disabled = blocked;
-    if (blocked) message.textContent = "Ask AI keeps conversations safe and age-appropriate for younger students.";
-    else if (message.textContent.startsWith("Ask AI keeps conversations")) message.textContent = "";
+    if (blocked) message.textContent = blockedMessage;
+    else if (message.textContent.startsWith("Ask AI is for safe text")) message.textContent = "";
   };
   $("#question-text").addEventListener("input", updateQuestionGuard);
   const render = async () => {
@@ -539,15 +540,15 @@ async function setupGuide() {
     event.preventDefault();
     const question = $("#question-text").value.trim();
     if (!question) return;
-    if (unsafeRequest.test(question)) {
-      message.textContent = "Ask AI keeps conversations safe and age-appropriate for younger students.";
+    if (blockedRequest.test(question)) {
+      message.textContent = blockedMessage;
       return;
     }
     button.disabled = true;
     button.textContent = "Researching…";
     message.textContent = "";
     const { data, error } = await db.functions.invoke(config.functions?.guide || "firefly-guide", { body: { question } });
-    button.disabled = unsafeRequest.test($("#question-text").value);
+    button.disabled = blockedRequest.test($("#question-text").value);
     button.textContent = "Ask AI";
     if (error || data?.error) {
       let functionDetail = "";
