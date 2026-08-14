@@ -37,6 +37,7 @@ async function setupAdmin(supabase,profile){
   document.querySelector('[data-admin-locked]')?.setAttribute('hidden','');
   document.querySelector('[data-admin-view]')?.removeAttribute('hidden');
   const gmailButton=document.querySelector('[data-connect-gmail]');
+  const previewButton=document.querySelector('[data-send-week2-preview]');
   const gmailMessage=document.querySelector('[data-gmail-message]');
   if(gmailButton){
     if(new URLSearchParams(location.search).get('gmail')==='connected'){
@@ -58,6 +59,12 @@ async function setupAdmin(supabase,profile){
       location.assign(data.url);
     };
   }
+  if(previewButton)previewButton.onclick=async()=>{
+    previewButton.disabled=true;previewButton.textContent='Sending…';gmailMessage.textContent='';
+    const {error}=await supabase.functions.invoke('gmail-send-test',{body:{kind:'week2'}});
+    gmailMessage.textContent=error?'The Week 2 preview could not be sent.':'Week 2 homework preview was sent to sriram87@gmail.com.';
+    previewButton.disabled=false;previewButton.textContent='Send Week 2 preview';
+  };
   const pendingRoot=document.querySelector('[data-pending-users]');
   const approvedRoot=document.querySelector('[data-approved-users]');
   const approvedStudentsRoot=document.querySelector('[data-approved-students]');
