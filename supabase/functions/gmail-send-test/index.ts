@@ -44,7 +44,8 @@ Deno.serve(async req=>{
   if(body?.deliverToTeam===true){
     if(body?.kind!=="week2") return reply({error:"Only the Week 2 release is available"},400);
     const {data:people}=await admin.from("profiles").select("display_name,email,role").in("role",["student","parent"]).eq("approval_status","approved").eq("is_active",true).not("email","is",null);
-    const recipients=[...new Map((people||[]).filter(p=>p.email).map(p=>[p.email!.toLowerCase(),p])).values()];
+    const {data:leadCoach}=await admin.from("profiles").select("display_name,email,role").eq("email","sriram87@gmail.com").eq("approval_status","approved").eq("is_active",true).maybeSingle();
+    const recipients=[...new Map([...(people||[]),leadCoach].filter(Boolean).filter(p=>p.email).map(p=>[p.email!.toLowerCase(),p])).values()];
     let sent=0,failed=0;
     for(const person of recipients){const result=await send(person.email!,person.display_name||"team member",person.role||"parent");if(result.ok)sent++;else failed++;}
     return reply({sent,failed,recipients:recipients.length});
