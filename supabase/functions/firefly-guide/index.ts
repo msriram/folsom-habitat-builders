@@ -3,8 +3,6 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const MODEL = "gpt-5.6-luna";
 const DAILY_LIMIT = 20;
-const refusal = "I’m here for science, nature, engineering, robotics, coding, and FLL curiosity questions. Try asking about something you want to learn or investigate.";
-const topics = /biodiversity|ecolog|ecosystem|species|habitat|pollinat|conservation|wildlife|environment|food (?:web|chain)|invasive|endangered|innovation project|plant|animal|adaptation|evolution|climate|weather|ocean|forest|wetland|soil|water|pollution|sustainab|recycl|earth|geolog|volcano|rock|space|planet|star|moon|solar|physics|chemistry|energy|force|electric|magnet|matter|math|engineering|invent|design process|science|research|robot|robotic|mission|lego|spike|coding|code|program|sensor|core value|teamwork/i;
 const unsafeRequest = /\b(?:fuck|shit|bitch|asshole|bastard|slur|porn|sex(?:ual)?|nude|naked|rape|殺|殺人|kill(?:ing)?|murder|gore|torture|weapon|gun|bomb|stab|shoot)\b/i;
 const defaultOrigins = ["https://msriram.github.io"];
 const allowedOrigins = new Set([
@@ -57,11 +55,6 @@ Deno.serve(async (req) => {
     const { count } = await admin.from("questions").select("id", { count: "exact", head: true })
       .eq("author_id", user.id).gte("created_at", since.toISOString()).not("ai_answer", "is", null);
     if ((count || 0) >= DAILY_LIMIT) return reply({ error: `Daily AI limit reached (${DAILY_LIMIT}). Bring your next question to a coach.` }, 429);
-
-    if (!topics.test(question)) {
-      await admin.from("questions").insert({ team_id: profile.team_id, author_id: user.id, question, ai_answer: refusal, visibility: "team", moderation_status: "out_of_scope" });
-      return reply({ answer: refusal, inScope: false, remaining: DAILY_LIMIT - (count || 0) });
-    }
 
     const apiKey = Deno.env.get("OPENAI_API_KEY");
     if (!apiKey) return reply({ error: "Ask AI is not configured." }, 503);
