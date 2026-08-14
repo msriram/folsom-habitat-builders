@@ -211,6 +211,8 @@
   }
 })();
 if (document.body.dataset.session) import('./session-materials.js?v=1');
+if (window.FIREFLIES_PORTAL_CONFIG) import('./session-access.js?v=1');
+else { const portalConfig=document.createElement('script'); portalConfig.src='assets/js/portal-config.js?v=schedule2'; portalConfig.onload=()=>import('./session-access.js?v=1'); document.head.append(portalConfig); }
 import('./meeting-time.js?v=1');
 
 async function initializeAccountMenu(header) {

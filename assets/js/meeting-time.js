@@ -1,9 +1,11 @@
-const sessionDates = ['August 7','August 14','August 21','August 28','September 4','September 11','September 18','September 25','October 2','October 9','October 16','October 23'];
+const sessionDates = ['August 14','August 21','August 28','September 4','September 11','September 18','September 25','October 2','October 9','October 16','October 23','October 30'];
 const sessionNumber = Number(document.body.dataset.session?.match(/meeting-(\d+)/)?.[1]);
 if (sessionNumber && sessionDates[sessionNumber - 1]) {
   const headerMeta = document.querySelector('.meeting-head span');
   if (headerMeta) headerMeta.textContent = `Session ${sessionNumber} · Friday, ${sessionDates[sessionNumber - 1]} · 6:00 PM · 90 minutes`;
 }
+const nextMeeting=document.querySelector('.next-meeting small');
+if(nextMeeting)nextMeeting.textContent='Friday, August 14 · 6:00 PM · 90 minutes';
 
 document.querySelectorAll('.meeting-row[href^="meeting-"]').forEach(row => {
   const match = row.getAttribute('href')?.match(/meeting-(\d+)/);
