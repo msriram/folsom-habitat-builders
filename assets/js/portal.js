@@ -506,15 +506,15 @@ async function setupGuide() {
     return;
   }
   const allowed = profile?.approval_status === "approved" && ["student", "coach"].includes(profile?.role);
-  const blockedRequest = /\b(generate|create|design|draw|render|image|photo|picture|video|diagram|logo|illustration|graphic|visual|audio|animate|animation)\b/i;
+  const unsafeRequest = /\b(?:fuck|shit|bitch|asshole|bastard|slur|porn|sex(?:ual)?|nude|naked|rape|kill(?:ing)?|murder|gore|torture|weapon|gun|bomb|stab|shoot)\b/i;
   status.textContent = allowed ? "Live research tool" : "Approval required";
   button.disabled = !allowed;
   if (!allowed) return;
   const updateQuestionGuard = () => {
-    const blocked = blockedRequest.test($("#question-text").value);
+    const blocked = unsafeRequest.test($("#question-text").value);
     button.disabled = blocked;
-    if (blocked) message.textContent = "Ask AI supports text research questions only—not image, video, design, or generation requests.";
-    else if (message.textContent.startsWith("Ask AI supports text research")) message.textContent = "";
+    if (blocked) message.textContent = "Ask AI keeps conversations safe and age-appropriate for younger students.";
+    else if (message.textContent.startsWith("Ask AI keeps conversations")) message.textContent = "";
   };
   $("#question-text").addEventListener("input", updateQuestionGuard);
   const render = async () => {
@@ -535,15 +535,15 @@ async function setupGuide() {
     event.preventDefault();
     const question = $("#question-text").value.trim();
     if (!question) return;
-    if (blockedRequest.test(question)) {
-      message.textContent = "Ask AI supports text research questions only—not image, video, design, or generation requests.";
+    if (unsafeRequest.test(question)) {
+      message.textContent = "Ask AI keeps conversations safe and age-appropriate for younger students.";
       return;
     }
     button.disabled = true;
     button.textContent = "Researching…";
     message.textContent = "";
     const { data, error } = await db.functions.invoke(config.functions?.guide || "firefly-guide", { body: { question } });
-    button.disabled = blockedRequest.test($("#question-text").value);
+    button.disabled = unsafeRequest.test($("#question-text").value);
     button.textContent = "Ask AI";
     if (error || data?.error) {
       let functionDetail = "";
