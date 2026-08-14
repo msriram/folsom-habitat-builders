@@ -10,10 +10,12 @@ if(!sessionConfig.forceDemo&&sessionConfig.supabaseUrl&&sessionConfig.supabaseAn
   const {data:sessionRows,error}=approved?await sessionDb.from('schedule_sessions').select('session_key,session_date,coach_notes,published,published_at').order('session_date'): {data:[],error:null};
   const sessions=sessionRows||[];
   const current=sessions.find(item=>item.session_key===sessionKey);
+  const isThisWeek=item=>{if(!item?.session_date)return false;const [year,month,day]=item.session_date.split('-').map(Number),meetingDate=new Date(year,month-1,day),today=new Date();const sunday=new Date(today.getFullYear(),today.getMonth(),today.getDate()-today.getDay());const nextSunday=new Date(sunday);nextSunday.setDate(sunday.getDate()+7);return meetingDate>=sunday&&meetingDate<nextSunday;};
+  const visibleToTeam=item=>Boolean(item?.published||isThisWeek(item));
   const notice=message=>{document.querySelector('main').innerHTML=`<section class="section compact tint"><div class="container"><div class="plain-panel"><span class="eyebrow">Schedule</span><h1>Session plan not available yet</h1><p>${message}</p><a class="button secondary" href="season.html">Back to Schedule</a></div></div></section>`};
   if(sessionKey&&(!userSession||!approved)){notice('Sign in with an approved team account to view session plans.');}
   else if(sessionKey&&error){notice('Session access is temporarily unavailable. Please try again shortly.');}
-  else if(sessionKey&&!isCoach&&!current?.published){notice('This session is still being prepared by the coaches. Published session plans will appear here after the meeting is complete.');}
+  else if(sessionKey&&!isCoach&&!visibleToTeam(current)){notice('This session is still being prepared by the coaches. Published session plans will appear here after the meeting is complete.');}
   else if(sessionKey&&current){
     const layout=document.querySelector('.meeting-layout');
     const notes=document.createElement('section');notes.className='section compact session-notes';
@@ -25,8 +27,8 @@ if(!sessionConfig.forceDemo&&sessionConfig.supabaseUrl&&sessionConfig.supabaseAn
   }
   if(!sessionKey){
     const links=[...document.querySelectorAll('a[href^="meeting-"]')];
-    if(!isCoach){links.forEach(link=>{const key=link.getAttribute('href').split('.')[0];if(!sessions.find(item=>item.session_key===key)?.published)link.remove();});}
-    else links.forEach(link=>{const key=link.getAttribute('href').split('.')[0],item=sessions.find(row=>row.session_key===key);if(item&&!item.published){const label=link.lastElementChild;if(label)label.textContent='Coach only →';}});
+    if(!isCoach){links.forEach(link=>{const key=link.getAttribute('href').split('.')[0];if(!visibleToTeam(sessions.find(item=>item.session_key===key)))link.remove();});}
+    else links.forEach(link=>{const key=link.getAttribute('href').split('.')[0],item=sessions.find(row=>row.session_key===key);if(item&&!item.published&&!isThisWeek(item)){const label=link.lastElementChild;if(label)label.textContent='Coach only →';}});
   }
 }
 function escapeSession(value){return String(value||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
