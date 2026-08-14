@@ -3,7 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const url = Deno.env.get("SUPABASE_URL")!;
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const clientId = Deno.env.get("GMAIL_CLIENT_ID")!;
+const clientId = (Deno.env.get("GMAIL_CLIENT_ID") || "").trim();
 const redirectUri = `${url}/functions/v1/gmail-oauth-callback`;
 const siteUrl = Deno.env.get("PUBLIC_SITE_URL") || "https://msriram.github.io/folsom-fireflies";
 const admin = createClient(url, serviceKey);
