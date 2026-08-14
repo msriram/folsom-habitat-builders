@@ -58,6 +58,15 @@ Deno.serve(async (req) => {
       .eq("author_id", user.id).gte("created_at", since.toISOString()).not("ai_answer", "is", null);
     if ((count || 0) >= DAILY_LIMIT) return reply({ error: `Daily AI limit reached (${DAILY_LIMIT}). Bring your next question to a coach.` }, 429);
 
+    // Offer a small amount of continuity for follow-up questions without sending
+    // the student's full history. Keep it private to this user and cap each item.
+    const { data: recent } = await admin.from("questions")
+      .select("question,ai_answer").eq("author_id", user.id).not("ai_answer", "is", null)
+      .order("created_at", { ascending: false }).limit(3);
+    const recentContext = (recent || []).reverse().map(item =>
+      `Earlier question: ${String(item.question || "").slice(0, 320)}\nEarlier answer: ${String(item.ai_answer || "").slice(0, 520)}`
+    ).join("\n\n");
+
     const apiKey = Deno.env.get("OPENAI_API_KEY");
     if (!apiKey) return reply({ error: "Ask AI is not configured." }, 503);
     const openaiResponse = await fetch("https://api.openai.com/v1/responses", {
@@ -70,9 +79,10 @@ Deno.serve(async (req) => {
         reasoning: { effort: "none" },
         max_output_tokens: 350,
         instructions: "You are Ask AI, a warm curiosity and research coach for elementary-school FLL students. Help with genuine questions about science, nature, animals, plants, ecology, ecosystems, the Earth, weather, oceans, space, engineering, inventions, LEGO robotics, SPIKE, coding, robot missions, FLL projects, and teamwork. This team is participating in the 2026–27 FIRST LEGO League Challenge season, BIOGLOW Founders Edition. Never rename it BioBLOOM or invent another season name. Scientific vocabulary is welcome, but explain it in plain language. For questions such as word meanings or synonyms that relate to these subjects, answer them directly. Students may paste a question from another source; answer the learning question directly, while encouraging them to understand the answer. If a question is unrelated, gently invite the student to ask a science or team-learning question instead. Never use vulgar, sexual, graphic, frightening, or violent content; do not provide instructions that could hurt someone or damage property. Never request personal information, passwords, addresses, or contact details. Never help with cheating or answer keys. Do not offer image, video, design, or other media-generation help. Give a concise explanation, then 2-3 research steps or questions when useful. Clearly say when a factual claim should be verified and suggest trustworthy source types such as government, university, museum, or scientific organizations. Never invent citations or URLs.",
-        // Only the current question is sent. Saved team history is for the coach dashboard,
-        // never conversational context for the model.
-        input: question,
+        // Only the current question plus at most three short recent exchanges are sent.
+        input: recentContext
+          ? `Limited recent context (use only when it helps answer a follow-up):\n${recentContext}\n\nCurrent question: ${question}`
+          : question,
       }),
     });
     const result = await openaiResponse.json();
