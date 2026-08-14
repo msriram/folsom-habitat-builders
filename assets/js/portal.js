@@ -562,7 +562,25 @@ async function setupGuide() {
   await render();
 }
 
+function setupGuideLauncher() {
+  const launcher = $("#guide-launcher");
+  const panel = $("#guide-panel");
+  const close = $("#guide-close");
+  if (!launcher || !panel) return;
+  const setOpen = open => {
+    launcher.setAttribute("aria-expanded", String(open));
+    launcher.setAttribute("aria-label", open ? "Close Ask AI" : "Open Ask AI");
+    launcher.classList.toggle("is-open", open);
+    panel.hidden = !open;
+    panel.parentElement.classList.toggle("is-open", open);
+    if (open) panel.querySelector("textarea")?.focus();
+  };
+  launcher.addEventListener("click", () => setOpen(launcher.getAttribute("aria-expanded") !== "true"));
+  close?.addEventListener("click", () => setOpen(false));
+}
+
 Promise.allSettled([
+  setupGuideLauncher(),
   setupRoleAccess(),
   setupProgress(),
   loadCodingProjects(),
