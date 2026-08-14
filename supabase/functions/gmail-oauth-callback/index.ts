@@ -18,10 +18,8 @@ Deno.serve(async req => {
   const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({code,client_id:clientId,client_secret:clientSecret,redirect_uri:redirectUri,grant_type:"authorization_code"})});
   const tokens = await tokenResponse.json();
   if (!tokenResponse.ok || !tokens.refresh_token) return new Response("Google did not return a reusable authorization. Return to the admin page and try again.", {status:400});
-  const meResponse = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/profile", {headers:{Authorization:`Bearer ${tokens.access_token}`}});
-  const me = await meResponse.json();
-  if (!meResponse.ok || !me.emailAddress) return new Response("Gmail authorization could not be confirmed.", {status:400});
-  const {error} = await admin.from("gmail_sender_credentials").upsert({id:true,email:me.emailAddress,refresh_token:tokens.refresh_token,connected_by:pending.profile_id,connected_at:new Date().toISOString()});
+  const {data:profile} = await admin.from("profiles").select("email").eq("id",pending.profile_id).maybeSingle();
+  const {error} = await admin.from("gmail_sender_credentials").upsert({id:true,email:profile?.email || "Connected Gmail account",refresh_token:tokens.refresh_token,connected_by:pending.profile_id,connected_at:new Date().toISOString()});
   if (error) return new Response("Gmail authorization could not be saved.", {status:500});
   return Response.redirect(`${siteUrl}/admin.html?gmail=connected`, 302);
 });
