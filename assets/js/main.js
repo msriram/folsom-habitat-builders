@@ -249,7 +249,10 @@ async function initializeAccountMenu(header) {
       const fallbackName = session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "Team member";
       const { data: profile } = await client.from("profiles").select("id,display_name,email,role,approval_status,linked_student_id,is_admin").eq("id", session.user.id).maybeSingle();
       activeColorThemeKey = profile?.id ? `fireflies-color-theme-${profile.id}` : "fireflies-color-theme";
-      selectColorTheme(localStorage.getItem(activeColorThemeKey) || localStorage.getItem("fireflies-color-theme") || "forest");
+      // The shared key is updated on every selection and is available before
+      // authentication finishes on the next page. Prefer it over old
+      // account-specific values so a recent choice cannot snap back to Forest.
+      selectColorTheme(localStorage.getItem(colorThemeKey) || localStorage.getItem(activeColorThemeKey) || "forest");
       const isAdmin = profile?.approval_status === "approved" && profile?.role === "coach" && (profile.is_admin || profile.email?.toLowerCase() === "sriram87@gmail.com");
       avatarTarget = profile?.id || null;
       avatarKind = profile?.role === "student" ? "student" : "account";
