@@ -86,7 +86,14 @@ Deno.serve(async (req) => {
           : "Ask AI is temporarily unavailable. No usage was saved.";
       return reply({ error: message }, 502);
     }
-    const answer = String(result.output_text || "").trim();
+    // REST responses can expose text as `output_text` or inside the message
+    // content array. Support both forms so a valid Luna response is not
+    // mistaken for an empty answer.
+    const answer = String(
+      result.output_text || result.output?.flatMap((item: { content?: Array<{ type?: string; text?: string }> }) =>
+        (item.content || []).filter(content => content.type === "output_text").map(content => content.text || "")
+      ).join("") || ""
+    ).trim();
     if (!answer) return reply({ error: "Ask AI returned an empty answer. Please try again." }, 502);
 
     const { data: saved, error: saveError } = await admin.from("questions").insert({
