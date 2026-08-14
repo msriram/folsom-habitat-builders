@@ -6,9 +6,6 @@ const coachQueue = document.querySelector('#coach-session-queue');
 const coachSessionsTab = document.querySelector('[data-tab="sessions"]');
 const coachQueueHost = document.querySelector('#coach-session-queue-host');
 
-// Future assignments are never exposed in the page's default (signed-out/student) view.
-homeworkDetails.filter(detail => Number(detail.dataset.homeworkWeek) > 1).forEach(detail => { detail.hidden = true; });
-
 if (!forms.length) {
   // The page may be opened on a section that does not contain assignments.
 } else if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
