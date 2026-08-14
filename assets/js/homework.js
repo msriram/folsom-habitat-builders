@@ -71,18 +71,18 @@ function configureHomeworkView(profile) {
     if (coachQueue) {
       coachQueue.hidden = false;
       const descriptions = [
-        'Read the official Session 1 deck; establish the robot and field baseline.',
-        'Group related missions and test the first reliable robot run.',
-        'Build, measure, and improve one mission family with evidence.',
-        'Compare attachments and driving approaches; keep the best repeatable run.',
-        'Test a second mission family and record failure modes.',
-        'Connect robot observations to the team’s biodiversity question.',
-        'Prototype and test an Innovation Project direction.',
-        'Use feedback to revise the project idea and robot strategy.',
-        'Run a timed practice; choose primary and backup mission runs.',
-        'Rehearse explanation, evidence, and Core Values examples.',
-        'Complete a full practice cycle and fix the largest reliability risk.',
-        'Pack, rehearse, and record the final questions for tournament preparation.'
+        'CS2N: Iris Rover and Moving Forward.',
+        'CS2N: Proportional Relationships and Sequential Movements.',
+        'CS2N: Turning in Place and Turn Around the Craters.',
+        'CS2N: Swing Turns and Steer Around the Crater.',
+        'CS2N: Wait Until Near and Move Until Near.',
+        'CS2N: Color and touch sensor drills.',
+        'CS2N: Forever, Repeat, and Repeat Until loops.',
+        'CS2N: Discrete decisions and looped decisions.',
+        'Optional CS2N: Nested decisions and landslide challenge.',
+        'Optional CS2N: Subterranean Challenge.',
+        'Optional CS2N: Obstacle detection.',
+        'Optional CS2N: Line tracking.'
       ];
       coachQueue.innerHTML = `<div class="section-title"><div><span class="eyebrow">Coach view</span><h3>All 12 session assignments</h3></div><span class="status-chip">Collapsed queue</span></div>${descriptions.map((description, index) => { const session = index + 1; const link = session === 1 ? 'meeting-01.html' : session === 2 ? 'meeting-02.html' : 'resources.html'; return `<details class="homework-notebook coach-session" data-session-number="${session}"><summary class="notebook-title"><div><span>Session ${session}</span><h3>Session ${session} preparation</h3></div><strong aria-hidden="true"></strong><em>Click to expand</em></summary><section class="notebook-cell"><div class="cell-prompt"><span>Coach assignment</span><p>${description}</p></div><a class="button secondary" href="${link}">${session <= 2 ? 'Open session plan →' : 'Open official resources →'}</a></section></details>`; }).join('')}`;
     }
