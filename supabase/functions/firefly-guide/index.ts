@@ -3,9 +3,9 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const MODEL = "gpt-5.6-luna";
 const DAILY_LIMIT = 20;
-const refusal = "I can only help with biodiversity, ecosystems, conservation, and related FLL Innovation Project research.";
-const topics = /biodiversity|ecosystem|species|habitat|pollinat|conservation|wildlife|environment|food (?:web|chain)|invasive|endangered|innovation project/i;
-const blockedRequest = /\b(generate|create|design|draw|render|image|photo|picture|video|diagram|logo|illustration|graphic|visual|audio|animate|animation)\b/i;
+const refusal = "I can help with biodiversity, ecosystems, conservation, related science, and FLL project research. Let’s keep the question connected to those topics.";
+const topics = /biodiversity|ecosystem|species|habitat|pollinat|conservation|wildlife|environment|food (?:web|chain)|invasive|endangered|innovation project|plant|animal|adaptation|evolution|climate|ocean|forest|wetland|soil|water|pollution|sustainab|recycl|science|research|robot|mission|core value|teamwork/i;
+const unsafeRequest = /\b(?:fuck|shit|bitch|asshole|bastard|slur|porn|sex(?:ual)?|nude|naked|rape|殺|殺人|kill(?:ing)?|murder|gore|torture|weapon|gun|bomb|stab|shoot)\b/i;
 const defaultOrigins = ["https://msriram.github.io"];
 const allowedOrigins = new Set([
   ...defaultOrigins,
@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const question = typeof body.question === "string" ? body.question.trim() : "";
     if (question.length < 5 || question.length > 800) return reply({ error: "Enter a question between 5 and 800 characters." }, 400);
-    if (blockedRequest.test(question)) return reply({ error: "Ask AI supports text research questions only—not image, video, design, or generation requests." }, 400);
+    if (unsafeRequest.test(question)) return reply({ error: "Ask AI keeps conversations safe and age-appropriate for younger students. Please ask a science or team-research question instead." }, 400);
 
     const since = new Date();
     since.setUTCHours(0, 0, 0, 0);
@@ -72,14 +72,19 @@ Deno.serve(async (req) => {
         model: MODEL,
         reasoning: { effort: "none" },
         max_output_tokens: 350,
-        instructions: "You are Ask AI, a warm research coach for elementary and middle-school FLL students. Answer only questions about biodiversity, ecosystems, conservation, or a directly related FLL Innovation Project. Refuse unrelated requests. Be age-appropriate and never request personal information. Do not complete homework for the student. Give a concise explanation, then 2-3 research steps or questions. Clearly say when a factual claim should be verified and suggest trustworthy source types such as government, university, museum, or scientific organizations. Never invent citations or URLs.",
+        instructions: "You are Ask AI, a warm research coach for students age 10 and younger. Be a little more helpful with follow-up questions and closely related science, biodiversity, ecosystems, conservation, climate, animals, plants, and FLL project or robot research. Scientific vocabulary is welcome, but explain it in plain language. If a question is unrelated, gently connect it back to the team’s research goals. Never use vulgar, sexual, graphic, frightening, or violent content; do not provide instructions that could hurt someone or damage property. Never request personal information. Do not complete homework for the student. Give a concise explanation, then 2-3 research steps or questions. Clearly say when a factual claim should be verified and suggest trustworthy source types such as government, university, museum, or scientific organizations. Never invent citations or URLs.",
         input: question,
       }),
     });
     const result = await openaiResponse.json();
     if (!openaiResponse.ok) {
       console.error("OpenAI error", openaiResponse.status, result?.error?.code || "unknown");
-      return reply({ error: "Ask AI is temporarily unavailable. No usage was saved." }, 502);
+      const message = openaiResponse.status === 401
+        ? "Ask AI needs a valid OpenAI API key. A coach should update OPENAI_API_KEY in Supabase."
+        : openaiResponse.status === 429
+          ? "Ask AI has reached its OpenAI usage limit. Please try again later."
+          : "Ask AI is temporarily unavailable. No usage was saved.";
+      return reply({ error: message }, 502);
     }
     const answer = String(result.output_text || "").trim();
     if (!answer) return reply({ error: "Ask AI returned an empty answer. Please try again." }, 502);
