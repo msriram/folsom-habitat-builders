@@ -546,7 +546,11 @@ async function setupGuide() {
     button.disabled = blockedRequest.test($("#question-text").value);
     button.textContent = "Ask AI";
     if (error || data?.error) {
-      const detail = data?.error || error?.message || "Ask AI is unavailable right now.";
+      let functionDetail = "";
+      if (error?.context?.json) {
+        try { functionDetail = (await error.context.json())?.error || ""; } catch { /* use the generic fallback below */ }
+      }
+      const detail = data?.error || functionDetail || (error?.message === "Edge Function returned a non-2xx status code" ? "Ask AI is unavailable right now." : error?.message) || "Ask AI is unavailable right now.";
       window.FIREFLIES_DIAGNOSTICS?.report("Ask AI", detail);
       message.textContent = detail;
       return;
