@@ -36,42 +36,14 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
 async function setupAdmin(supabase,profile){
   document.querySelector('[data-admin-locked]')?.setAttribute('hidden','');
   document.querySelector('[data-admin-view]')?.removeAttribute('hidden');
-  const gmailButton=document.querySelector('[data-connect-gmail]');
-  const previewButton=document.querySelector('[data-send-week2-preview]');
-  const teamSendButton=document.querySelector('[data-send-week2-team]');
-  const gmailMessage=document.querySelector('[data-gmail-message]');
-  if(gmailButton){
-    if(new URLSearchParams(location.search).get('gmail')==='connected'){
-      gmailMessage.textContent='Gmail connected. Sending a test email…';
-      const {error}=await supabase.functions.invoke('gmail-send-test');
-      gmailMessage.textContent=error?'Gmail is connected, but the test email could not be sent.':'Gmail connected. A test email was sent to your Gmail inbox.';
-      history.replaceState({},'',location.pathname);
-    }
-    if(new URLSearchParams(location.search).get('gmail')==='week2-preview'){
-      gmailMessage.textContent='Sending Week 2 preview…';
-      const {error}=await supabase.functions.invoke('gmail-send-test',{body:{kind:'week2'}});
-      gmailMessage.textContent=error?'The Week 2 preview could not be sent.':'Week 2 homework preview sent to your Gmail inbox.';
-      history.replaceState({},'',location.pathname);
-    }
-    gmailButton.onclick=async()=>{
-      gmailButton.disabled=true; gmailButton.textContent='Opening Gmail…'; gmailMessage.textContent='';
-      const {data,error}=await supabase.functions.invoke('gmail-oauth-start');
-      if(error||!data?.url){window.FIREFLIES_DIAGNOSTICS?.report('Connect Gmail',error);gmailMessage.textContent='Gmail could not be connected right now.';gmailButton.disabled=false;gmailButton.textContent='Connect Gmail reminders';return;}
-      location.assign(data.url);
-    };
-  }
-  if(previewButton)previewButton.onclick=async()=>{
-    previewButton.disabled=true;previewButton.textContent='Sending…';gmailMessage.textContent='';
-    const {error}=await supabase.functions.invoke('gmail-send-test',{body:{kind:'week2'}});
-    gmailMessage.textContent=error?'The Week 2 preview could not be sent.':'Week 2 homework preview was sent to sriram87@gmail.com.';
-    previewButton.disabled=false;previewButton.textContent='Send Week 2 preview';
-  };
-  if(teamSendButton)teamSendButton.onclick=async()=>{
-    if(!confirm('Send the Week 2 homework email now to every approved student and parent account?'))return;
-    teamSendButton.disabled=true;teamSendButton.textContent='Sending…';gmailMessage.textContent='';
-    const {data,error}=await supabase.functions.invoke('gmail-send-test',{body:{kind:'week2',deliverToTeam:true}});
-    gmailMessage.textContent=error?'The Week 2 team email could not be sent.':`Week 2 email sent to ${data?.sent||0} account(s)${data?.failed?`; ${data.failed} failed`:''}.`;
-    teamSendButton.disabled=false;teamSendButton.textContent='Send Week 2 to students & parents';
+  const sendHomeworkButton=document.querySelector('[data-send-homework-now]');
+  const sendHomeworkMessage=document.querySelector('[data-homework-send-message]');
+  if(sendHomeworkButton)sendHomeworkButton.onclick=async()=>{
+    if(!confirm('Send the current homework email now to all approved students, parents, and coaches?'))return;
+    sendHomeworkButton.disabled=true;sendHomeworkButton.textContent='Sending…';sendHomeworkMessage.textContent='';
+    const {data,error}=await supabase.functions.invoke('gmail-send-test',{body:{kind:'current',deliverToTeam:true}});
+    sendHomeworkMessage.textContent=error?'The homework email could not be sent.':`Homework email sent to ${data?.sent||0} account(s)${data?.failed?`; ${data.failed} failed`:''}.`;
+    sendHomeworkButton.disabled=false;sendHomeworkButton.textContent='Send homework now';
   };
   const pendingRoot=document.querySelector('[data-pending-users]');
   const approvedRoot=document.querySelector('[data-approved-users]');
