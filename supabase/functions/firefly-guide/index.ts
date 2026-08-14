@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const MODEL = "gpt-5.6-luna";
-const DAILY_LIMIT = 20;
+const DAILY_LIMIT = 50;
 // A negative safety gate: normal curiosity remains open, while categories
 // unsuitable for this student workspace never reach the model.
 const blockedRequest = /\b(?:fuck|shit|bitch|asshole|bastard|slur|porn|sex(?:ual)?|nude|naked|rape|殺|殺人|kill(?:ing)?|murder|gore|torture|weapon|gun|bomb|stab|shoot|self[ -]?harm|suicide|hack|password|bypass|doxx|address|phone number|answer key|cheat|generate|create|design|draw|render|image|photo|picture|video|diagram|logo|illustration|graphic|visual|audio|animate|animation)\b/i;

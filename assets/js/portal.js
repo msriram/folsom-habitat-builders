@@ -561,7 +561,7 @@ async function setupGuide() {
       return;
     }
     form.reset();
-    message.textContent = `Saved for coach review · ${data.remaining} AI questions remaining today.`;
+    message.textContent = "Added to Ask AI history.";
     await render();
   });
   await render();
