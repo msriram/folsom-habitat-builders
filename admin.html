@@ -8,7 +8,7 @@
   <script>(function(){try{var t=localStorage.getItem("fireflies-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"),c=localStorage.getItem("fireflies-color-theme")||"forest",a=["forest","ocean","violet","sunset","rose","cobalt","citrus","slate","berry","mint","lagoon","ember"];document.documentElement.dataset.theme=t;document.documentElement.dataset.colorTheme=a.includes(c)?c:"forest"}catch(e){}})()</script><link rel="stylesheet" href="assets/css/styles.css?v=themes9">
   <script defer src="assets/js/main.js?v=colorthemes11"></script>
   <script defer src="assets/js/portal-config.js?v=f6b4019"></script>
-  <script type="module" src="assets/js/auth.js?v=adminauth6"></script>
+  <script type="module" src="assets/js/auth.js?v=adminauth7"></script>
 </head>
 <body>
   <div data-site-header></div>
@@ -25,7 +25,7 @@
         <p>This page is available only to an authenticated coach administrator.</p>
       </div>
       <div class="admin-view" data-admin-view hidden>
-        <div class="admin-tools"><a class="button primary" href="admin-homework.html">Review homework</a><a class="button secondary" href="shirt-order.html">T-shirt order summary</a><button class="button secondary" type="button" data-connect-gmail>Connect Gmail reminders</button><button class="button secondary" type="button" data-send-week2-preview>Send Week 2 preview</button><span class="form-message" data-gmail-message aria-live="polite"></span></div>
+        <div class="admin-tools"><a class="button primary" href="admin-homework.html">Review homework</a><a class="button secondary" href="shirt-order.html">T-shirt order summary</a><button class="button secondary" type="button" data-connect-gmail>Connect Gmail reminders</button><button class="button secondary" type="button" data-send-week2-preview>Send Week 2 preview</button><button class="button primary" type="button" data-send-week2-team>Send Week 2 to students &amp; parents</button><span class="form-message" data-gmail-message aria-live="polite"></span></div>
         <div class="section-title" data-pending-section><h2>Pending users</h2></div>
         <div class="table-wrap"><table>
           <thead><tr><th>Google account</th><th>Role</th><th>Relationship</th><th>Approval</th><th>Access</th></tr></thead>

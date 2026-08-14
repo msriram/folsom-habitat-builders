@@ -33,10 +33,22 @@ Deno.serve(async req=>{
     const due=new Intl.DateTimeFormat("en-US",{dateStyle:"full",timeStyle:"short",timeZone:"America/Los_Angeles"}).format(new Date(assignment.due_at));
     const {data:robotTask}=await admin.from("robot_homework_tasks").select("title,description,cs2n_url").eq("week_number",2).eq("phase","required").limit(1).maybeSingle();
     subject="Folsom FLL Team: Week 2 Homework Published";
-    content=`<p style="margin:0;color:#64746d;font-size:12px;letter-spacing:.1em;text-transform:uppercase">Folsom FLL Team · Week 2</p><h1 style="font-size:25px">Week 2 homework is published</h1><p>Hello Sriram,</p><p><strong>Topic:</strong> ${esc(assignment.title)}</p><p>Please help your student set aside time to explore, create their own response, and upload any required work.</p><p><strong>Due:</strong> ${esc(due)}</p><div style="background:#f2f7ef;border-left:4px solid #175b3c;padding:14px 16px">${esc(assignment.description)}</div><h2 style="font-size:18px">What to complete</h2><ol>${(questions||[]).map(q=>`<li style="margin:8px 0">${esc(q.prompt)}</li>`).join("")}</ol>${robotTask?`<h2 style="font-size:18px">Robot programming</h2><p><strong>${esc(robotTask.title)}</strong><br>${esc(robotTask.description)}</p><p>Complete the program, upload a screenshot of the finished work, and explain in a few sentences how the program worked.</p><p><a href="${esc(robotTask.cs2n_url)}">Open the programming activity</a></p>`:""}<p><a href="https://msriram.github.io/folsom-fireflies/portal.html?tab=homework" style="display:inline-block;background:#175b3c;color:#fff;padding:11px 16px;border-radius:6px;text-decoration:none">Open homework</a></p>`;
+    content=`<p style="margin:0;color:#64746d;font-size:12px;letter-spacing:.1em;text-transform:uppercase">Folsom FLL Team · Week 2</p><h1 style="font-size:25px">TOPIC: ${esc(assignment.title)}</h1><p>Hello Sriram,</p><p>Please help your student set aside time to explore, create their own response, and upload any required work.</p><p><strong>Due:</strong> ${esc(due)}</p><div style="background:#f2f7ef;border-left:4px solid #175b3c;padding:14px 16px">${esc(assignment.description)}</div><h2 style="font-size:18px">What to complete</h2><ol>${(questions||[]).map(q=>`<li style="margin:8px 0">${esc(q.prompt)}</li>`).join("")}</ol>${robotTask?`<h2 style="font-size:18px">Robot programming</h2><p><strong>${esc(robotTask.title)}</strong><br>${esc(robotTask.description)}</p><p>Complete the program, upload a screenshot of the finished work, and explain in a few sentences how the program worked.</p><p><a href="${esc(robotTask.cs2n_url)}">Open the programming activity</a></p>`:""}<p><a href="https://msriram.github.io/folsom-fireflies/portal.html?tab=homework" style="display:inline-block;background:#175b3c;color:#fff;padding:11px 16px;border-radius:6px;text-decoration:none">Open homework</a></p>`;
   }
-  const raw=`To: ${credential.email}\r\nSubject: ${subject}\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<div style="font-family:Arial,sans-serif;line-height:1.5;color:#173a2a;max-width:680px">${content}</div>`;
-  const sent=await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send",{method:"POST",headers:{Authorization:`Bearer ${tokens.access_token}`,"Content-Type":"application/json"},body:JSON.stringify({raw:encode(raw)})});
+  const send = async (to:string, name="team member") => {
+    const personalized=content.replace("Hello Sriram,",`Hello ${name},`);
+    const raw=`To: ${to}\r\nSubject: ${subject}\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<div style="font-family:Arial,sans-serif;line-height:1.5;color:#173a2a;max-width:680px">${personalized}</div>`;
+    return fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send",{method:"POST",headers:{Authorization:`Bearer ${tokens.access_token}`,"Content-Type":"application/json"},body:JSON.stringify({raw:encode(raw)})});
+  };
+  if(body?.deliverToTeam===true){
+    if(body?.kind!=="week2") return reply({error:"Only the Week 2 release is available"},400);
+    const {data:people}=await admin.from("profiles").select("display_name,email").in("role",["student","parent"]).eq("approval_status","approved").eq("is_active",true).not("email","is",null);
+    const recipients=[...new Map((people||[]).filter(p=>p.email).map(p=>[p.email!.toLowerCase(),p])).values()];
+    let sent=0,failed=0;
+    for(const person of recipients){const result=await send(person.email!,person.display_name||"team member");if(result.ok)sent++;else failed++;}
+    return reply({sent,failed,recipients:recipients.length});
+  }
+  const sent=await send(credential.email,"Sriram");
   if(!sent.ok)return reply({error:"Gmail could not send the test message"},502);
   return reply({sent:true});
 });

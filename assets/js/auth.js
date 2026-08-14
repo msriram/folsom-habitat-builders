@@ -38,6 +38,7 @@ async function setupAdmin(supabase,profile){
   document.querySelector('[data-admin-view]')?.removeAttribute('hidden');
   const gmailButton=document.querySelector('[data-connect-gmail]');
   const previewButton=document.querySelector('[data-send-week2-preview]');
+  const teamSendButton=document.querySelector('[data-send-week2-team]');
   const gmailMessage=document.querySelector('[data-gmail-message]');
   if(gmailButton){
     if(new URLSearchParams(location.search).get('gmail')==='connected'){
@@ -64,6 +65,13 @@ async function setupAdmin(supabase,profile){
     const {error}=await supabase.functions.invoke('gmail-send-test',{body:{kind:'week2'}});
     gmailMessage.textContent=error?'The Week 2 preview could not be sent.':'Week 2 homework preview was sent to sriram87@gmail.com.';
     previewButton.disabled=false;previewButton.textContent='Send Week 2 preview';
+  };
+  if(teamSendButton)teamSendButton.onclick=async()=>{
+    if(!confirm('Send the Week 2 homework email now to every approved student and parent account?'))return;
+    teamSendButton.disabled=true;teamSendButton.textContent='Sending…';gmailMessage.textContent='';
+    const {data,error}=await supabase.functions.invoke('gmail-send-test',{body:{kind:'week2',deliverToTeam:true}});
+    gmailMessage.textContent=error?'The Week 2 team email could not be sent.':`Week 2 email sent to ${data?.sent||0} account(s)${data?.failed?`; ${data.failed} failed`:''}.`;
+    teamSendButton.disabled=false;teamSendButton.textContent='Send Week 2 to students & parents';
   };
   const pendingRoot=document.querySelector('[data-pending-users]');
   const approvedRoot=document.querySelector('[data-approved-users]');
