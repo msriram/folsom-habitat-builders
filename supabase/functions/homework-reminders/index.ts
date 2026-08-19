@@ -3,8 +3,8 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const resendKey = Deno.env.get("RESEND_API_KEY");
-const from = Deno.env.get("REMINDER_FROM_EMAIL") || "Team Room <onboarding@resend.dev>";
+const gmailClientId = (Deno.env.get("GMAIL_CLIENT_ID") || "").trim();
+const gmailClientSecret = (Deno.env.get("GMAIL_CLIENT_SECRET") || "").trim();
 const siteUrl = Deno.env.get("PUBLIC_SITE_URL") || "https://msriram.github.io/folsom-fireflies";
 const cronSecret = Deno.env.get("REMINDER_CRON_SECRET");
 const admin = createClient(supabaseUrl, serviceKey);
@@ -12,19 +12,26 @@ const admin = createClient(supabaseUrl, serviceKey);
 const html = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]!));
 const dateText = (value: string) => new Intl.DateTimeFormat("en-US", {dateStyle:"full", timeStyle:"short", timeZone:"America/Los_Angeles"}).format(new Date(value));
 
-async function sendEmail(to: string, subject: string, body: string) {
-  const response = await fetch("https://api.resend.com/emails", {
+const encode = (value: string) => btoa(unescape(encodeURIComponent(value))).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+
+async function sendEmail(to: string, subject: string, body: string, accessToken: string) {
+  const raw = `To: ${to}\r\nSubject: ${subject}\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n${body}`;
+  const response = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
     method: "POST",
-    headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({from, to: [to], subject, html: body}),
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify({raw: encode(raw)}),
   });
-  if (!response.ok) throw new Error(`Email provider returned ${response.status}`);
+  if (!response.ok) throw new Error(`Gmail returned ${response.status}`);
 }
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response("Method not allowed", {status:405});
   if (!cronSecret || req.headers.get("x-reminder-secret") !== cronSecret) return Response.json({error:"Unauthorized"},{status:401});
-  if (!resendKey) return Response.json({error:"RESEND_API_KEY is not configured"},{status:503});
+  const {data:credential} = await admin.from("gmail_sender_credentials").select("refresh_token").eq("id", true).maybeSingle();
+  if (!credential?.refresh_token || !gmailClientId || !gmailClientSecret) return Response.json({error:"Connect Gmail before sending automatic reminders"},{status:503});
+  const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body:new URLSearchParams({client_id:gmailClientId, client_secret:gmailClientSecret, refresh_token:credential.refresh_token, grant_type:"refresh_token"})});
+  const tokens = await tokenResponse.json();
+  if (!tokenResponse.ok || !tokens.access_token) return Response.json({error:"Gmail authorization expired. Connect Gmail again."},{status:401});
 
   const {data:queued,error:queueError} = await admin.rpc("queue_homework_reminders");
   if (queueError) return Response.json({error:"Could not queue homework reminders"},{status:500});
@@ -72,7 +79,7 @@ Deno.serve(async (req) => {
     const { data: questions } = await admin.from("assignment_questions").select("prompt,display_order").eq("assignment_id", assignment.id).order("display_order");
     const questionList = (questions || []).map(question => `<li style="margin:8px 0">${html(question.prompt)}</li>`).join("");
     const body = `<div style="font-family:Arial,sans-serif;line-height:1.55;max-width:680px;color:#173a2a"><div style="border-top:6px solid #175b3c;padding:22px 0 8px"><p style="margin:0;color:#6b766e;font-size:12px;letter-spacing:.12em;text-transform:uppercase">Folsom Fireflies · Team Room · Week ${humanWeek}</p><h1 style="font-size:24px;line-height:1.2;margin:8px 0">${html(assignment.title)}</h1></div><p>Hello ${html(recipient.display_name || student?.display_name || "team member")},</p><p>${isCoachDigest ? "This is the Wednesday coach digest for the current homework cycle." : `This is the Wednesday homework notice for ${html(student?.display_name || "your student")}.`}</p><p><strong>Due:</strong> ${html(dateText(assignment.due_at))}</p><div style="background:#f2f7ef;border-left:4px solid #78a85b;padding:14px 16px;margin:18px 0"><p style="margin:0">${html(assignment.description)}</p></div>${questionList ? `<h2 style="font-size:17px;margin:20px 0 8px">What to complete</h2><ol style="padding-left:22px">${questionList}</ol>` : ""}${worksheetLink}<p style="margin:22px 0"><a href="${siteUrl}/portal.html?tab=homework" style="display:inline-block;background:#175b3c;color:#fff;padding:11px 16px;border-radius:6px;text-decoration:none">Open the homework page</a></p><p style="font-size:12px;color:#6b766e">Family notices are scheduled Wednesday at 9:00 PM Pacific. The coach digest is scheduled Wednesday at 11:30 AM Pacific.</p></div>`;
-    try { await sendEmail(recipient.email, subject, body); await admin.from("homework_reminders").update({status:"sent",sent_at:new Date().toISOString()}).eq("id",reminder.id); sent++; }
+    try { await sendEmail(recipient.email, subject, body, tokens.access_token); await admin.from("homework_reminders").update({status:"sent",sent_at:new Date().toISOString()}).eq("id",reminder.id); sent++; }
     catch (sendError) { await admin.from("homework_reminders").update({status:"failed",last_error:String(sendError).slice(0,500)}).eq("id",reminder.id); failed++; }
   }
   return Response.json({queued:queued || 0, sent, failed});
