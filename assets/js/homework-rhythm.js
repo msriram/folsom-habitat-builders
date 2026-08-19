@@ -31,18 +31,33 @@ function applyRhythm() {
   const coreValue = scheduledOverride?.[0] ?? (coreIndex >= 0 ? coreValues[coreIndex % coreValues.length] : '');
   const groupOnly = new Set(['innovation-2', 'innovation-3', 'inclusion-1', 'teamwork-2', 'teamwork-3']);
   const coreKey = `${coreValue.toLowerCase()}-${coreActivity}`;
+  const coreQuestions = {
+    'discovery-1': 'What is one new thing you discovered this week, and what question do you want to investigate next?',
+    'innovation-1': 'Describe one creative way our team could solve a biodiversity problem. What would we test first?',
+    'impact-1': 'How could our robot, project, or team make a positive impact on biodiversity or our community?',
+    'teamwork-1': 'Write each teammate’s name, one thing you think they do well, and one skill or habit they could improve. Be specific and kind.',
+    'fun-1': 'Draw something about our team and include everyone if possible. You may draw by hand or digitally and upload the picture.',
+    'fun-2': 'Draw something about our team and include everyone if possible. You may draw by hand or digitally and upload the picture.'
+  };
+  const coreQuestion = coreQuestions[coreKey] || `What did you learn about ${coreValue} this week, and how can our team show it in practice?`;
   const coreLink = document.querySelector('[data-core-values-link]');
   const coreTitle = document.querySelector('[data-core-values-title]');
   const coreNote = document.querySelector('[data-core-values-note]');
   const coreSmall = document.querySelector('[data-core-values-small]');
+  let coreQuestionNode = document.querySelector('[data-core-values-question]');
+  if (!coreQuestionNode) {
+    const prompt = document.querySelector('[data-core-values-activity] .cell-prompt');
+    if (prompt) { coreQuestionNode = document.createElement('p'); coreQuestionNode.dataset.coreValuesQuestion = ''; prompt.appendChild(coreQuestionNode); }
+  }
   if (coreLink && coreTitle && coreActivity >= 1 && coreActivity <= 3) {
     const slug = coreValue.toLowerCase();
     coreLink.href = coreKey === 'teamwork-1' || coreKey === 'fun-1' ? 'portal.html?tab=homework#core-values-teamwork-1' : `downloads/bioglow/core-values-${slug}-${coreActivity}.pdf`;
     coreTitle.textContent = coreKey === 'teamwork-1' ? 'Teamwork · Activity 1: Team strengths ↗' : coreKey === 'fun-1' ? 'Fun · Activity 1: Team portrait ↗' : `${coreValue} · Activity ${coreActivity} ↗`;
     const teamOnly = groupOnly.has(coreKey);
-    coreLink.hidden = teamOnly;
+    coreLink.hidden = true;
     if (coreNote) coreNote.textContent = teamOnly ? 'This page is a group activity and is not assigned as individual homework. The coach will use it during a team practice.' : coreKey === 'teamwork-1' ? 'Write each teammate’s name, what you think they are good at, and one skill or habit they could improve. Be specific and kind.' : coreKey === 'fun-1' ? 'Draw something about your team and include everyone if possible. You can draw by hand, use a digital tool, or upload the finished picture with your homework.' : 'Use this as a team meeting activity; it is shared work rather than individual homework.';
     if (coreSmall) coreSmall.textContent = teamOnly ? 'Team practice only' : coreKey === 'teamwork-1' ? 'Open the team strengths prompt' : coreKey === 'fun-1' ? 'Open the team portrait prompt' : 'Open the one-page activity worksheet';
+    if (coreQuestionNode) coreQuestionNode.textContent = teamOnly ? 'This is a group activity for team practice, not individual homework.' : coreQuestion;
   }
   const assignments = { ...fallbackAssignments };
   document.body.dataset.currentHomeworkWeek = String(week);
