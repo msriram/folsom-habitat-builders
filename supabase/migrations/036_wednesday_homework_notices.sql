@@ -20,8 +20,8 @@ begin
   if local_now >= wednesday_start + interval '21 hours' then
     family_time := (((wednesday_start + interval '7 days') + interval '21 hours') at time zone 'America/Los_Angeles');
     coach_time := (((wednesday_start + interval '7 days') + interval '11 hours 15 minutes') at time zone 'America/Los_Angeles');
-  elsif local_now >= wednesday_start + interval '11 hours' then
-    coach_time := family_time;
+  elsif local_now >= wednesday_start + interval '11 hours 15 minutes' then
+    coach_time := ((wednesday_start + interval '11 hours 15 minutes') at time zone 'America/Los_Angeles');
   end if;
 
   with current_assignment as (
