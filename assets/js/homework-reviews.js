@@ -26,7 +26,7 @@ if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
       } else {
         state.hidden = true;
         toolbar.hidden = false;
-        select.innerHTML = assignments.map(a => `<option value="${a.id}">Week ${a.week_number}: ${esc(a.title)}</option>`).join('');
+        select.innerHTML = assignments.map(a => `<option value="${a.id}">Week ${a.week_number + 1}: ${esc(a.title)}</option>`).join('');
         select.onchange = () => load(db, select.value);
         await load(db, assignments[0].id);
       }

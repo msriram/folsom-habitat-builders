@@ -77,9 +77,10 @@ function applyRhythm() {
     const assignment = assignments[number];
     if (assignment && heading) heading.textContent = assignment.title;
     if (assignment && due) due.textContent = `Due ${assignment.due}`;
-    if (label) label.textContent = `Week ${number} · ${active ? 'This week' : number < week ? 'Previous week' : 'Next week'}`;
+    const displayWeek = number + 1;
+    if (label) label.textContent = `Week ${displayWeek} · ${active ? 'This week' : number < week ? 'Previous week' : 'Next week'}`;
     const gateHeading = detail.querySelector('[data-homework-gate] h3');
-    if (gateHeading) gateHeading.textContent = `Turn in Week ${number}`;
+    if (gateHeading) gateHeading.textContent = `Turn in Week ${displayWeek}`;
   });
 
   const current = assignments[week] || assignments[Math.max(...Object.keys(assignments).map(Number))];

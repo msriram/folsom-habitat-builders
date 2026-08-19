@@ -33,7 +33,7 @@ if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
         showError('Homework review is unavailable right now.');
       } else {
         assignmentSelect.innerHTML = (assignments || []).map(a =>
-          `<option value="${a.id}">Week ${a.week_number}: ${esc(a.title)}</option>`).join('');
+          `<option value="${a.id}">Week ${a.week_number + 1}: ${esc(a.title)}</option>`).join('');
         assignmentSelect.onchange = () => load(aById(assignments, assignmentSelect.value));
         if (assignments?.[0]) await load(assignments[0]);
       }
