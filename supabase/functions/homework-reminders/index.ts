@@ -16,7 +16,7 @@ async function sendEmail(to: string, subject: string, body: string) {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({from, to: [to], cc: ["sriram87@gmail.com"], subject, html: body}),
+    body: JSON.stringify({from, to: [to], subject, html: body}),
   });
   if (!response.ok) throw new Error(`Email provider returned ${response.status}`);
 }
@@ -40,11 +40,13 @@ Deno.serve(async (req) => {
     const student = Array.isArray(reminder.student) ? reminder.student[0] : reminder.student;
     if (!recipient?.email || !assignment) continue;
     await admin.from("homework_reminders").update({status:"sending",attempts:(reminder.attempts||0)+1,last_error:null}).eq("id",reminder.id).in("status",["pending","failed"]);
-    const lead = reminder.reminder_kind === "monday" ? "Monday check-in" : reminder.reminder_kind === "one_week" ? "One week" : "Two days";
-    const subject = `${lead} reminder: ${assignment.title}`;
+    const isCoachDigest = reminder.reminder_kind === "wednesday_coach";
+    const humanWeek = Number(assignment.week_number || 0) + 1;
+    const lead = isCoachDigest ? "Wednesday coach digest" : "Wednesday homework notice";
+    const subject = `Week ${humanWeek} · ${lead}: ${assignment.title}`;
     const { data: questions } = await admin.from("assignment_questions").select("prompt,display_order").eq("assignment_id", assignment.id).order("display_order");
     const questionList = (questions || []).map(question => `<li style="margin:8px 0">${html(question.prompt)}</li>`).join("");
-    const body = `<div style="font-family:Arial,sans-serif;line-height:1.55;max-width:680px;color:#173a2a"><div style="border-top:6px solid #175b3c;padding:22px 0 8px"><p style="margin:0;color:#6b766e;font-size:12px;letter-spacing:.12em;text-transform:uppercase">Folsom Fireflies · Team Room</p><h1 style="font-size:24px;line-height:1.2;margin:8px 0">${html(assignment.title)}</h1></div><p>Hello ${html(recipient.display_name || student?.display_name || "team member")},</p><p>This is your Monday homework check-in. The Team Room still shows this assignment as unfinished for ${html(student?.display_name || "you")}.</p><p><strong>Due:</strong> ${html(dateText(assignment.due_at))}</p><div style="background:#f2f7ef;border-left:4px solid #78a85b;padding:14px 16px;margin:18px 0"><p style="margin:0">${html(assignment.description)}</p></div>${questionList ? `<h2 style="font-size:17px;margin:20px 0 8px">What to complete</h2><ol style="padding-left:22px">${questionList}</ol>` : ""}<p style="margin:22px 0"><a href="${siteUrl}/portal.html?tab=homework" style="display:inline-block;background:#175b3c;color:#fff;padding:11px 16px;border-radius:6px;text-decoration:none">Open the homework page</a></p><p style="font-size:12px;color:#6b766e">This automatic reminder is sent Monday at 9:00 AM Pacific and copied to the lead coach. Reply to your coach with any question.</p></div>`;
+    const body = `<div style="font-family:Arial,sans-serif;line-height:1.55;max-width:680px;color:#173a2a"><div style="border-top:6px solid #175b3c;padding:22px 0 8px"><p style="margin:0;color:#6b766e;font-size:12px;letter-spacing:.12em;text-transform:uppercase">Folsom Fireflies · Team Room · Week ${humanWeek}</p><h1 style="font-size:24px;line-height:1.2;margin:8px 0">${html(assignment.title)}</h1></div><p>Hello ${html(recipient.display_name || student?.display_name || "team member")},</p><p>${isCoachDigest ? "This is the Wednesday coach digest for the current homework cycle." : `This is the Wednesday homework notice for ${html(student?.display_name || "your student")}.`}</p><p><strong>Due:</strong> ${html(dateText(assignment.due_at))}</p><div style="background:#f2f7ef;border-left:4px solid #78a85b;padding:14px 16px;margin:18px 0"><p style="margin:0">${html(assignment.description)}</p></div>${questionList ? `<h2 style="font-size:17px;margin:20px 0 8px">What to complete</h2><ol style="padding-left:22px">${questionList}</ol>` : ""}<p style="margin:22px 0"><a href="${siteUrl}/portal.html?tab=homework" style="display:inline-block;background:#175b3c;color:#fff;padding:11px 16px;border-radius:6px;text-decoration:none">Open the homework page</a></p><p style="font-size:12px;color:#6b766e">Family notices are scheduled Wednesday at 9:00 PM Pacific. The coach digest is scheduled Wednesday at 11:15 AM Pacific.</p></div>`;
     try { await sendEmail(recipient.email, subject, body); await admin.from("homework_reminders").update({status:"sent",sent_at:new Date().toISOString()}).eq("id",reminder.id); sent++; }
     catch (sendError) { await admin.from("homework_reminders").update({status:"failed",last_error:String(sendError).slice(0,500)}).eq("id",reminder.id); failed++; }
   }

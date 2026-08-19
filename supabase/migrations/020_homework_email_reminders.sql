@@ -47,11 +47,11 @@ language plpgsql security definer set search_path=public as $$
 declare added integer := 0; one_week timestamptz := now() + interval '7 days'; two_days timestamptz := now() + interval '2 days';
 begin
   insert into public.homework_reminders (assignment_id,student_id,recipient_id,reminder_kind,scheduled_for,team_id)
-  select a.id, p.linked_student_id, p.id, kind.reminder_kind, a.due_at - kind.offset, a.team_id
+  select a.id, p.linked_student_id, p.id, kind.reminder_kind, a.due_at - kind.reminder_offset, a.team_id
   from public.assignments a
   join public.profiles p on p.linked_student_id is not null and p.role in ('parent','coach') and p.team_id=a.team_id and p.approval_status='approved' and p.is_active
   left join public.notification_preferences pref on pref.profile_id=p.id
-  cross join (values ('one_week'::text, interval '7 days'), ('two_days'::text, interval '2 days')) kind(reminder_kind, offset)
+  cross join (values ('one_week'::text, interval '7 days'), ('two_days'::text, interval '2 days')) kind(reminder_kind, reminder_offset)
   where a.published and a.due_at is not null and coalesce(pref.email_reminders_enabled,true)
     and ((kind.reminder_kind='one_week' and a.due_at between one_week - interval '90 minutes' and one_week + interval '90 minutes')
       or (kind.reminder_kind='two_days' and a.due_at between two_days - interval '90 minutes' and two_days + interval '90 minutes'))
