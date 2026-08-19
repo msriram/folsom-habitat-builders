@@ -78,7 +78,7 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><circle cx="8" cy="16" r="3"/><circle cx="16" cy="16" r="3"/></svg>
               </button>
               <div class="theme-palette-menu" id="theme-palette-menu" hidden>
-                <div class="theme-swatches" role="group" aria-label="Choose color theme">${colorThemeOptions.map(([value,name])=>`<button type="button" class="theme-swatch ${value}" data-color-theme="${value}" aria-label="${name}"></button>`).join("")}</div>
+                <div class="theme-swatches" role="group" aria-label="Choose color theme">${colorThemeOptions.map(([value,name])=>`<button type="button" class="theme-swatch ${value}" data-color-theme="${value}" aria-label="${name}" title="${name}"></button>`).join("")}</div>
               </div>
             </div>
             <div class="account-menu-wrap">
@@ -226,7 +226,7 @@ async function initializeAccountMenu(header) {
   const colorPaletteToggle = header.querySelector(".theme-palette-toggle");
   colorThemeButtons.forEach(button => {
     const name = colorThemeNames[button.dataset.colorTheme] || "Color theme";
-    button.removeAttribute("title");
+    button.title = name;
     button.setAttribute("aria-label", name);
   });
   let activeColorThemeKey = "fireflies-color-theme";
