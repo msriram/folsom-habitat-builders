@@ -28,7 +28,7 @@ function applyRhythm() {
   const coreIndex = week - 2;
   const coreActivity = coreIndex >= 0 ? Math.floor(coreIndex / coreValues.length) + 1 : 0;
   const coreValue = coreIndex >= 0 ? coreValues[coreIndex % coreValues.length] : '';
-  const groupOnly = new Set(['innovation-2', 'innovation-3', 'inclusion-1']);
+  const groupOnly = new Set(['innovation-2', 'innovation-3', 'inclusion-1', 'teamwork-2', 'teamwork-3']);
   const coreKey = `${coreValue.toLowerCase()}-${coreActivity}`;
   const coreLink = document.querySelector('[data-core-values-link]');
   const coreTitle = document.querySelector('[data-core-values-title]');
@@ -36,12 +36,12 @@ function applyRhythm() {
   const coreSmall = document.querySelector('[data-core-values-small]');
   if (coreLink && coreTitle && coreActivity >= 1 && coreActivity <= 3) {
     const slug = coreValue.toLowerCase();
-    coreLink.href = `downloads/bioglow/core-values-${slug}-${coreActivity}.pdf`;
-    coreTitle.textContent = `${coreValue} · Activity ${coreActivity} ↗`;
+    coreLink.href = coreKey === 'teamwork-1' ? 'portal.html?tab=homework#core-values-teamwork-1' : `downloads/bioglow/core-values-${slug}-${coreActivity}.pdf`;
+    coreTitle.textContent = coreKey === 'teamwork-1' ? 'Teamwork · Activity 1: Team strengths ↗' : `${coreValue} · Activity ${coreActivity} ↗`;
     const teamOnly = groupOnly.has(coreKey);
     coreLink.hidden = teamOnly;
-    if (coreNote) coreNote.textContent = teamOnly ? 'This page is a group activity and is not assigned as individual homework. The coach will use it during a team practice.' : 'Use this as a team meeting activity; it is shared work rather than individual homework.';
-    if (coreSmall) coreSmall.textContent = teamOnly ? 'Team practice only' : 'Open the one-page activity worksheet';
+    if (coreNote) coreNote.textContent = teamOnly ? 'This page is a group activity and is not assigned as individual homework. The coach will use it during a team practice.' : coreKey === 'teamwork-1' ? 'Write each teammate’s name, what you think they are good at, and one skill or habit they could improve. Be specific and kind.' : 'Use this as a team meeting activity; it is shared work rather than individual homework.';
+    if (coreSmall) coreSmall.textContent = teamOnly ? 'Team practice only' : coreKey === 'teamwork-1' ? 'Open the team strengths prompt' : 'Open the one-page activity worksheet';
   }
   const assignments = { ...fallbackAssignments };
   document.body.dataset.currentHomeworkWeek = String(week);
