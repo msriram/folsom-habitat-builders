@@ -13,7 +13,10 @@ const fallbackAssignments = {
 function currentWeek() {
   const today = new Date();
   const date = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  return Math.max(0, Math.floor((date - SEASON_START) / (7 * DAY)));
+  const calculated = Math.max(0, Math.floor((date - SEASON_START) / (7 * DAY)));
+  const builtWeeks = [...document.querySelectorAll('details[data-homework-week]')].map(node => Number(node.dataset.homeworkWeek)).filter(Number.isFinite);
+  const latestBuilt = builtWeeks.length ? Math.max(...builtWeeks) : 0;
+  return Math.min(calculated, latestBuilt);
 }
 
 function formatDue(value) {
@@ -77,7 +80,7 @@ function applyRhythm() {
     const assignment = assignments[number];
     if (assignment && heading) heading.textContent = assignment.title;
     if (assignment && due) due.textContent = `Due ${assignment.due}`;
-    const displayWeek = number + 1;
+    const displayWeek = number;
     if (label) label.textContent = `Week ${displayWeek} · ${active ? 'This week' : number < week ? 'Previous week' : 'Next week'}`;
     const gateHeading = detail.querySelector('[data-homework-gate] h3');
     if (gateHeading) gateHeading.textContent = `Turn in Week ${displayWeek}`;

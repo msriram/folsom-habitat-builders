@@ -48,13 +48,13 @@ Deno.serve(async (req) => {
     if (!recipient?.email || !assignment) continue;
     await admin.from("homework_reminders").update({status:"sending",attempts:(reminder.attempts||0)+1,last_error:null}).eq("id",reminder.id).in("status",["pending","failed"]);
     const isCoachDigest = reminder.reminder_kind === "wednesday_coach";
-    const humanWeek = Number(assignment.week_number || 0) + 1;
+    const humanWeek = Number(assignment.week_number || 0);
     // Rotate one Core Values activity each season week. Week 3 starts with
     // Discovery 1, then Innovation, Impact, Inclusion, Teamwork, and Fun;
     // after six weeks the activity number advances to 2 (then 3).
     const coreValues = ["discovery", "innovation", "impact", "inclusion", "teamwork", "fun"];
-    const coreIndex = humanWeek - 3;
-    const scheduledOverride = humanWeek === 5 ? ["fun", 2] as const : null;
+    const coreIndex = humanWeek - 2;
+    const scheduledOverride = humanWeek === 4 ? ["fun", 2] as const : null;
     const coreActivity = scheduledOverride?.[1] ?? (coreIndex >= 0 ? Math.floor(coreIndex / coreValues.length) + 1 : 0);
     const coreValue = scheduledOverride?.[0] ?? (coreIndex >= 0 ? coreValues[coreIndex % coreValues.length] : "");
     const groupOnly = new Set(["innovation-2", "innovation-3", "inclusion-1", "teamwork-2", "teamwork-3"]);
