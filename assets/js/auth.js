@@ -37,6 +37,7 @@ async function setupAdmin(supabase,profile){
   document.querySelector('[data-admin-locked]')?.setAttribute('hidden','');
   document.querySelector('[data-admin-view]')?.removeAttribute('hidden');
   const sendHomeworkButton=document.querySelector('[data-send-homework-now]');
+  const sendCoachButton=document.querySelector('[data-send-coach-test]');
   const sendHomeworkMessage=document.querySelector('[data-homework-send-message]');
   if(sendHomeworkButton)sendHomeworkButton.onclick=async()=>{
     if(!confirm('Send the current homework email now to all approved students, parents, and coaches?'))return;
@@ -44,6 +45,13 @@ async function setupAdmin(supabase,profile){
     const {data,error}=await supabase.functions.invoke('gmail-send-test',{body:{kind:'current',deliverToTeam:true}});
     sendHomeworkMessage.textContent=error?'The homework email could not be sent.':`Homework email sent to ${data?.sent||0} account(s)${data?.failed?`; ${data.failed} failed`:''}.`;
     sendHomeworkButton.disabled=false;sendHomeworkButton.textContent='Send homework now';
+  };
+  if(sendCoachButton)sendCoachButton.onclick=async()=>{
+    if(!confirm('Send the current homework test email only to approved coaches?'))return;
+    sendCoachButton.disabled=true;sendCoachButton.textContent='Sending…';sendHomeworkMessage.textContent='';
+    const {data,error}=await supabase.functions.invoke('gmail-send-test',{body:{kind:'current',deliverToTeam:true,coachesOnly:true}});
+    sendHomeworkMessage.textContent=error?'The coach test email could not be sent.':`Coach test email sent to ${data?.sent||0} coach account(s)${data?.failed?`; ${data.failed} failed`:''}.`;
+    sendCoachButton.disabled=false;sendCoachButton.textContent='Send coach test';
   };
   const pendingRoot=document.querySelector('[data-pending-users]');
   const approvedRoot=document.querySelector('[data-approved-users]');

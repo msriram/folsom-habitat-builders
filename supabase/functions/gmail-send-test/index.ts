@@ -46,7 +46,8 @@ Deno.serve(async req=>{
   };
   if(body?.deliverToTeam===true){
     if(!["week2","current"].includes(body?.kind)) return reply({error:"No homework release is available"},400);
-    const {data:people}=await admin.from("profiles").select("display_name,email,role").in("role",["student","parent","coach","student_coach"]).eq("approval_status","approved").eq("is_active",true).not("email","is",null);
+    const roles=body?.coachesOnly===true?["coach","student_coach"]:["student","parent","coach","student_coach"];
+    const {data:people}=await admin.from("profiles").select("display_name,email,role").in("role",roles).eq("approval_status","approved").eq("is_active",true).not("email","is",null);
     const recipients=[...new Map((people||[]).filter(p=>p.email).map(p=>[p.email!.toLowerCase(),p])).values()];
     let sent=0,failed=0;
     for(const person of recipients){const result=await send(person.email!,person.display_name||"team member",person.role||"parent");if(result.ok)sent++;else failed++;}
