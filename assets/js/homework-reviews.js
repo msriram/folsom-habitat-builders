@@ -18,7 +18,9 @@ if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
     if (!profile || profile.approval_status !== 'approved' || !profile.is_active || !['student','parent','coach','student_coach'].includes(profile.role)) {
       state.textContent = 'Approved team access is required to view homework reviews.';
     } else {
-      const { data: assignments, error } = await db.from('assignments').select('id,title,week_number').eq('published', true).eq('reviews_published', true).order('week_number');
+      // Keep the newest published review selected on first load; older weeks
+      // remain available in the selector below it.
+      const { data: assignments, error } = await db.from('assignments').select('id,title,week_number').eq('published', true).eq('reviews_published', true).order('week_number', { ascending: false });
       if (error || !assignments?.length) {
         state.textContent = 'No homework review has been published yet.';
       } else {
