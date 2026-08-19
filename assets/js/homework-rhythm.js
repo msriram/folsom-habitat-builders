@@ -92,6 +92,47 @@ function applyRhythm() {
   setText('#dashboard-next-due', next?.due || 'To be announced');
   setText('[data-homework-rhythm-label]', `Week ${week} · This week`);
   setText('[data-homework-rhythm-status]', `Week ${week} is active now; the next week opens automatically on Sunday.`);
+  renderNotebookProgress();
+}
+
+async function renderNotebookProgress() {
+  const homework = document.querySelector('[data-panel="homework"]');
+  const heading = homework?.querySelector('.portal-heading');
+  if (!homework || !heading || homework.querySelector('[data-notebook-progress]')) return;
+  const section = document.createElement('section');
+  section.className = 'callout notebook-progress';
+  section.dataset.notebookProgress = '';
+  section.innerHTML = '<div class="section-title"><div><span class="eyebrow">Engineering Notebook</span><h3>Session progress</h3></div><span class="status-chip" data-notebook-progress-status>Loading…</span></div><p class="muted">The notebook sessions below are the same sessions in our schedule. A session becomes complete when its shared checklist is finished.</p><div class="notebook-session-list" data-notebook-session-list></div>';
+  heading.after(section);
+  const names = ['Field and Robot Baseline','Mission Science and Project Leads','First Reliable Missions','Dock Strategy and Keystone Species','Left Field and Seed Behavior','Problem Evidence and Expert Plan','Right Field Mechanisms','Project Decision and First Prototype','Match Strategy and Project Impact','Presentation Draft and Timed Match','Final Presentations and Robot Design','Full Event Rehearsal'];
+  const list = section.querySelector('[data-notebook-session-list]');
+  list.innerHTML = names.map((name,index) => `<a class="notebook-session-row" href="meeting-${String(index+1).padStart(2,'0')}.html"><strong>Session ${index+1}</strong><span>${name}</span><em data-notebook-session-status="${index+1}">Not recorded</em></a>`).join('');
+  const cfg = window.FIREFLIES_PORTAL_CONFIG || {};
+  if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) { section.querySelector('[data-notebook-progress-status]').textContent = 'Shared checklist'; return; }
+  try {
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+    const db = createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const { data: { session } } = await db.auth.getSession();
+    if (!session) { section.querySelector('[data-notebook-progress-status]').textContent = 'Sign in to view'; return; }
+    const { data: items, error } = await db.from('schedule_items').select('session_key,completed').like('session_key','meeting-%');
+    if (error) throw error;
+    const grouped = {};
+    (items || []).forEach(item => { (grouped[item.session_key] ||= []).push(item); });
+    let completed = 0;
+    names.forEach((_,index) => {
+      const key = `meeting-${String(index+1).padStart(2,'0')}`;
+      const rows = grouped[key] || [];
+      const done = rows.length > 0 && rows.every(row => row.completed);
+      const status = section.querySelector(`[data-notebook-session-status="${index+1}"]`);
+      if (done) { completed += 1; status.textContent = 'Completed'; status.classList.add('is-complete'); }
+      else if (rows.some(row => row.completed)) status.textContent = 'In progress';
+      else status.textContent = 'Not started';
+    });
+    section.querySelector('[data-notebook-progress-status]').textContent = `${completed} of ${names.length} complete`;
+  } catch (error) {
+    section.querySelector('[data-notebook-progress-status]').textContent = 'Shared checklist unavailable';
+    window.FIREFLIES_DIAGNOSTICS?.report('Notebook session progress', error);
+  }
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyRhythm, { once: true });
