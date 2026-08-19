@@ -42,9 +42,21 @@ Deno.serve(async (req) => {
     await admin.from("homework_reminders").update({status:"sending",attempts:(reminder.attempts||0)+1,last_error:null}).eq("id",reminder.id).in("status",["pending","failed"]);
     const isCoachDigest = reminder.reminder_kind === "wednesday_coach";
     const humanWeek = Number(assignment.week_number || 0) + 1;
-    const worksheetLink = humanWeek >= 4
-      ? `<p style="margin:18px 0"><a href="${siteUrl}/downloads/bioglow/core-values-worksheet-page-01.pdf" style="display:inline-block;border:1px solid #175b3c;color:#175b3c;padding:10px 14px;border-radius:6px;text-decoration:none">Open the one-page Core Values worksheet ↗</a></p>`
-      : "";
+    // Rotate one Core Values activity each season week. Week 3 starts with
+    // Discovery 1, then Innovation, Impact, Inclusion, Teamwork, and Fun;
+    // after six weeks the activity number advances to 2 (then 3).
+    const coreValues = ["discovery", "innovation", "impact", "inclusion", "teamwork", "fun"];
+    const coreIndex = humanWeek - 3;
+    const coreActivity = coreIndex >= 0 ? Math.floor(coreIndex / coreValues.length) + 1 : 0;
+    const coreValue = coreIndex >= 0 ? coreValues[coreIndex % coreValues.length] : "";
+    const groupOnly = new Set(["innovation-2", "innovation-3", "inclusion-1"]);
+    const coreKey = `${coreValue}-${coreActivity}`;
+    const homeworkSafe = coreActivity >= 1 && coreActivity <= 3 && !groupOnly.has(coreKey);
+    const worksheetLink = homeworkSafe
+      ? `<p style="margin:18px 0"><strong>Optional team meeting activity</strong><br><span style="color:#53645a">Some Core Values pages are designed for the whole group, so do this together during a practice rather than as individual homework.</span><br><a href="${siteUrl}/downloads/bioglow/core-values-${coreValue}-${coreActivity}.pdf" style="display:inline-block;border:1px solid #175b3c;color:#175b3c;padding:10px 14px;border-radius:6px;text-decoration:none;margin-top:8px">Open ${coreValue} Activity ${coreActivity} ↗</a></p>`
+      : coreActivity >= 1 && coreActivity <= 3
+        ? `<p style="margin:18px 0;color:#53645a"><strong>Core Values team meeting:</strong> ${coreValue} Activity ${coreActivity} is a group activity. It is not assigned as individual homework; the coach will use it during a team practice.</p>`
+        : "";
     const lead = isCoachDigest ? "Wednesday coach digest" : "Wednesday homework notice";
     const subject = `Week ${humanWeek} · ${lead}: ${assignment.title}`;
     const { data: questions } = await admin.from("assignment_questions").select("prompt,display_order").eq("assignment_id", assignment.id).order("display_order");
