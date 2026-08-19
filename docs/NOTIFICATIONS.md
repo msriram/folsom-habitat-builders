@@ -2,7 +2,7 @@
 
 Homework reminders are queued in Supabase and sent by the `homework-reminders` Edge Function. GitHub Pages never receives or stores an email-provider secret.
 
-- Approved students and linked parents receive the current homework notice Wednesday at 9:00 PM Pacific. The lead coach receives a separate digest at 11:00 AM Pacific on Wednesday.
+- Approved students and linked parents receive the current homework notice Wednesday at 9:00 PM Pacific. The lead coach receives a separate digest at 11:15 AM Pacific on Wednesday.
 - Each email includes the assignment description and question prompts from the Team Room, plus a direct link back to the homework page.
 - The queue uses the Wednesday delivery timestamp as part of its unique key, so rerunning the scheduler does not duplicate that week's mail.
 
