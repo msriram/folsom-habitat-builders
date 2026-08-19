@@ -75,7 +75,9 @@ function configureHomeworkView(profile) {
   const approved = profile?.approval_status === 'approved';
   const isCoach = approved && ['coach', 'student_coach'].includes(profile.role);
   if (isCoach) {
-    homeworkDetails.forEach(detail => { detail.hidden = true; detail.open = false; });
+    // Coaches can read the complete assignment before and after publication;
+    // only student submission forms remain unavailable to them.
+    homeworkDetails.forEach(detail => { detail.hidden = false; detail.open = detail.classList.contains('homework-current'); });
     if (coachSessionsTab) coachSessionsTab.hidden = false;
     if (coachQueue && coachQueueHost) coachQueueHost.append(coachQueue);
     if (coachQueue) {
