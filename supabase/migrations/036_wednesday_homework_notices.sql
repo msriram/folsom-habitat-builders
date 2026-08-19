@@ -1,5 +1,5 @@
 -- Wednesday homework notices: family delivery at 9 PM Pacific and the lead
--- coach digest at 11:15 AM Pacific. Week 0 remains the setup week in storage;
+-- coach digest at 11:30 AM Pacific. Week 0 remains the setup week in storage;
 -- emails use the human-facing season week (stored week_number + 1).
 alter table public.homework_reminders
   drop constraint if exists homework_reminders_reminder_kind_check;
@@ -15,13 +15,13 @@ declare
   local_now timestamp := now() at time zone 'America/Los_Angeles';
   wednesday_start timestamp := date_trunc('week', local_now) + interval '2 days';
   family_time timestamptz := ((wednesday_start + interval '21 hours') at time zone 'America/Los_Angeles');
-  coach_time timestamptz := ((wednesday_start + interval '11 hours 15 minutes') at time zone 'America/Los_Angeles');
+  coach_time timestamptz := ((wednesday_start + interval '11 hours 30 minutes') at time zone 'America/Los_Angeles');
 begin
   if local_now >= wednesday_start + interval '21 hours' then
     family_time := (((wednesday_start + interval '7 days') + interval '21 hours') at time zone 'America/Los_Angeles');
     coach_time := (((wednesday_start + interval '7 days') + interval '11 hours 15 minutes') at time zone 'America/Los_Angeles');
-  elsif local_now >= wednesday_start + interval '11 hours 15 minutes' then
-    coach_time := ((wednesday_start + interval '11 hours 15 minutes') at time zone 'America/Los_Angeles');
+  elsif local_now >= wednesday_start + interval '11 hours 30 minutes' then
+    coach_time := ((wednesday_start + interval '11 hours 30 minutes') at time zone 'America/Los_Angeles');
   end if;
 
   with current_assignment as (

@@ -107,6 +107,23 @@ async function renderNotebookProgress() {
   const names = ['Field and Robot Baseline','Mission Science and Project Leads','First Reliable Missions','Dock Strategy and Keystone Species','Left Field and Seed Behavior','Problem Evidence and Expert Plan','Right Field Mechanisms','Project Decision and First Prototype','Match Strategy and Project Impact','Presentation Draft and Timed Match','Final Presentations and Robot Design','Full Event Rehearsal'];
   const list = section.querySelector('[data-notebook-session-list]');
   list.innerHTML = names.map((name,index) => `<a class="notebook-session-row" href="meeting-${String(index+1).padStart(2,'0')}.html"><strong>Session ${index+1}</strong><span>${name}</span><em data-notebook-session-status="${index+1}">Not recorded</em></a>`).join('');
+  const week = Number(document.body.dataset.currentHomeworkWeek || 0);
+  const coreIndex = week - 2;
+  const override = week === 4 ? ['fun', 2] : null;
+  const coreValue = override?.[0] || (coreIndex >= 0 ? ['discovery','innovation','impact','inclusion','teamwork','fun'][coreIndex % 6] : '');
+  const coreActivity = override?.[1] || (coreIndex >= 0 ? Math.floor(coreIndex / 6) + 1 : 0);
+  const coreKey = `${coreValue}-${coreActivity}`;
+  const coreQuestions = { 'discovery-1':'What is one new thing you discovered this week, and what question do you want to investigate next?', 'innovation-1':'Describe one creative way our team could solve a biodiversity problem. What would we test first?', 'impact-1':'How could our robot, project, or team make a positive impact on biodiversity or our community?', 'teamwork-1':'Write each teammate’s name, one thing you think they do well, and one skill or habit they could improve. Be specific and kind.', 'fun-1':'Draw something about our team and include everyone if possible. You may draw by hand or digitally and upload the picture.', 'fun-2':'Draw something about our team and include everyone if possible. You may draw by hand or digitally and upload the picture.' };
+  const groupOnly = new Set(['innovation-2','innovation-3','inclusion-1','teamwork-2','teamwork-3']);
+  const activeForm = document.querySelector(`form[data-homework-form][data-week-number="${week}"]`);
+  if (activeForm && coreQuestions[coreKey] && !groupOnly.has(coreKey) && !activeForm.querySelector('[data-core-values-response]')) {
+    const field = document.createElement('label');
+    field.dataset.coreValuesResponse = '';
+    field.innerHTML = `<span>Core Values · ${coreValue} Activity ${coreActivity}</span><textarea name="core_values_response" rows="5" minlength="20" maxlength="2000" required>${coreQuestions[coreKey]}</textarea>`;
+    const submit = activeForm.querySelector('button[type="submit"]');
+    activeForm.insertBefore(field, submit || null);
+    field.querySelector('textarea').value = '';
+  }
   const cfg = window.FIREFLIES_PORTAL_CONFIG || {};
   if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) { section.querySelector('[data-notebook-progress-status]').textContent = 'Shared checklist'; return; }
   try {
