@@ -26,8 +26,9 @@ function applyRhythm() {
   const week = currentWeek();
   const coreValues = ['Discovery', 'Innovation', 'Impact', 'Inclusion', 'Teamwork', 'Fun'];
   const coreIndex = week - 2;
-  const coreActivity = coreIndex >= 0 ? Math.floor(coreIndex / coreValues.length) + 1 : 0;
-  const coreValue = coreIndex >= 0 ? coreValues[coreIndex % coreValues.length] : '';
+  const scheduledOverride = week === 4 ? ['Fun', 2] : null;
+  const coreActivity = scheduledOverride?.[1] ?? (coreIndex >= 0 ? Math.floor(coreIndex / coreValues.length) + 1 : 0);
+  const coreValue = scheduledOverride?.[0] ?? (coreIndex >= 0 ? coreValues[coreIndex % coreValues.length] : '');
   const groupOnly = new Set(['innovation-2', 'innovation-3', 'inclusion-1', 'teamwork-2', 'teamwork-3']);
   const coreKey = `${coreValue.toLowerCase()}-${coreActivity}`;
   const coreLink = document.querySelector('[data-core-values-link]');
@@ -36,12 +37,12 @@ function applyRhythm() {
   const coreSmall = document.querySelector('[data-core-values-small]');
   if (coreLink && coreTitle && coreActivity >= 1 && coreActivity <= 3) {
     const slug = coreValue.toLowerCase();
-    coreLink.href = coreKey === 'teamwork-1' ? 'portal.html?tab=homework#core-values-teamwork-1' : `downloads/bioglow/core-values-${slug}-${coreActivity}.pdf`;
-    coreTitle.textContent = coreKey === 'teamwork-1' ? 'Teamwork · Activity 1: Team strengths ↗' : `${coreValue} · Activity ${coreActivity} ↗`;
+    coreLink.href = coreKey === 'teamwork-1' || coreKey === 'fun-1' ? 'portal.html?tab=homework#core-values-teamwork-1' : `downloads/bioglow/core-values-${slug}-${coreActivity}.pdf`;
+    coreTitle.textContent = coreKey === 'teamwork-1' ? 'Teamwork · Activity 1: Team strengths ↗' : coreKey === 'fun-1' ? 'Fun · Activity 1: Team portrait ↗' : `${coreValue} · Activity ${coreActivity} ↗`;
     const teamOnly = groupOnly.has(coreKey);
     coreLink.hidden = teamOnly;
-    if (coreNote) coreNote.textContent = teamOnly ? 'This page is a group activity and is not assigned as individual homework. The coach will use it during a team practice.' : coreKey === 'teamwork-1' ? 'Write each teammate’s name, what you think they are good at, and one skill or habit they could improve. Be specific and kind.' : 'Use this as a team meeting activity; it is shared work rather than individual homework.';
-    if (coreSmall) coreSmall.textContent = teamOnly ? 'Team practice only' : coreKey === 'teamwork-1' ? 'Open the team strengths prompt' : 'Open the one-page activity worksheet';
+    if (coreNote) coreNote.textContent = teamOnly ? 'This page is a group activity and is not assigned as individual homework. The coach will use it during a team practice.' : coreKey === 'teamwork-1' ? 'Write each teammate’s name, what you think they are good at, and one skill or habit they could improve. Be specific and kind.' : coreKey === 'fun-1' ? 'Draw something about your team and include everyone if possible. You can draw by hand, use a digital tool, or upload the finished picture with your homework.' : 'Use this as a team meeting activity; it is shared work rather than individual homework.';
+    if (coreSmall) coreSmall.textContent = teamOnly ? 'Team practice only' : coreKey === 'teamwork-1' ? 'Open the team strengths prompt' : coreKey === 'fun-1' ? 'Open the team portrait prompt' : 'Open the one-page activity worksheet';
   }
   const assignments = { ...fallbackAssignments };
   document.body.dataset.currentHomeworkWeek = String(week);

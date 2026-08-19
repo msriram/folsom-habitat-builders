@@ -47,12 +47,13 @@ Deno.serve(async (req) => {
     // after six weeks the activity number advances to 2 (then 3).
     const coreValues = ["discovery", "innovation", "impact", "inclusion", "teamwork", "fun"];
     const coreIndex = humanWeek - 3;
-    const coreActivity = coreIndex >= 0 ? Math.floor(coreIndex / coreValues.length) + 1 : 0;
-    const coreValue = coreIndex >= 0 ? coreValues[coreIndex % coreValues.length] : "";
+    const scheduledOverride = humanWeek === 5 ? ["fun", 2] as const : null;
+    const coreActivity = scheduledOverride?.[1] ?? (coreIndex >= 0 ? Math.floor(coreIndex / coreValues.length) + 1 : 0);
+    const coreValue = scheduledOverride?.[0] ?? (coreIndex >= 0 ? coreValues[coreIndex % coreValues.length] : "");
     const groupOnly = new Set(["innovation-2", "innovation-3", "inclusion-1", "teamwork-2", "teamwork-3"]);
     const coreKey = `${coreValue}-${coreActivity}`;
     const homeworkSafe = coreActivity >= 1 && coreActivity <= 3 && !groupOnly.has(coreKey);
-    const coreHref = coreKey === "teamwork-1"
+    const coreHref = coreKey === "teamwork-1" || coreKey === "fun-1"
       ? `${siteUrl}/portal.html?tab=homework#core-values-teamwork-1`
       : `${siteUrl}/downloads/bioglow/core-values-${coreValue}-${coreActivity}.pdf`;
     const worksheetLink = homeworkSafe
