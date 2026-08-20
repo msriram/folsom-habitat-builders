@@ -27,6 +27,7 @@ function formatDue(value) {
 
 function applyRhythm() {
   const week = currentWeek();
+  document.querySelector('[data-homework-week="2"] [data-core-values-activity]')?.remove();
   const coreValues = ['Discovery', 'Innovation', 'Impact', 'Inclusion', 'Teamwork', 'Fun'];
   const coreIndex = week - 2;
   const scheduledOverride = week === 4 ? ['Fun', 2] : null;
@@ -61,6 +62,14 @@ function applyRhythm() {
     if (coreNote) coreNote.textContent = teamOnly ? 'This page is a group activity and is not assigned as individual homework. The coach will use it during a team practice.' : coreKey === 'teamwork-1' ? 'Write each teammate’s name, what you think they are good at, and one skill or habit they could improve. Be specific and kind.' : coreKey === 'fun-1' ? 'Draw something about your team and include everyone if possible. You can draw by hand, use a digital tool, or upload the finished picture with your homework.' : 'Use this as a team meeting activity; it is shared work rather than individual homework.';
     if (coreSmall) coreSmall.textContent = teamOnly ? 'Team practice only' : coreKey === 'teamwork-1' ? 'Open the team strengths prompt' : coreKey === 'fun-1' ? 'Open the team portrait prompt' : 'Open the one-page activity worksheet';
     if (coreQuestionNode) coreQuestionNode.textContent = teamOnly ? 'This is a group activity for team practice, not individual homework.' : coreQuestion;
+  }
+  if (!document.querySelector('details[data-homework-week="3"]')) {
+    const cs2n = document.querySelector('[data-cs2n-robot-homework]');
+    const week3 = document.createElement('details');
+    week3.className = 'homework-notebook homework-next homework-week-3';
+    week3.dataset.homeworkWeek = '3';
+    week3.innerHTML = `<summary class="notebook-title"><div><span>Week 3 · Innovation Project direction</span><h3>Project Sparks and Challenge Story</h3></div><strong>Due Wednesday, August 26</strong><em>Click to expand</em></summary><section class="notebook-cell"><div class="cell-prompt"><span>Read and respond</span><h4>Use the team notebook to choose a problem</h4><p>Read the Project Sparks and Challenge Story pages. Then connect one idea to a biodiversity problem the team can investigate.</p></div><div class="notebook-downloads"><a href="assets/img/notebook/project-sparks.png" target="_blank" rel="noopener"><strong>Project Sparks ↗</strong><small>Click to enlarge</small></a><a href="assets/img/notebook/challenge-story.png" target="_blank" rel="noopener"><strong>Challenge Story ↗</strong><small>Click to enlarge</small></a></div></section><section class="notebook-cell"><div class="cell-prompt"><span>Questions</span><h4>Turn in four short responses</h4><p>Choose a spark, name the problem, identify something to learn from, and bring one useful question to the next session.</p></div></section><footer><span>Connected schedule</span><span><a href="meeting-03.html">Session 3 plan</a> · <a href="meeting-04.html">Session 4 plan</a></span></footer><section class="submission-gate" data-homework-gate="3"><h3>Turn in Week 3</h3><p>Sign in with an approved student account to submit your project direction.</p><a class="button primary" href="login.html">Sign in</a></section><form class="homework-submit notebook-response" data-homework-form data-week-number="3" hidden><div class="section-title"><div><span class="eyebrow">Your response</span><h3>Week 3 submission</h3></div><span class="status-chip" data-submit-status>Not submitted</span></div><label>Which Project Spark or different idea interests you most, and why?<textarea name="project_spark" rows="5" minlength="30" maxlength="2000" required></textarea></label><label>What biodiversity problem would you like the team to investigate? Who or what is affected?<textarea name="problem_statement" rows="5" minlength="30" maxlength="2000" required></textarea></label><label>What existing solution, scientist, organization, or source should we learn from?<textarea name="existing_solution" rows="5" minlength="20" maxlength="2000" required></textarea></label><label>What is one question we should bring to Session 3 or Session 4?<textarea name="next_question" rows="4" minlength="20" maxlength="1600" required></textarea></label><div data-existing-files class="submission-files"></div><button class="button primary" type="submit">Submit Week 3 homework</button><p data-homework-message aria-live="polite"></p></form>`;
+    if (cs2n) cs2n.before(week3); else document.querySelector('[data-panel="homework"]')?.append(week3);
   }
   const assignments = { ...fallbackAssignments };
   document.body.dataset.currentHomeworkWeek = String(week);
@@ -120,7 +129,7 @@ async function renderNotebookProgress() {
   const coreQuestions = { 'discovery-1':'What is one new thing you discovered this week, and what question do you want to investigate next?', 'innovation-1':'Describe one creative way our team could solve a biodiversity problem. What would we test first?', 'impact-1':'How could our robot, project, or team make a positive impact on biodiversity or our community?', 'teamwork-1':'Write each teammate’s name, one thing you think they do well, and one skill or habit they could improve. Be specific and kind.', 'fun-1':'Draw something about our team and include everyone if possible. You may draw by hand or digitally and upload the picture.', 'fun-2':'Draw something about our team and include everyone if possible. You may draw by hand or digitally and upload the picture.' };
   const groupOnly = new Set(['innovation-2','innovation-3','inclusion-1','teamwork-2','teamwork-3']);
   const activeForm = document.querySelector(`form[data-homework-form][data-week-number="${week}"]`);
-  if (activeForm && coreQuestions[coreKey] && !groupOnly.has(coreKey) && !activeForm.querySelector('[data-core-values-response]')) {
+  if (week >= 3 && activeForm && coreQuestions[coreKey] && !groupOnly.has(coreKey) && !activeForm.querySelector('[data-core-values-response]')) {
     const field = document.createElement('label');
     field.dataset.coreValuesResponse = '';
     field.innerHTML = `<span>Core Values · ${coreValue} Activity ${coreActivity}</span><textarea name="core_values_response" rows="5" minlength="20" maxlength="2000" required>${coreQuestions[coreKey]}</textarea>`;
