@@ -5,6 +5,7 @@ const homeworkDetails = [...document.querySelectorAll('details[data-homework-wee
 const coachQueue = document.querySelector('#coach-session-queue');
 const coachSessionsTab = document.querySelector('[data-tab="sessions"]');
 const coachQueueHost = document.querySelector('#coach-session-queue-host');
+const markdown = value => window.FIREFLIES_MARKDOWN?.render(value) || `<p>${esc(value)}</p>`;
 
 if (!forms.length) {
   // The page may be opened on a section that does not contain assignments.
@@ -70,13 +71,13 @@ async function openParentSubmission(db, studentId, gate, week) {
   if (submissionError || questionsError) { window.FIREFLIES_DIAGNOSTICS?.report('Parent homework view', submissionError || questionsError); gate.innerHTML = '<p>Your child’s homework is unavailable right now.</p>'; return; }
   if (!submission) { gate.innerHTML = `<h2>${esc(assignment.title)}</h2><p>Your child has not submitted this homework yet.</p>`; return; }
   const questionMap = new Map((questions || []).map(question => [question.question_key, question.prompt]));
-  const answers = (submission.submission_answers || []).sort((a, b) => a.display_order - b.display_order).map(answer => `<article class="answer-card"><h4>${esc(questionMap.get(answer.question_key) || questionLabel(answer.question_key))}</h4><p>${esc(answer.answer_text || 'No response yet.')}</p></article>`).join('');
+  const answers = (submission.submission_answers || []).sort((a, b) => a.display_order - b.display_order).map(answer => `<article class="answer-card"><h4>${esc(questionMap.get(answer.question_key) || questionLabel(answer.question_key))}</h4><div class="markdown-content">${markdown(answer.answer_text || 'No response yet.')}</div></article>`).join('');
   const files = await Promise.all(distinctSubmissionFiles(submission.submission_files).map(async file => {
     const { data } = await db.storage.from('homework-files').createSignedUrl(file.storage_path, 900);
     const open = data?.signedUrl ? `<a href="${esc(data.signedUrl)}" target="_blank" rel="noopener">${esc(file.file_name)}</a>` : `<span>${esc(file.file_name)}</span>`;
     return `<span class="file-chip managed-file">${open}<button type="button" class="remove-file" data-remove-file="${file.id}" data-storage-path="${esc(file.storage_path)}" title="Remove attachment" aria-label="Remove ${esc(file.file_name)}">×</button></span>`;
   }));
-  gate.innerHTML = `<div class="section-title"><div><span class="eyebrow">Linked student submission</span><h2>${esc(assignment.title)}</h2></div><span class="status-chip">${esc(submission.status || 'Submitted')}</span></div><p class="muted">Submitted ${submission.submitted_at ? esc(new Date(submission.submitted_at).toLocaleString()) : 'recently'}.</p><div class="parent-submission">${answers || '<p>No written responses yet.</p>'}${files.length ? `<div class="submission-files">${files.join('')}</div>` : ''}${submission.coach_feedback ? `<article class="coach-feedback"><h3>Coach feedback</h3><p>${esc(submission.coach_feedback)}</p></article>` : ''}</div>`;
+  gate.innerHTML = `<div class="section-title"><div><span class="eyebrow">Linked student submission</span><h2>${esc(assignment.title)}</h2></div><span class="status-chip">${esc(submission.status || 'Submitted')}</span></div><p class="muted">Submitted ${submission.submitted_at ? esc(new Date(submission.submitted_at).toLocaleString()) : 'recently'}.</p><div class="parent-submission">${answers || '<p>No written responses yet.</p>'}${files.length ? `<div class="submission-files">${files.join('')}</div>` : ''}${submission.coach_feedback ? `<article class="coach-feedback"><h3>Coach feedback</h3><div class="markdown-content">${markdown(submission.coach_feedback)}</div></article>` : ''}</div>`;
   gate.querySelectorAll('[data-remove-file]').forEach(button => {
     button.onclick = async () => {
       if (!confirm('Remove this attachment?')) return;

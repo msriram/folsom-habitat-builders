@@ -10,6 +10,7 @@ const publishMessage = document.querySelector('[data-publish-message]');
 const publishButton = document.querySelector('[data-publish-reviews]');
 let db;
 let currentAssignmentId;
+const markdown = value => window.FIREFLIES_MARKDOWN?.render(value) || `<p>${esc(value)}</p>`;
 
 if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
   state.textContent = 'Homework review is unavailable right now.';
@@ -101,7 +102,7 @@ async function show(assignment, student, submission, questionMap = new Map()) {
     const { data } = await db.storage.from('homework-files').createSignedUrl(file.storage_path, 900);
     return { ...file, url: data?.signedUrl };
   }));
-  detail.innerHTML = `<div class="section-title"><div><h2>${esc(student.display_name)}</h2><p>${submission.submitted_at ? new Date(submission.submitted_at).toLocaleString() : 'Coach record'}</p></div><span class="status-chip">${submissionStatusLabel(submission.status)}</span></div>${(submission.submission_answers || []).sort((a, b) => a.display_order - b.display_order).map(answer => `<article class="answer-card"><span class="eyebrow">Question</span><h3>${esc(questionMap.get(answer.question_key) || label(answer.question_key))}</h3><p>${esc(answer.answer_text || JSON.stringify(answer.answer_json || ''))}</p></article>`).join('')}<div class="submission-gallery">${files.map(file => file.mime_type.startsWith('image/') ? `<a href="${file.url}" target="_blank"><img src="${file.url}" alt="${esc(file.file_name)}"><span>${esc(file.file_name)}</span></a>` : `<a class="file-chip" href="${file.url}" target="_blank">${esc(file.file_name)}</a>`).join('')}</div>${feedbackEditor(assignment, student, submission.coach_feedback || '', submission)}`;
+  detail.innerHTML = `<div class="section-title"><div><h2>${esc(student.display_name)}</h2><p>${submission.submitted_at ? new Date(submission.submitted_at).toLocaleString() : 'Coach record'}</p></div><span class="status-chip">${submissionStatusLabel(submission.status)}</span></div>${(submission.submission_answers || []).sort((a, b) => a.display_order - b.display_order).map(answer => `<article class="answer-card"><span class="eyebrow">Question</span><h3>${esc(questionMap.get(answer.question_key) || label(answer.question_key))}</h3><div class="markdown-content">${markdown(answer.answer_text || JSON.stringify(answer.answer_json || ''))}</div></article>`).join('')}<div class="submission-gallery">${files.map(file => file.mime_type.startsWith('image/') ? `<a href="${file.url}" target="_blank"><img src="${file.url}" alt="${esc(file.file_name)}"><span>${esc(file.file_name)}</span></a>` : `<a class="file-chip" href="${file.url}" target="_blank">${esc(file.file_name)}</a>`).join('')}</div>${feedbackEditor(assignment, student, submission.coach_feedback || '', submission)}`;
   bindFeedback(assignment, student, submission);
 }
 

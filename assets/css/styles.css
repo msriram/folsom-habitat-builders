@@ -407,6 +407,11 @@ body[data-homework-auth-loading] [data-homework-week], body[data-homework-auth-l
 .guide-launcher:hover,.guide-launcher:focus-visible { transform:translateY(-2px) scale(1.06); box-shadow:0 16px 34px rgba(70,70,150,.45),0 0 0 3px rgba(255,192,78,.46); outline:none; }
 .guide-launcher.is-open { transform:scale(.96); }
 .guide-panel-actions { display:flex; align-items:center; gap:8px; }
+.markdown-content > :first-child { margin-top:0; }
+.markdown-content > :last-child { margin-bottom:0; }
+.markdown-content p,.markdown-content li,.markdown-content blockquote { white-space:normal; }
+.markdown-content code { padding:.1em .35em; border-radius:4px; background:var(--surface); font-family:var(--mono,ui-monospace,SFMono-Regular,Menlo,monospace); }
+.markdown-content blockquote { margin:.75rem 0; padding:.1rem 0 .1rem .8rem; border-left:3px solid var(--border); color:var(--muted); }
 .guide-close { width:30px; height:30px; border:1px solid var(--border); border-radius:50%; background:var(--surface); color:var(--ink); font-size:1.25rem; line-height:1; cursor:pointer; }
 .guide-sidebar h2 { margin:.25rem 0; font-size:1.55rem; }
 .guide-sidebar .portal-heading { align-items:flex-start; flex-direction:column; gap:8px; }

@@ -4,6 +4,7 @@ const toolbar = document.querySelector('[data-review-toolbar]');
 const select = document.querySelector('[data-review-assignment]');
 const count = document.querySelector('[data-review-count]');
 const list = document.querySelector('[data-review-list]');
+const markdown = value => window.FIREFLIES_MARKDOWN?.render(value) || `<p>${esc(value)}</p>`;
 
 if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
   state.textContent = 'Published homework reviews are unavailable right now.';
@@ -51,7 +52,7 @@ async function load(db, assignmentId) {
   const { data: reviews, error } = await db.rpc('published_homework_reviews', { target_assignment: assignmentId });
   if (error) { list.innerHTML = `<p class="form-message">${esc(error.message || 'Reviews could not be loaded.')}</p>`; return; }
   count.textContent = `${reviews.length} student perspectives`;
-  list.innerHTML = reviews.map(review => `<article class="review-rollup-card"><header><div><span class="eyebrow">${review.status === 'not_submitted' ? 'Coach note' : 'Student work'}</span><h2>${esc(review.display_name)}</h2></div><span class="status-chip">${reviewStatus(review.status)}</span></header><div class="review-rollup-grid"><div>${renderAnswers(review)}</div><aside><h3>Coach feedback</h3><p>${esc(review.coach_feedback || 'No feedback recorded.')}</p>${renderFiles(review.files || [])}</aside></div></article>`).join('');
+  list.innerHTML = reviews.map(review => `<article class="review-rollup-card"><header><div><span class="eyebrow">${review.status === 'not_submitted' ? 'Coach note' : 'Student work'}</span><h2>${esc(review.display_name)}</h2></div><span class="status-chip">${reviewStatus(review.status)}</span></header><div class="review-rollup-grid"><div>${renderAnswers(review)}</div><aside><h3>Coach feedback</h3><div class="markdown-content">${markdown(review.coach_feedback || 'No feedback recorded.')}</div>${renderFiles(review.files || [])}</aside></div></article>`).join('');
   for (const image of list.querySelectorAll('[data-review-file]')) {
     const path = image.dataset.reviewFile;
     const { data } = await db.storage.from('homework-files').createSignedUrl(path, 900);
@@ -61,10 +62,10 @@ async function load(db, assignmentId) {
 
 function renderAnswers(review) {
   const answers = Array.isArray(review.answers) ? review.answers : [];
-  if (answers.length) return answers.map(answer => `<h3>${esc(answer.prompt || answer.question_key || 'Student response')}</h3><p>${esc(answerText(answer) || 'No written response was submitted.')}</p>`).join('');
+  if (answers.length) return answers.map(answer => `<h3>${esc(answer.prompt || answer.question_key || 'Student response')}</h3><div class="markdown-content">${markdown(answerText(answer) || 'No written response was submitted.')}</div>`).join('');
   // Backward compatibility for a review published before generic answer data
   // was available. New reviews always use the full question-and-answer list.
-  return `<h3>Topic</h3><p>${esc(review.topic || 'No topic recorded.')}</p><h3>What interested the student</h3><p>${esc(review.paragraph || 'No written response was submitted.')}</p>${review.sources ? `<h3>Sources</h3><p>${esc(review.sources)}</p>` : ''}`;
+  return `<h3>Topic</h3><div class="markdown-content">${markdown(review.topic || 'No topic recorded.')}</div><h3>What interested the student</h3><div class="markdown-content">${markdown(review.paragraph || 'No written response was submitted.')}</div>${review.sources ? `<h3>Sources</h3><div class="markdown-content">${markdown(review.sources)}</div>` : ''}`;
 }
 
 function answerText(answer) {
