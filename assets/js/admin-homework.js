@@ -39,13 +39,37 @@ if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
         assignmentSelect.innerHTML = (assignments || []).map(a =>
           `<option value="${a.id}">Week ${a.week_number}: ${esc(a.title)}${a.published ? '' : ' (coach draft)'}</option>`).join('');
         assignmentSelect.onchange = () => load(aById(assignments, assignmentSelect.value));
-        if (assignments?.[0]) await load(assignments[0]);
+        const defaultAssignment = await newestIncompleteAssignment(assignments || []);
+        if (defaultAssignment) {
+          assignmentSelect.value = defaultAssignment.id;
+          await load(defaultAssignment);
+        }
       }
     }
   }
 }
 
 function aById(assignments, id) { return assignments.find(a => a.id === id) || assignments[0]; }
+
+async function newestIncompleteAssignment(assignments) {
+  const published = assignments.filter(assignment => assignment.published);
+  if (!published.length) return assignments.at(-1);
+  const [{ data: students }, { data: submissions }] = await Promise.all([
+    db.from('profiles').select('id').eq('role', 'student').eq('approval_status', 'approved').eq('is_active', true),
+    db.from('submissions').select('assignment_id,student_id,status').in('assignment_id', published.map(assignment => assignment.id))
+  ]);
+  const studentIds = new Set((students || []).map(student => student.id));
+  const completedByAssignment = new Map();
+  (submissions || []).forEach(submission => {
+    if (submission.status !== 'complete' || !studentIds.has(submission.student_id)) return;
+    const completed = completedByAssignment.get(submission.assignment_id) || new Set();
+    completed.add(submission.student_id);
+    completedByAssignment.set(submission.assignment_id, completed);
+  });
+  return [...published].sort((left, right) => Number(right.week_number) - Number(left.week_number)).find(assignment =>
+    (completedByAssignment.get(assignment.id)?.size || 0) < studentIds.size
+  ) || [...published].sort((left, right) => Number(right.week_number) - Number(left.week_number))[0];
+}
 
 async function load(assignment, selectedStudentId = null) {
   if (!assignment) return;
@@ -64,13 +88,13 @@ async function load(assignment, selectedStudentId = null) {
   const questionMap = new Map((questions || []).map(question => [question.question_key, question.prompt]));
   const students = (users || []).filter(u => u.role === 'student');
   const byStudent = new Map((submissions || []).map(s => [s.student_id, s]));
-  const reviewed = students.filter(s => ['revise', 'complete'].includes(byStudent.get(s.id)?.status)).length;
+  const completed = students.filter(s => byStudent.get(s.id)?.status === 'complete').length;
   publishStatus.textContent = assignment.reviews_published
     ? `Reviews available ${assignment.reviews_published_at ? `since ${new Date(assignment.reviews_published_at).toLocaleDateString()}` : ''}`
-    : `Review decisions recorded for ${reviewed} of ${students.length} students.`;
+    : `${completed} completed student response${completed === 1 ? '' : 's'} ready to share.`;
   publishButton.hidden = false;
-  publishButton.disabled = assignment.reviews_published || students.length === 0 || reviewed < students.length;
-  publishButton.textContent = assignment.reviews_published ? 'Reviews published' : 'Publish homework reviews';
+  publishButton.disabled = assignment.reviews_published || completed === 0;
+  publishButton.textContent = assignment.reviews_published ? 'Reviews published' : 'Publish completed reviews';
   publishButton.onclick = () => publish(assignment);
   tabs.innerHTML = students.map(student => {
     const submission = byStudent.get(student.id);
@@ -119,6 +143,10 @@ function bindFeedback(assignment, student, submission) {
       window.FIREFLIES_DIAGNOSTICS?.report('Homework feedback', result.error);
       event.currentTarget.textContent = 'Try again';
     } else {
+      if (status === 'complete') {
+        const { error: releaseError } = await db.rpc('release_homework_reviews', { target_assignment: assignment.id });
+        if (releaseError) window.FIREFLIES_DIAGNOSTICS?.report('Release completed homework review', releaseError);
+      }
       await load(assignment, student.id);
     }
   };
@@ -132,10 +160,10 @@ function submissionStatusLabel(status) {
 
 async function publish(assignment) {
   publishButton.disabled = true;
-  publishMessage.textContent = 'Checking every student and publishing…';
+  publishMessage.textContent = 'Publishing completed work…';
   const { error } = await db.rpc('publish_homework_reviews', { target_assignment: assignment.id });
   if (error) {
-    publishMessage.textContent = error.message || 'Feedback is still missing.';
+    publishMessage.textContent = error.message || 'Mark at least one student complete before publishing.';
     publishButton.disabled = false;
     return;
   }
