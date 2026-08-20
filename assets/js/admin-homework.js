@@ -60,9 +60,10 @@ async function load(assignment, selectedStudentId = null) {
   const questionMap = new Map((questions || []).map(question => [question.question_key, question.prompt]));
   const students = (users || []).filter(u => u.role === 'student');
   const byStudent = new Map((submissions || []).map(s => [s.student_id, s]));
+  const reviewed = students.filter(s => (byStudent.get(s.id)?.coach_feedback || '').trim()).length;
   publishStatus.textContent = assignment.reviews_published
     ? `Reviews available ${assignment.reviews_published_at ? `since ${new Date(assignment.reviews_published_at).toLocaleDateString()}` : ''}`
-    : 'Reviews become available when a coach saves the first review.';
+    : `Reviews publish automatically after initial feedback for all students (${reviewed} of ${students.length}).`;
   publishButton.hidden = true;
   tabs.innerHTML = students.map(student => {
     const submission = byStudent.get(student.id);
@@ -111,9 +112,9 @@ function bindFeedback(assignment, student, submission) {
       window.FIREFLIES_DIAGNOSTICS?.report('Homework feedback', result.error);
       event.currentTarget.textContent = 'Try again';
     } else {
-      const { error: releaseError } = await db.rpc('release_homework_reviews', { target_assignment: assignment.id });
+      const { data: released, error: releaseError } = await db.rpc('release_homework_reviews', { target_assignment: assignment.id });
       if (releaseError) window.FIREFLIES_DIAGNOSTICS?.report('Release homework reviews', releaseError);
-      await load({ ...assignment, reviews_published: true, reviews_published_at: new Date().toISOString() }, student.id);
+      await load({ ...assignment, reviews_published: released === true || assignment.reviews_published, reviews_published_at: released === true ? new Date().toISOString() : assignment.reviews_published_at }, student.id);
     }
   };
   detail.querySelector('[data-save-feedback]').onclick = event => save(submission.status === 'revise' ? 'revise' : submission.status === 'complete' ? 'complete' : 'submitted', event);
