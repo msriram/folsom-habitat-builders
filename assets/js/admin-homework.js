@@ -60,13 +60,10 @@ async function load(assignment, selectedStudentId = null) {
   const questionMap = new Map((questions || []).map(question => [question.question_key, question.prompt]));
   const students = (users || []).filter(u => u.role === 'student');
   const byStudent = new Map((submissions || []).map(s => [s.student_id, s]));
-  const reviewed = students.filter(s => (byStudent.get(s.id)?.coach_feedback || '').trim()).length;
   publishStatus.textContent = assignment.reviews_published
-    ? `Published ${assignment.reviews_published_at ? `on ${new Date(assignment.reviews_published_at).toLocaleDateString()}` : ''}`
-    : `Feedback complete for ${reviewed} of ${students.length} students.`;
-  publishButton.disabled = assignment.reviews_published || students.length === 0 || reviewed < students.length;
-  publishButton.textContent = assignment.reviews_published ? 'Reviews published' : 'Publish homework reviews';
-  publishButton.onclick = () => publish(assignment);
+    ? `Reviews available ${assignment.reviews_published_at ? `since ${new Date(assignment.reviews_published_at).toLocaleDateString()}` : ''}`
+    : 'Reviews become available when a coach saves the first review.';
+  publishButton.hidden = true;
   tabs.innerHTML = students.map(student => {
     const submission = byStudent.get(student.id);
     const status = submissionStatusLabel(submission?.status);
@@ -114,7 +111,9 @@ function bindFeedback(assignment, student, submission) {
       window.FIREFLIES_DIAGNOSTICS?.report('Homework feedback', result.error);
       event.currentTarget.textContent = 'Try again';
     } else {
-      await load(assignment, student.id);
+      const { error: releaseError } = await db.rpc('release_homework_reviews', { target_assignment: assignment.id });
+      if (releaseError) window.FIREFLIES_DIAGNOSTICS?.report('Release homework reviews', releaseError);
+      await load({ ...assignment, reviews_published: true, reviews_published_at: new Date().toISOString() }, student.id);
     }
   };
   detail.querySelector('[data-save-feedback]').onclick = event => save(submission.status === 'revise' ? 'revise' : submission.status === 'complete' ? 'complete' : 'submitted', event);

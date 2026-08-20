@@ -135,7 +135,7 @@ async function openStudentForm(db, studentId, form, gate, week) {
   if (assignmentError) { if (gate) gate.innerHTML = '<p>Homework is unavailable right now.</p>'; return; }
   if (gate) gate.hidden = true;
   form.hidden = false;
-  let { data: submission } = await db.from('submissions').select('id,status,submitted_at,submission_answers(question_key,answer_text),submission_files(id,file_name,storage_path,mime_type,size_bytes)').eq('assignment_id', assignment.id).eq('student_id', studentId).maybeSingle();
+  let { data: submission } = await db.from('submissions').select('id,status,submitted_at,coach_feedback,submission_answers(question_key,answer_text),submission_files(id,file_name,storage_path,mime_type,size_bytes)').eq('assignment_id', assignment.id).eq('student_id', studentId).maybeSingle();
   if (submission) {
     const answers = Object.fromEntries((submission.submission_answers || []).map(answer => [answer.question_key, answer.answer_text]));
     for (const field of form.querySelectorAll('[name]')) if (field.name !== 'files') field.value = answers[field.name] || '';
@@ -145,9 +145,11 @@ async function openStudentForm(db, studentId, form, gate, week) {
     if (detail && week === 0) detail.open = false;
     if (submission.status === 'complete') {
       form.querySelectorAll('input,textarea,button').forEach(field => { field.disabled = true; });
-      message.textContent = 'Completed by your coach.';
+      message.textContent = submission.coach_feedback ? `Completed by your coach. Feedback: ${submission.coach_feedback}` : 'Completed by your coach.';
     } else if (submission.status === 'revise') {
-      message.textContent = 'Revision requested. Read your coach feedback, update your work, and submit again.';
+      message.textContent = submission.coach_feedback ? `Revision requested: ${submission.coach_feedback}` : 'Revision requested. Update your work and submit again.';
+    } else if (submission.coach_feedback) {
+      message.textContent = `Coach feedback: ${submission.coach_feedback}`;
     }
   }
   updateStudentHomeworkCard(form.closest('[data-homework-week]'), submission?.status, assignment.due_at);
