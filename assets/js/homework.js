@@ -139,12 +139,12 @@ async function openStudentForm(db, studentId, form, gate, week) {
   if (submission) {
     const answers = Object.fromEntries((submission.submission_answers || []).map(answer => [answer.question_key, answer.answer_text]));
     for (const field of form.querySelectorAll('[name]')) if (field.name !== 'files') field.value = answers[field.name] || '';
-    status.textContent = submission.status === 'submitted' ? 'Submitted' : 'Draft';
+    status.textContent = ({ submitted: 'Submitted', review: 'Submitted', revise: 'Revision Requested', complete: 'Completed' })[submission.status] || 'Draft';
     renderStudentFiles(existing, submission.submission_files, db);
     const detail = form.closest('[data-homework-week]');
     if (detail && week === 0) detail.open = false;
     if (submission.status === 'complete') {
-      form.querySelectorAll('input,textarea,button').forEach(field => { field.disabled = true; });
+      form.querySelectorAll('input, textarea, select, button').forEach(field => { field.disabled = true; });
       message.textContent = submission.coach_feedback ? `Completed by your coach. Feedback: ${submission.coach_feedback}` : 'Completed by your coach.';
     } else if (submission.status === 'revise') {
       message.textContent = submission.coach_feedback ? `Revision requested: ${submission.coach_feedback}` : 'Revision requested. Update your work and submit again.';
@@ -155,6 +155,10 @@ async function openStudentForm(db, studentId, form, gate, week) {
   updateStudentHomeworkCard(form.closest('[data-homework-week]'), submission?.status, assignment.due_at);
   form.onsubmit = async event => {
     event.preventDefault();
+    if (submission?.status === 'complete') {
+      message.textContent = 'This homework has been completed by your coach and can no longer be changed.';
+      return;
+    }
     if (form.dataset.submitting === 'true') return;
     form.dataset.submitting = 'true';
     const submitButton = form.querySelector('button[type="submit"]');
