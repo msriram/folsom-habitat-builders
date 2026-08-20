@@ -27,7 +27,8 @@ Deno.serve(async req=>{
   let content=`<h2>Gmail is connected</h2><p>This is a test message from the Folsom Fireflies Team Room.</p><p>Weekly homework reminders will be sent here from this Gmail account once the schedule is enabled.</p>`;
   if(body?.kind==="week2" || body?.kind==="current"){
     let assignmentQuery=admin.from("assignments").select("id,title,description,due_at,week_number").eq("published",true).order("due_at");
-    if(body?.kind==="week2") assignmentQuery=assignmentQuery.eq("week_number",2);
+    if(body?.weekNumber) assignmentQuery=assignmentQuery.eq("week_number",Number(body.weekNumber));
+    else if(body?.kind==="week2") assignmentQuery=assignmentQuery.eq("week_number",2);
     else assignmentQuery=assignmentQuery.gte("due_at",new Date().toISOString());
     const {data:assignment}=await assignmentQuery.limit(1).maybeSingle();
     if(!assignment)return reply({error:"No current published homework is available"},404);

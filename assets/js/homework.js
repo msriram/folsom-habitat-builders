@@ -33,6 +33,9 @@ if (!forms.length) {
         gate.innerHTML = '<h2>Account approval required</h2><p>You are signed in. A coach must approve this account before homework is available.</p>';
       }
     }
+    // The rhythm module may add future-week details after this module starts;
+    // run the publication filter once more after the DOM settles.
+    setTimeout(() => applyHomeworkPublication(db, profile), 0);
   }
 }
 
@@ -44,7 +47,7 @@ async function applyHomeworkPublication(db, profile) {
   const publishedWeeks = new Set((assignments || []).filter(item => item.published).map(item => Number(item.week_number)));
   // If the publication check is unavailable, keep future work private rather
   // than briefly exposing the entire season to a student or parent.
-  homeworkDetails.forEach(detail => {
+  document.querySelectorAll('details[data-homework-week]').forEach(detail => {
     const week = Number(detail.dataset.homeworkWeek);
     detail.hidden = error ? week > 2 : !publishedWeeks.has(week);
   });
