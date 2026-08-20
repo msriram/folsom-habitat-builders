@@ -590,7 +590,6 @@ async function setupGuide() {
 function setupGuideLauncher() {
   const launcher = $("#guide-launcher");
   const panel = $("#guide-panel");
-  const maximize = $("#guide-maximize");
   const close = $("#guide-close");
   if (!launcher || !panel) return;
   const container = panel.parentElement;
@@ -604,16 +603,62 @@ function setupGuideLauncher() {
   };
   launcher.addEventListener("click", () => setOpen(launcher.getAttribute("aria-expanded") !== "true"));
   close?.addEventListener("click", () => setOpen(false));
-  maximize?.addEventListener("click", () => {
-    const maximized = container.classList.toggle("is-maximized");
-    maximize.setAttribute("aria-pressed", String(maximized));
-    maximize.setAttribute("aria-label", maximized ? "Restore Ask AI window" : "Maximize Ask AI");
-    maximize.textContent = maximized ? "⤡" : "⤢";
+}
+
+function setupGuideResize() {
+  const panel = $("#guide-panel");
+  if (!panel) return;
+  const container = panel.parentElement;
+  const edgeSize = 14;
+  let resize = null;
+  const resizeMode = event => {
+    if (panel.hidden) return null;
+    const rect = panel.getBoundingClientRect();
+    const fromLeft = event.clientX - rect.left <= edgeSize;
+    const fromTop = event.clientY - rect.top <= edgeSize;
+    if (fromLeft && fromTop) return "corner";
+    if (fromLeft) return "width";
+    if (fromTop) return "height";
+    return null;
+  };
+  const setCursor = mode => { panel.style.cursor = mode === "corner" ? "nwse-resize" : mode === "width" ? "ew-resize" : mode === "height" ? "ns-resize" : ""; };
+  panel.addEventListener("pointermove", event => {
+    if (!resize) { setCursor(resizeMode(event)); return; }
+    const maxWidth = window.innerWidth - 32;
+    const maxHeight = window.innerHeight - 32;
+    if (resize.mode === "width" || resize.mode === "corner") {
+      container.style.width = `${Math.min(maxWidth, Math.max(320, resize.width + resize.startX - event.clientX))}px`;
+    }
+    if (resize.mode === "height" || resize.mode === "corner") {
+      panel.style.maxHeight = `${maxHeight}px`;
+      panel.style.height = `${Math.min(maxHeight, Math.max(300, resize.height + resize.startY - event.clientY))}px`;
+    }
   });
+  panel.addEventListener("pointerdown", event => {
+    const mode = resizeMode(event);
+    if (!mode || event.button !== 0) return;
+    const rect = panel.getBoundingClientRect();
+    resize = { mode, startX: event.clientX, startY: event.clientY, width: rect.width, height: rect.height };
+    container.classList.add("is-resizing");
+    setCursor(mode);
+    panel.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  });
+  const stopResize = event => {
+    if (!resize) return;
+    resize = null;
+    container.classList.remove("is-resizing");
+    if (panel.hasPointerCapture(event.pointerId)) panel.releasePointerCapture(event.pointerId);
+    setCursor(null);
+  };
+  panel.addEventListener("pointerup", stopResize);
+  panel.addEventListener("pointercancel", stopResize);
+  panel.addEventListener("pointerleave", () => { if (!resize) setCursor(null); });
 }
 
 Promise.allSettled([
   setupGuideLauncher(),
+  setupGuideResize(),
   setupRoleAccess(),
   setupProgress(),
   loadCodingProjects(),
