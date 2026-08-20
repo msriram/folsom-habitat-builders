@@ -96,6 +96,7 @@ function configureHomeworkView(profile) {
     // Coaches can read the complete assignment before and after publication;
     // only student submission forms remain unavailable to them.
     homeworkDetails.forEach(detail => { detail.hidden = false; detail.open = detail.classList.contains('homework-current'); });
+    renderCoachWeekTwoCard();
     if (coachSessionsTab) coachSessionsTab.hidden = false;
     if (coachQueue && coachQueueHost) coachQueueHost.append(coachQueue);
     if (coachQueue) {
@@ -117,6 +118,13 @@ function configureHomeworkView(profile) {
       coachQueue.innerHTML = `<div class="section-title"><div><span class="eyebrow">Coach view</span><h3>All 12 session assignments</h3></div><span class="status-chip">Collapsed queue</span></div>${descriptions.map((description, index) => { const session = index + 1; const link = session === 1 ? 'meeting-01.html' : session === 2 ? 'meeting-02.html' : 'resources.html'; return `<details class="homework-notebook coach-session" data-session-number="${session}"><summary class="notebook-title"><div><span>Session ${session}</span><h3>Session ${session} preparation</h3></div><strong aria-hidden="true"></strong><em>Click to expand</em></summary><section class="notebook-cell"><div class="cell-prompt"><span>Coach assignment</span><p>${description}</p></div><a class="button secondary" href="${link}">${session <= 2 ? 'Open session plan →' : 'Open official resources →'}</a></section></details>`; }).join('')}`;
     }
   }
+}
+
+function renderCoachWeekTwoCard() {
+  const detail = document.querySelector('details[data-homework-week="2"]');
+  if (!detail || detail.dataset.coachPresentation === 'true') return;
+  detail.dataset.coachPresentation = 'true';
+  detail.innerHTML = `<summary class="notebook-title"><div><span>Week 2 · Coach homework plan</span><h3>Choose a team name and a cause anchor</h3></div><strong>Due Wednesday, August 19</strong><em>Click to expand</em></summary><section class="notebook-cell"><div class="cell-prompt"><span>Coach context</span><h4>Team identity and project direction</h4><p>Students bring individual proposals. Use their responses to guide a shared discussion; do not decide the name or cause for them before hearing the group.</p></div></section><section class="notebook-cell"><div class="cell-prompt"><span>Answer 1</span><h4>Team name proposal</h4><p>What team name is the student proposing?</p></div></section><section class="notebook-cell"><div class="cell-prompt"><span>Answer 2</span><h4>Biodiversity cause</h4><p>What biodiversity cause should that name help the team investigate?</p></div></section><section class="notebook-cell"><div class="cell-prompt"><span>Answer 3</span><h4>Why the name fits</h4><p>Why does the name fit the team’s interests and BIOGLOW?</p></div></section><section class="notebook-cell"><div class="cell-prompt"><span>Answer 4</span><h4>Next team step</h4><p>What should the team investigate or build next?</p></div></section><footer><span>Connected schedule</span><span><a href="meeting-02.html">Session 2 plan</a> · <a href="resources.html">Official resources</a></span></footer><section class="submission-gate"><h3>Review student responses</h3><p>Open the review workspace to read every student response and leave coach feedback.</p><a class="button primary" href="admin-homework.html">Open homework review</a></section>`;
 }
 
 async function openStudentForm(db, studentId, form, gate, week) {
