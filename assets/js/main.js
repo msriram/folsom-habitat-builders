@@ -21,6 +21,9 @@
   window.addEventListener("error", event => window.FIREFLIES_DIAGNOSTICS.report("Browser", event.error || event.message));
   window.addEventListener("unhandledrejection", event => window.FIREFLIES_DIAGNOSTICS.report("Browser", event.reason));
 
+  // A title on the root HTML element becomes a browser tooltip across the
+  // entire page. Keep labels on the individual color choices only.
+  document.documentElement.removeAttribute("title");
   const savedTheme = localStorage.getItem("fireflies-theme");
   const initialTheme = savedTheme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
   document.documentElement.dataset.theme = initialTheme;
@@ -257,7 +260,6 @@ async function initializeAccountMenu(header) {
   const colorPaletteToggle = header.querySelector(".theme-palette-toggle");
   colorThemeButtons.forEach(button => {
     const name = colorThemeNames[button.dataset.colorTheme] || "Color theme";
-    button.title = name;
     button.setAttribute("aria-label", name);
   });
   let activeColorThemeKey = "fireflies-color-theme";
