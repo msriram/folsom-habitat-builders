@@ -255,6 +255,7 @@ function applyRhythm() {
   setText('[data-homework-rhythm-label]', `Week ${week} · This week`);
   setText('[data-homework-rhythm-status]', `Week ${week} is active now; the next week opens automatically on Sunday.`);
   renderNotebookProgress();
+  document.dispatchEvent(new Event('fireflies:homework-cards-ready'));
 }
 
 async function renderNotebookProgress() {

@@ -52,7 +52,7 @@ Deno.serve(async req=>{
   };
   if(body?.deliverToTeam===true){
     if(!["week2","current"].includes(body?.kind)) return reply({error:"No homework release is available"},400);
-    const roles=body?.coachesOnly===true?["coach","student_coach"]:["student","parent"];
+    const roles=body?.coachesOnly===true?["coach","student_coach"]:["student","parent","coach","student_coach"];
     let peopleQuery=admin.from("profiles").select("display_name,email,role").in("role",roles).eq("approval_status","approved").eq("is_active",true).not("email","is",null);
     if(body?.coachesOnly===true) peopleQuery=peopleQuery.ilike("email","sriram87@gmail.com");
     const {data:people}=await peopleQuery;
@@ -61,7 +61,7 @@ Deno.serve(async req=>{
     for(const person of recipients){const result=await send(person.email!,person.display_name||"team member",person.role||"parent");if(result.ok)sent++;else failed++;}
     return reply({sent,failed,recipients:recipients.length});
   }
-  const sent=await send(credential.email,"Sriram");
+  const sent=await send("sriram87@gmail.com","Sriram","coach");
   if(!sent.ok)return reply({error:"Gmail could not send the test message"},502);
   return reply({sent:true});
 });

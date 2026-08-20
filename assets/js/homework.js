@@ -17,7 +17,7 @@ if (!forms.length) {
   if (!session) {
     // The default gate copy already explains the sign-in action.
   } else {
-    const { data: profile } = await db.from('profiles').select('id,role,approval_status,linked_student_id').eq('id', session.user.id).maybeSingle();
+    const { data: profile } = await db.from('profiles').select('id,email,is_admin,role,approval_status,linked_student_id').eq('id', session.user.id).maybeSingle();
     await configureHomeworkView(profile, db);
     await applyHomeworkPublication(db, profile);
     for (const form of forms) {
@@ -36,6 +36,9 @@ if (!forms.length) {
     // The rhythm module may add future-week details after this module starts;
     // run the publication filter once more after the DOM settles.
     setTimeout(() => applyHomeworkPublication(db, profile), 0);
+    document.addEventListener('fireflies:homework-cards-ready', () => {
+      if (profile?.approval_status === 'approved' && ['coach', 'student_coach'].includes(profile.role)) renderCoachHomeworkControls(db, profile);
+    });
   }
 }
 
@@ -108,6 +111,72 @@ async function configureHomeworkView(profile, db) {
     if (coachSessionsTab) coachSessionsTab.hidden = false;
     if (coachQueue && coachQueueHost) coachQueueHost.append(coachQueue);
     if (coachQueue) await renderCoachSessionFocus(db, coachQueue);
+    await renderCoachHomeworkControls(db, profile);
+    setTimeout(() => renderCoachHomeworkControls(db, profile), 0);
+  }
+}
+
+async function renderCoachHomeworkControls(db, profile) {
+  const canSend = profile?.role === 'coach' && (profile.is_admin || profile.email?.toLowerCase() === 'sriram87@gmail.com');
+  const { data: assignments, error } = await db.from('assignments').select('week_number,published').order('week_number');
+  if (error) return;
+  const statusByWeek = new Map((assignments || []).map(assignment => [Number(assignment.week_number), Boolean(assignment.published)]));
+  document.querySelectorAll('details[data-homework-week]').forEach(detail => {
+    const week = Number(detail.dataset.homeworkWeek);
+    const summary = detail.querySelector(':scope > summary');
+    const heading = summary?.querySelector(':scope > div');
+    if (!summary || !heading || !Number.isFinite(week)) return;
+    let status = heading.querySelector('[data-homework-publication-status]');
+    if (!status) {
+      status = document.createElement('small');
+      status.dataset.homeworkPublicationStatus = '';
+      status.className = 'homework-publication-status';
+      heading.querySelector('span')?.after(status);
+    }
+    status.textContent = statusByWeek.get(week) ? 'Published' : 'Unpublished';
+    status.classList.toggle('is-published', statusByWeek.get(week) === true);
+    if (!canSend) {
+      summary.querySelector('em')?.remove();
+      return;
+    }
+    let controls = summary.querySelector('[data-homework-mail-controls]');
+    if (!controls) {
+      summary.querySelector('em')?.remove();
+      controls = document.createElement('span');
+      controls.dataset.homeworkMailControls = '';
+      controls.className = 'homework-mail-controls';
+      summary.append(controls);
+    }
+    controls.innerHTML = `<a href="#" data-preview-homework="${week}">Preview Homework</a><a href="#" data-post-homework="${week}">Post Homework</a><span class="form-message" data-homework-mail-message></span>`;
+    controls.querySelector('[data-preview-homework]')?.addEventListener('click', event => {
+      event.preventDefault();
+      sendCoachHomeworkEmail(db, week, false, controls, status);
+    });
+    controls.querySelector('[data-post-homework]')?.addEventListener('click', event => {
+      event.preventDefault();
+      sendCoachHomeworkEmail(db, week, true, controls, status);
+    });
+  });
+}
+
+async function sendCoachHomeworkEmail(db, week, deliverToTeam, controls, status) {
+  if (deliverToTeam && !confirm(`Post Week ${week} homework and email all approved students, parents, and coaches?`)) return;
+  const message = controls.querySelector('[data-homework-mail-message]');
+  const link = controls.querySelector(deliverToTeam ? '[data-post-homework]' : '[data-preview-homework]');
+  if (link) link.textContent = 'Sending…';
+  if (message) message.textContent = '';
+  const { data, error } = await db.functions.invoke('gmail-send-test', { body: { kind: 'current', weekNumber: week, deliverToTeam } });
+  if (link) link.textContent = deliverToTeam ? 'Post Homework' : 'Preview Homework';
+  if (error || data?.error) {
+    if (message) message.textContent = data?.error || 'Email could not be sent.';
+    return;
+  }
+  if (deliverToTeam) {
+    status.textContent = 'Published';
+    status.classList.add('is-published');
+    if (message) message.textContent = `Posted to ${data?.sent || 0} account(s).`;
+  } else if (message) {
+    message.textContent = 'Preview sent to sriram87@gmail.com.';
   }
 }
 
