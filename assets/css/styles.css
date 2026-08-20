@@ -392,7 +392,7 @@ tr:last-child td { border-bottom: 0; }
 .portal-tabs button,.portal-tabs a,.mini-action { border:1px solid var(--border); border-radius:999px; background:var(--card); padding:.65rem .9rem; white-space:nowrap; font-weight:800; color:var(--ink); cursor:pointer; }
 .portal-tabs a { text-decoration:none; }
 .portal-tabs button.active { background:var(--forest); color:white; }
-.portal-workspace { display:grid; grid-template-columns:minmax(0,3fr) minmax(280px,1fr); gap:24px; align-items:start; padding-top:8px; }
+.portal-workspace { display:block; padding-top:8px; }
 .portal-primary { min-width:0; }
 .portal-panels { padding:24px 0 80px; }
 .portal-panel { display:none; }.portal-panel.active { display:block; }
@@ -476,7 +476,6 @@ html[data-theme="dark"] .homework-week,
 html[data-theme="dark"] .auth-card,
 html[data-theme="dark"] .auth-state,
 html[data-theme="dark"] .roster-card,
-html[data-theme="dark"] .guide-sidebar,
 html[data-theme="dark"] .portal-tabs button,
 html[data-theme="dark"] .mini-action,
 html[data-theme="dark"] .portal-controls select,

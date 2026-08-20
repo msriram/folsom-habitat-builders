@@ -8,7 +8,7 @@ const fallbackAssignments = {
   0: { title: 'Explore biodiversity and understand the game', due: 'Wednesday, August 5', priority: 'Finish the biodiversity paragraph and bring one rules question to Session 1.' },
   1: { title: 'Field and robot baseline', due: 'Wednesday, August 12', priority: 'Use the notebook to prepare for Session 1: establish the field baseline, build a first mechanism, and test a simple movement.' },
   2: { title: 'Choose a team name and a cause anchor', due: 'Wednesday, August 19', priority: 'Connect our biodiversity interests to a team name, a cause, and one question we can investigate together.' },
-  3: { title: 'Session 2 build, field map, and robot movement', due: 'Wednesday, August 26', priority: 'Reflect on the models, board measurements, and robot movement from Session 2, then complete Discovery Activity 1.' },
+  3: { title: 'Model build, Field map, and Robot Maneuver', due: 'Wednesday, August 26', priority: 'Reflect on the models, board measurements, and robot movement from Session 2, then complete Discovery Activity 1.' },
   4: { title: 'Dock strategy and keystone species', due: 'Wednesday, September 2', priority: 'Use Session 4 to connect a mission strategy to a biodiversity idea and record the team decision.' },
   5: { title: 'Research and existing solutions', due: 'Wednesday, September 9', priority: 'Bring one reliable source, one existing solution, and one expert or user question to Session 5.' },
   6: { title: 'Solution plan and pseudocode', due: 'Wednesday, September 16', priority: 'Turn the team idea into a plan and a small robot program you can test in Session 6.' },
@@ -195,7 +195,7 @@ function applyRhythm() {
     const weekHeading = week3Detail.querySelector('summary h3');
     const promptHeading = week3Detail.querySelector('.cell-prompt h4');
     const promptText = week3Detail.querySelector('.cell-prompt p');
-    if (weekHeading) weekHeading.textContent = 'Session 2 build, field map, and robot movement';
+    if (weekHeading) weekHeading.textContent = 'Model build, Field map, and Robot Maneuver';
     if (promptHeading) promptHeading.textContent = 'Use what we did in Session 2';
     if (promptText) promptText.textContent = 'Think back to the models, field measurements, and robot movement from Session 2. These are observations from our own work, not extra research questions.';
     const taskList = week3Detail.querySelector('.cell-prompt ol');
