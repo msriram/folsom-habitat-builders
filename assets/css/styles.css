@@ -554,3 +554,6 @@ html[data-theme="dark"] .live-alert{background:#193522;border-color:#487655}html
 
 /* Publication state is shown neutrally; the controls explain what happens next. */
 .homework-publication-status.is-published{color:var(--muted)}
+
+/* Ask AI can expand into a focused workspace when a longer answer needs room. */
+.guide-heading{justify-content:space-between}.guide-sidebar .guide-heading{align-items:flex-start;flex-direction:row;gap:16px}.guide-maximize{display:grid;place-items:center;flex:0 0 auto;width:34px;height:34px;padding:0;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--ink);font-size:1.15rem;line-height:1;cursor:pointer}.guide-maximize:hover,.guide-maximize:focus-visible{border-color:var(--forest);background:var(--surface-strong);outline:2px solid color-mix(in srgb,var(--glow) 55%,transparent);outline-offset:2px}.guide-sidebar.is-maximized{width:calc(100vw - 48px)}.guide-sidebar.is-maximized .guide-sidebar-inner{display:flex;flex-direction:column;height:calc(100vh - 48px);max-height:none}.guide-sidebar.is-maximized .guide-history{flex:1;min-height:0;max-height:none}@media(max-width:760px){.guide-sidebar.is-maximized{right:16px;bottom:16px;width:calc(100vw - 32px)}.guide-sidebar.is-maximized .guide-sidebar-inner{height:calc(100vh - 32px)}}
