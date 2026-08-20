@@ -36,10 +36,10 @@ if(list&&sessionKey&&!cfg.forceDemo&&cfg.supabaseUrl&&cfg.supabaseAnonKey){
 function escapeHtml(value){return String(value||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
 async function renderStudentSessionReviews(db,userId){
-  const main=document.querySelector('main');if(!main)return;
-  const section=document.createElement('section');section.className='section compact';section.dataset.sessionStudentReviews='';
-  section.innerHTML='<div class="container"><div class="section-title"><div><span class="eyebrow">Coach session review</span><h2>Student attendance and notes</h2></div></div><p class="form-message" data-session-review-state>Loading student records…</p><div class="session-student-review-list" data-session-student-review-list></div><div class="session-review-save"><button class="button primary" type="button" data-save-session-reviews>Save session notes</button><span class="form-message" data-review-message></span></div></div>';
-  main.append(section);
+  const workspace=await findCoachSessionWorkspace();if(!workspace)return;
+  const section=document.createElement('div');section.className='session-student-reviews';section.dataset.sessionStudentReviews='';
+  section.innerHTML='<div class="section-title"><div><span class="eyebrow">Coach workspace</span><h3>Student attendance and notes</h3><p class="muted">Keep each student’s participation, strengths, and next step with the session record.</p></div></div><p class="form-message" data-session-review-state>Loading student records…</p><div class="session-student-review-list" data-session-student-review-list></div><div class="session-review-save"><button class="button primary" type="button" data-save-session-reviews>Save student attendance and notes</button><span class="form-message" data-review-message></span></div>';
+  workspace.append(section);
   const state=section.querySelector('[data-session-review-state]'),host=section.querySelector('[data-session-student-review-list]');
   const [{data:users,error:usersError},{data:reviews,error:reviewsError}]=await Promise.all([
     db.rpc('admin_users'),db.from('session_student_reviews').select('student_id,attendance,work_completed,went_well,next_improvement,updated_at').eq('session_key',sessionKey)
@@ -57,8 +57,21 @@ async function renderStudentSessionReviews(db,userId){
     const rows=[...host.querySelectorAll('[data-session-review]')];
     const results=await Promise.all(rows.map(row=>saveStudentReview(db,userId,profile.team_id,row)));
     saveButton.disabled=false;
-    const failure=results.find(Boolean);message.textContent=failure?(failure.message||'Some notes could not be saved.'):'Session notes saved.';
+    const failure=results.find(Boolean);message.textContent=failure?(failure.message||'Some student records could not be saved.'):'Student attendance and notes saved.';
   };
+}
+
+function findCoachSessionWorkspace(){
+  const panel=document.querySelector('.session-notes .plain-panel');
+  if(panel)return Promise.resolve(panel);
+  return new Promise(resolve=>{
+    const observer=new MutationObserver(()=>{
+      const workspace=document.querySelector('.session-notes .plain-panel');
+      if(workspace){observer.disconnect();resolve(workspace);}
+    });
+    observer.observe(document.body,{childList:true,subtree:true});
+    window.setTimeout(()=>{observer.disconnect();resolve(null);},10000);
+  });
 }
 
 function reviewRow(student,review={}){
