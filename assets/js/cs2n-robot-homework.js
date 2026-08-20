@@ -39,7 +39,10 @@ function renderHomework(tasks, context) {
   if (!homeworkHost) return;
   if (context.isCoach) { homeworkHost.hidden = true; homeworkHost.innerHTML = ''; return; }
   homeworkHost.hidden = false;
-  homeworkHost.innerHTML = tasks.filter(task => task.week_number > 2).map(task => `<details class="homework-notebook homework-next cs2n-week" data-homework-week="${task.week_number}"><summary class="notebook-title"><div><span>Week ${task.week_number} · ${task.phase === 'optional' ? 'Optional extension' : 'Homework'}</span><h3>${esc(task.title)}</h3></div><strong>${task.phase === 'optional' ? 'Optional' : 'CS2N'}</strong><em>Click to expand</em></summary><section class="notebook-cell">${homeworkTask(task, context)}</section></details>`).join('');
+  const integrated=tasks.filter(task=>task.week_number===3),standalone=tasks.filter(task=>task.week_number>3);
+  const week3=document.querySelector('details[data-homework-week="3"]');
+  if(week3)integrated.forEach(task=>{const existing=week3.querySelector(`[data-cs2n-week="${task.id}"]`);if(existing)return;const section=document.createElement('section');section.className='notebook-cell cs2n-week3-programming';section.dataset.cs2nWeek=task.id;section.innerHTML=`<div class="cell-prompt"><span>Programming assignment</span><h4>${esc(task.title)}</h4><p>Complete the linked CS2N lesson as part of Week 3, then answer the reflection and upload your program screenshot with the rest of this week’s homework.</p></div>${homeworkTask(task, context)}`;week3.append(section);});
+  homeworkHost.innerHTML = standalone.map(task => `<details class="homework-notebook homework-next cs2n-week" data-homework-week="${task.week_number}"><summary class="notebook-title"><div><span>Week ${task.week_number} · ${task.phase === 'optional' ? 'Optional extension' : 'Homework'}</span><h3>${esc(task.title)}</h3></div><strong>${task.phase === 'optional' ? 'Optional' : 'CS2N'}</strong><em>Click to expand</em></summary><section class="notebook-cell">${homeworkTask(task, context)}</section></details>`).join('');
   if (context.isStudent) bindStudent(); if (context.isCoach) bindCoach();
 }
 function homeworkTask(task, context) {
