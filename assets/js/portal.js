@@ -184,6 +184,17 @@ function activateTab(name) {
   panel.classList.add("active");
 }
 
+const homeworkTab=$('[data-tab="homework"]');
+if(homeworkTab&&!document.querySelector('.portal-tabs a[href="homework-reviews.html"]')){
+  const reviewsLink=document.createElement('a');
+  reviewsLink.className='portal-tabs-link';
+  reviewsLink.href='homework-reviews.html';
+  reviewsLink.textContent='Reviews';
+  homeworkTab.after(reviewsLink);
+}
+document.querySelector('.portal-panel[data-panel="homework"] .portal-heading a[href="homework-reviews.html"]')?.remove();
+document.querySelector('.portal-panel[data-panel="homework"] .portal-heading a[href="resources.html"]')?.remove();
+
 $$('[data-tab]').forEach(button => button.addEventListener("click", () => {
   activateTab(button.dataset.tab);
   history.replaceState(null, "", `#${button.dataset.tab}`);
