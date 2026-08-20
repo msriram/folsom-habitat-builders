@@ -99,25 +99,23 @@ async function show(assignment, student, submission, questionMap = new Map()) {
     const { data } = await db.storage.from('homework-files').createSignedUrl(file.storage_path, 900);
     return { ...file, url: data?.signedUrl };
   }));
-  detail.innerHTML = `<div class="section-title"><div><h2>${esc(student.display_name)}</h2><p>${submission.submitted_at ? new Date(submission.submitted_at).toLocaleString() : 'Coach record'}</p></div><span class="status-chip">${esc(submission.status)}</span></div>${(submission.submission_answers || []).sort((a, b) => a.display_order - b.display_order).map(answer => `<article class="answer-card"><span class="eyebrow">Question</span><h3>${esc(questionMap.get(answer.question_key) || label(answer.question_key))}</h3><p>${esc(answer.answer_text || JSON.stringify(answer.answer_json || ''))}</p></article>`).join('')}<div class="submission-gallery">${files.map(file => file.mime_type.startsWith('image/') ? `<a href="${file.url}" target="_blank"><img src="${file.url}" alt="${esc(file.file_name)}"><span>${esc(file.file_name)}</span></a>` : `<a class="file-chip" href="${file.url}" target="_blank">${esc(file.file_name)}</a>`).join('')}</div>${feedbackEditor(assignment, student, submission.coach_feedback || '', submission, submission.score)}`;
+  detail.innerHTML = `<div class="section-title"><div><h2>${esc(student.display_name)}</h2><p>${submission.submitted_at ? new Date(submission.submitted_at).toLocaleString() : 'Coach record'}</p></div><span class="status-chip">${esc(submission.status)}</span></div>${(submission.submission_answers || []).sort((a, b) => a.display_order - b.display_order).map(answer => `<article class="answer-card"><span class="eyebrow">Question</span><h3>${esc(questionMap.get(answer.question_key) || label(answer.question_key))}</h3><p>${esc(answer.answer_text || JSON.stringify(answer.answer_json || ''))}</p></article>`).join('')}<div class="submission-gallery">${files.map(file => file.mime_type.startsWith('image/') ? `<a href="${file.url}" target="_blank"><img src="${file.url}" alt="${esc(file.file_name)}"><span>${esc(file.file_name)}</span></a>` : `<a class="file-chip" href="${file.url}" target="_blank">${esc(file.file_name)}</a>`).join('')}</div>${feedbackEditor(assignment, student, submission.coach_feedback || '', submission)}`;
   bindFeedback(assignment, student, submission);
 }
 
-function feedbackEditor(assignment, student, feedback, submission, score = null) {
-  return `<label>Mark / 10<input type="number" min="0" max="10" step="0.5" value="${score ?? ''}" data-score></label><label>Coach feedback<textarea rows="5" data-feedback>${esc(feedback)}</textarea></label><button class="button primary" data-save-feedback>${submission ? 'Save feedback' : 'Record feedback and include student'}</button>`;
+function feedbackEditor(assignment, student, feedback, submission) {
+  return `<label>Coach feedback<textarea rows="5" data-feedback>${esc(feedback)}</textarea></label><button class="button primary" data-save-feedback>${submission ? 'Save feedback' : 'Record feedback and include student'}</button>`;
 }
 
 function bindFeedback(assignment, student, submission) {
   detail.querySelector('[data-save-feedback]').onclick = async event => {
     const feedback = detail.querySelector('[data-feedback]').value.trim();
-    const scoreValue = detail.querySelector('[data-score]').value;
-    const score = scoreValue === '' ? null : Number(scoreValue);
     if (!feedback) { publishMessage.textContent = 'Add feedback before saving.'; return; }
     let result;
     if (submission) {
-      result = await db.from('submissions').update({ coach_feedback: feedback, score, status: 'review' }).eq('id', submission.id);
+      result = await db.from('submissions').update({ coach_feedback: feedback, status: 'review' }).eq('id', submission.id);
     } else {
-      result = await db.from('submissions').insert({ assignment_id: assignment.id, student_id: student.id, status: 'review', coach_feedback: feedback, score });
+      result = await db.from('submissions').insert({ assignment_id: assignment.id, student_id: student.id, status: 'review', coach_feedback: feedback });
     }
     if (result.error) {
       window.FIREFLIES_DIAGNOSTICS?.report('Homework feedback', result.error);
