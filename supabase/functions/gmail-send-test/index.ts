@@ -26,12 +26,17 @@ Deno.serve(async req=>{
   let subject="Folsom Fireflies homework reminders are connected";
   let content=`<h2>Gmail is connected</h2><p>This is a test message from the Folsom Fireflies Team Room.</p><p>Weekly homework reminders will be sent here from this Gmail account once the schedule is enabled.</p>`;
   if(body?.kind==="week2" || body?.kind==="current"){
-    let assignmentQuery=admin.from("assignments").select("id,title,description,due_at,week_number").eq("published",true).order("due_at");
+    let assignmentQuery=admin.from("assignments").select("id,title,description,due_at,week_number,published").order("due_at");
     if(body?.weekNumber) assignmentQuery=assignmentQuery.eq("week_number",Number(body.weekNumber));
-    else if(body?.kind==="week2") assignmentQuery=assignmentQuery.eq("week_number",2);
-    else assignmentQuery=assignmentQuery.gte("due_at",new Date().toISOString());
+    else if(body?.kind==="week2") assignmentQuery=assignmentQuery.eq("week_number",2).eq("published",true);
+    else assignmentQuery=assignmentQuery.eq("published",true).gte("due_at",new Date().toISOString());
     const {data:assignment}=await assignmentQuery.limit(1).maybeSingle();
-    if(!assignment)return reply({error:"No current published homework is available"},404);
+    if(!assignment)return reply({error:"No selected homework is available"},404);
+    if(body?.deliverToTeam===true&&body?.coachesOnly!==true&&!assignment.published){
+      const {error:publishError}=await admin.from("assignments").update({published:true}).eq("id",assignment.id);
+      if(publishError)return reply({error:"The homework could not be posted"},500);
+      assignment.published=true;
+    }
     const {data:questions}=await admin.from("assignment_questions").select("prompt,display_order").eq("assignment_id",assignment.id).order("display_order");
     const esc=(value:unknown)=>String(value??"").replace(/[&<>'\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]!));
     const due=new Intl.DateTimeFormat("en-US",{dateStyle:"full",timeStyle:"short",timeZone:"America/Los_Angeles"}).format(new Date(assignment.due_at));
