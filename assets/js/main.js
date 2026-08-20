@@ -69,12 +69,12 @@
           </nav>
           <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
           <div class="header-actions">
-            <button class="round-control theme-toggle" type="button" aria-label="Switch to night mode" title="Switch to night mode">
+            <button class="round-control theme-toggle" type="button" aria-label="Switch to night mode">
               <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
               <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 15.2A8.5 8.5 0 0 1 8.8 3.5 8.5 8.5 0 1 0 20.5 15.2Z"/></svg>
             </button>
             <div class="theme-menu-wrap">
-              <button class="round-control theme-palette-toggle" type="button" aria-label="Choose color theme" aria-expanded="false" aria-controls="theme-palette-menu" title="Choose color theme">
+              <button class="round-control theme-palette-toggle" type="button" aria-label="Choose color theme" aria-expanded="false" aria-controls="theme-palette-menu">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><circle cx="8" cy="16" r="3"/><circle cx="16" cy="16" r="3"/></svg>
               </button>
               <div class="theme-palette-menu" id="theme-palette-menu" hidden>
@@ -125,7 +125,7 @@
       const dark = document.documentElement.dataset.theme === "dark";
       const label = dark ? "Switch to day mode" : "Switch to night mode";
       themeButton.setAttribute("aria-label", label);
-      themeButton.title = label;
+      themeButton.removeAttribute("title");
     };
     setThemeButton();
     themeButton.addEventListener("click", () => {
@@ -268,7 +268,6 @@ async function initializeAccountMenu(header) {
       colorThemeButtons.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.colorTheme === safeTheme)));
       if (colorPaletteToggle) {
         const name = colorThemeNames[safeTheme];
-        colorPaletteToggle.title = name;
         colorPaletteToggle.setAttribute("aria-label", `Color theme: ${name}`);
       }
       localStorage.setItem(activeColorThemeKey, safeTheme);
