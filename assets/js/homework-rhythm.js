@@ -36,8 +36,10 @@ function currentWeek() {
   const today = new Date();
   const date = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const calculated = Math.max(0, Math.floor((date - SEASON_START) / (7 * DAY)));
+  // Weeks 3-12 are generated below from the notebook plan, so they must be
+  // included when the active week is calculated before those nodes exist.
   const builtWeeks = [...document.querySelectorAll('details[data-homework-week]')].map(node => Number(node.dataset.homeworkWeek)).filter(Number.isFinite);
-  const latestBuilt = builtWeeks.length ? Math.max(...builtWeeks) : 0;
+  const latestBuilt = Math.max(12, builtWeeks.length ? Math.max(...builtWeeks) : 0);
   return Math.min(calculated, latestBuilt);
 }
 

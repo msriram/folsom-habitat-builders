@@ -209,6 +209,37 @@
         <div><h3>${entry.title}</h3><p>${entry.text}</p></div>
       </article>`).join("");
   }
+
+  // Keep every meeting page tied to the corresponding Engineering Notebook
+  // session, even when the page was authored before the season calendar moved.
+  const sessionNumber = Number(document.body.dataset.session?.replace('meeting-', ''));
+  const notebookSessions = {
+    1: ['Friday, August 14', 'Field and robot baseline', 'Build and test the first mechanisms; use basic SPIKE movement programming and record what to carry into Session 2.'],
+    2: ['Friday, August 21', 'Build, measure, and map the field', 'Continue the builds, measure the board, and map one useful distance to repeatable motor movement if possible.'],
+    3: ['Friday, August 28', 'First reliable missions', 'Use the notebook mission pages to choose a small, repeatable test and record every result.'],
+    4: ['Friday, September 4', 'Project Sparks and Challenge Story', 'Read the Sparks and Challenge Story pages, then connect one spark to a biodiversity problem.'],
+    5: ['Friday, September 11', 'Research and existing solutions', 'Continue research, use the Innovation Project planning page, and decide whether to improve an existing solution or create something new.'],
+    6: ['Friday, September 18', 'Solution plan and pseudocode', 'Plan the solution, use varied sources, write pseudocode, and test one robot mission program.'],
+    7: ['Friday, September 25', 'Prototype and test', 'Draw or build a prototype, document it, and test the robot and attachments.'],
+    8: ['Friday, October 2', 'Feedback and iteration', 'Share the project, collect feedback, revise the solution, and update a robot program or attachment.'],
+    9: ['Friday, October 9', 'Impact and mission strategy', 'Explain the project impact, choose a mission strategy, and record the next improvement.'],
+    10: ['Friday, October 16', 'Presentation draft', 'Outline and rehearse the project presentation with clear evidence and a Coopertition example.'],
+    11: ['Friday, October 23', 'Robot design explanation', 'Prepare the robot design explanation, attachment/code evidence, and a short team celebration.'],
+    12: ['Friday, October 30', 'Full event rehearsal', 'Review goals, practice judging and robot explanations, collect feedback, and prepare for event day.']
+  };
+  const sessionPlan = notebookSessions[sessionNumber];
+  const main = document.querySelector('main#main');
+  if (sessionPlan && main && !main.querySelector('[data-notebook-alignment]')) {
+    const head = main.querySelector('.meeting-head span');
+    const title = main.querySelector('.meeting-head h1');
+    if (head) head.textContent = `Session ${sessionNumber} · ${sessionPlan[0]} · 90 minutes`;
+    if (title) title.textContent = sessionPlan[1];
+    const section = document.createElement('section');
+    section.className = 'section compact tint';
+    section.dataset.notebookAlignment = '';
+    section.innerHTML = `<div class="container"><div class="plain-panel"><span class="eyebrow">Engineering Notebook alignment</span><h2>Session ${sessionNumber} · ${sessionPlan[1]}</h2><p>${sessionPlan[2]}</p><p class="muted">Bring: laptop or tablet · pen or pencil · notebook</p><a href="downloads/bioglow/engineering-notebook.pdf" target="_blank" rel="noopener">Open the Engineering Notebook ↗</a></div></div>`;
+    main.append(section);
+  }
 })();
 if (document.body.dataset.session) import('./session-materials.js?v=1');
 if (window.FIREFLIES_PORTAL_CONFIG) import('./session-access.js?v=1');
