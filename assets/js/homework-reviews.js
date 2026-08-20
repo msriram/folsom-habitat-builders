@@ -51,12 +51,29 @@ async function load(db, assignmentId) {
   const { data: reviews, error } = await db.rpc('published_homework_reviews', { target_assignment: assignmentId });
   if (error) { list.innerHTML = `<p class="form-message">${esc(error.message || 'Reviews could not be loaded.')}</p>`; return; }
   count.textContent = `${reviews.length} student perspectives`;
-  list.innerHTML = reviews.map(review => `<article class="review-rollup-card"><header><div><span class="eyebrow">${review.status === 'not_submitted' ? 'Coach note' : 'Student work'}</span><h2>${esc(review.display_name)}</h2></div><span class="status-chip">${review.status === 'not_submitted' ? 'Did not submit' : 'Reviewed'}</span></header><div class="review-rollup-grid"><div><h3>Topic</h3><p>${esc(review.topic || 'No topic recorded.')}</p><h3>What interested the student</h3><p>${esc(review.paragraph || 'No written response was submitted.')}</p>${review.sources ? `<h3>Sources</h3><p>${esc(review.sources)}</p>` : ''}</div><aside><h3>Coach feedback</h3><p>${esc(review.coach_feedback || 'No feedback recorded.')}</p>${renderFiles(review.files || [])}</aside></div></article>`).join('');
+  list.innerHTML = reviews.map(review => `<article class="review-rollup-card"><header><div><span class="eyebrow">${review.status === 'not_submitted' ? 'Coach note' : 'Student work'}</span><h2>${esc(review.display_name)}</h2></div><span class="status-chip">${reviewStatus(review.status)}</span></header><div class="review-rollup-grid"><div>${renderAnswers(review)}</div><aside><h3>Coach feedback</h3><p>${esc(review.coach_feedback || 'No feedback recorded.')}</p>${renderFiles(review.files || [])}</aside></div></article>`).join('');
   for (const image of list.querySelectorAll('[data-review-file]')) {
     const path = image.dataset.reviewFile;
     const { data } = await db.storage.from('homework-files').createSignedUrl(path, 900);
     if (data?.signedUrl) image.href = data.signedUrl;
   }
+}
+
+function renderAnswers(review) {
+  const answers = Array.isArray(review.answers) ? review.answers : [];
+  if (answers.length) return answers.map(answer => `<h3>${esc(answer.prompt || answer.question_key || 'Student response')}</h3><p>${esc(answerText(answer) || 'No written response was submitted.')}</p>`).join('');
+  // Backward compatibility for a review published before generic answer data
+  // was available. New reviews always use the full question-and-answer list.
+  return `<h3>Topic</h3><p>${esc(review.topic || 'No topic recorded.')}</p><h3>What interested the student</h3><p>${esc(review.paragraph || 'No written response was submitted.')}</p>${review.sources ? `<h3>Sources</h3><p>${esc(review.sources)}</p>` : ''}`;
+}
+
+function answerText(answer) {
+  if (answer.answer_text) return answer.answer_text;
+  return answer.answer_json ? JSON.stringify(answer.answer_json) : '';
+}
+
+function reviewStatus(status) {
+  return ({ revise: 'Revision requested', complete: 'Completed', submitted: 'Submitted', review: 'Submitted', not_submitted: 'Did not submit' })[status] || 'Submitted';
 }
 
 function renderFiles(files) {
