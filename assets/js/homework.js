@@ -60,10 +60,14 @@ async function openParentSubmission(db, studentId, gate, week) {
   }
   const { data: assignment, error: assignmentError } = await db.from('assignments').select('id,title').eq('week_number', week).eq('published', true).maybeSingle();
   if (assignmentError || !assignment) { gate.innerHTML = '<p>Homework is unavailable right now.</p>'; return; }
-  const { data: submission, error: submissionError } = await db.from('submissions').select('id,status,submitted_at,coach_feedback,submission_answers(question_key,display_order,answer_text),submission_files(id,file_name,storage_path,mime_type,size_bytes)').eq('assignment_id', assignment.id).eq('student_id', studentId).maybeSingle();
-  if (submissionError) { window.FIREFLIES_DIAGNOSTICS?.report('Parent homework view', submissionError); gate.innerHTML = '<p>Your child’s homework is unavailable right now.</p>'; return; }
+  const [{ data: submission, error: submissionError }, { data: questions, error: questionsError }] = await Promise.all([
+    db.from('submissions').select('id,status,submitted_at,coach_feedback,submission_answers(question_key,display_order,answer_text),submission_files(id,file_name,storage_path,mime_type,size_bytes)').eq('assignment_id', assignment.id).eq('student_id', studentId).maybeSingle(),
+    db.from('assignment_questions').select('question_key,prompt').eq('assignment_id', assignment.id)
+  ]);
+  if (submissionError || questionsError) { window.FIREFLIES_DIAGNOSTICS?.report('Parent homework view', submissionError || questionsError); gate.innerHTML = '<p>Your child’s homework is unavailable right now.</p>'; return; }
   if (!submission) { gate.innerHTML = `<h2>${esc(assignment.title)}</h2><p>Your child has not submitted this homework yet.</p>`; return; }
-  const answers = (submission.submission_answers || []).sort((a, b) => a.display_order - b.display_order).map(answer => `<article class="answer-card"><h4>${esc(questionLabel(answer.question_key))}</h4><p>${esc(answer.answer_text || 'No response yet.')}</p></article>`).join('');
+  const questionMap = new Map((questions || []).map(question => [question.question_key, question.prompt]));
+  const answers = (submission.submission_answers || []).sort((a, b) => a.display_order - b.display_order).map(answer => `<article class="answer-card"><h4>${esc(questionMap.get(answer.question_key) || questionLabel(answer.question_key))}</h4><p>${esc(answer.answer_text || 'No response yet.')}</p></article>`).join('');
   const files = await Promise.all(distinctSubmissionFiles(submission.submission_files).map(async file => {
     const { data } = await db.storage.from('homework-files').createSignedUrl(file.storage_path, 900);
     const open = data?.signedUrl ? `<a href="${esc(data.signedUrl)}" target="_blank" rel="noopener">${esc(file.file_name)}</a>` : `<span>${esc(file.file_name)}</span>`;
