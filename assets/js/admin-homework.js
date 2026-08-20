@@ -1,3 +1,5 @@
+import { renderMarkdown } from './markdown.js';
+
 const cfg = window.FIREFLIES_PORTAL_CONFIG || {};
 const state = document.querySelector('[data-review-state]');
 const shell = document.querySelector('[data-review-shell]');
@@ -10,7 +12,7 @@ const publishMessage = document.querySelector('[data-publish-message]');
 const publishButton = document.querySelector('[data-publish-reviews]');
 let db;
 let currentAssignmentId;
-const markdown = value => window.FIREFLIES_MARKDOWN?.render(value) || `<p>${esc(value)}</p>`;
+const markdown = value => window.FIREFLIES_MARKDOWN?.render(value) || renderMarkdown(value);
 
 if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
   state.textContent = 'Homework review is unavailable right now.';

@@ -1,3 +1,5 @@
+import { renderMarkdown } from './markdown.js';
+
 const cfg = window.FIREFLIES_PORTAL_CONFIG || {};
 const forms = [...document.querySelectorAll('[data-homework-form]')];
 const gates = [...document.querySelectorAll('[data-homework-gate]')];
@@ -5,7 +7,7 @@ const homeworkDetails = [...document.querySelectorAll('details[data-homework-wee
 const coachQueue = document.querySelector('#coach-session-queue');
 const coachSessionsTab = document.querySelector('[data-tab="sessions"]');
 const coachQueueHost = document.querySelector('#coach-session-queue-host');
-const markdown = value => window.FIREFLIES_MARKDOWN?.render(value) || `<p>${esc(value)}</p>`;
+const markdown = value => window.FIREFLIES_MARKDOWN?.render(value) || renderMarkdown(value);
 
 if (!forms.length) {
   // The page may be opened on a section that does not contain assignments.

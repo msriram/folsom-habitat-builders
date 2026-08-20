@@ -1,10 +1,12 @@
+import { renderMarkdown } from './markdown.js';
+
 const cfg = window.FIREFLIES_PORTAL_CONFIG || {};
 const state = document.querySelector('[data-reviews-state]');
 const toolbar = document.querySelector('[data-review-toolbar]');
 const select = document.querySelector('[data-review-assignment]');
 const count = document.querySelector('[data-review-count]');
 const list = document.querySelector('[data-review-list]');
-const markdown = value => window.FIREFLIES_MARKDOWN?.render(value) || `<p>${esc(value)}</p>`;
+const markdown = value => window.FIREFLIES_MARKDOWN?.render(value) || renderMarkdown(value);
 
 if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
   state.textContent = 'Published homework reviews are unavailable right now.';
