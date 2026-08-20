@@ -1,4 +1,3 @@
-const progressAreas = ["Robot", "Project", "Teamwork", "Presentation"];
 const codingLessons = [
   {
     title: "Variables",
@@ -238,29 +237,50 @@ async function setupRoleAccess() {
   }
 }
 
-function renderProgress(values) {
-  $("#progress-cards").innerHTML = progressAreas.map(name => `<article class="card"><strong>${name}</strong><div class="progress-track"><div class="progress-bar" style="width:${values[name] || 0}%"></div></div><span>${values[name] || 0}%</span></article>`).join("");
-  $("#parent-progress").innerHTML = progressAreas.map(name => `<div class="progress-row"><strong>${name}</strong><div class="progress-track"><div class="progress-bar" style="width:${values[name] || 0}%"></div></div><span>${values[name] || 0}%</span></div>`).join("");
+function sessionNumber(sessionKey) {
+  return Number(String(sessionKey || '').match(/(\d+)$/)?.[1] || 0);
+}
+
+function renderProgress(items = null) {
+  const cards = $("#progress-cards");
+  const parent = $("#parent-progress");
+  const heading = cards?.previousElementSibling;
+  if (heading) {
+    const title = heading.querySelector('h3');
+    const detail = heading.querySelector('.muted');
+    if (title) title.textContent = 'Session progress';
+    if (detail) detail.textContent = 'Updated from the completed items in each session plan.';
+    heading.querySelector('label')?.remove();
+  }
+  if (!items) {
+    cards.innerHTML = '<article class="card"><strong>Session progress</strong><p class="muted">Sign in to see the shared session checklist.</p></article>';
+    if (parent) parent.innerHTML = '<p class="muted">Sign in to see your linked student’s session progress.</p>';
+    return;
+  }
+  const sessions = new Map();
+  items.forEach(item => {
+    const key = item.session_key || `session-${item.week_number || 0}`;
+    sessions.set(key, [...(sessions.get(key) || []), item]);
+  });
+  const groups = [...sessions.entries()].sort(([left], [right]) => sessionNumber(left) - sessionNumber(right));
+  const totalItems = items.length;
+  const completedItems = items.filter(item => item.completed).length;
+  const completedSessions = groups.filter(([, rows]) => rows.length && rows.every(row => row.completed)).length;
+  const next = groups.find(([, rows]) => rows.some(row => !row.completed));
+  const checklistPercent = totalItems ? Math.round(completedItems / totalItems * 100) : 0;
+  const sessionPercent = groups.length ? Math.round(completedSessions / groups.length * 100) : 0;
+  const nextNumber = next ? sessionNumber(next[0]) : null;
+  cards.innerHTML = `<article class="card"><strong>Session checklist</strong><div class="progress-track"><div class="progress-bar" style="width:${checklistPercent}%"></div></div><span>${completedItems} of ${totalItems} items complete</span></article><article class="card"><strong>Completed sessions</strong><div class="progress-track"><div class="progress-bar" style="width:${sessionPercent}%"></div></div><span>${completedSessions} of ${groups.length} sessions complete</span></article><article class="card"><strong>Next checklist</strong><p>${nextNumber ? `Session ${nextNumber} has ${next[1].filter(item => !item.completed).length} item${next[1].filter(item => !item.completed).length === 1 ? '' : 's'} left.` : 'All scheduled checklists are complete.'}</p><a class="button secondary" href="season.html">Open session plan</a></article>`;
+  if (parent) parent.innerHTML = `<div class="progress-row"><strong>Session checklist</strong><div class="progress-track"><div class="progress-bar" style="width:${checklistPercent}%"></div></div><span>${completedItems} of ${totalItems}</span></div><div class="progress-row"><strong>Completed sessions</strong><div class="progress-track"><div class="progress-bar" style="width:${sessionPercent}%"></div></div><span>${completedSessions} of ${groups.length}</span></div>`;
 }
 
 async function setupProgress() {
-  renderProgress({});
+  renderProgress();
   const { db, session, profile } = await getLiveContext();
   if (!db || !session || profile?.approval_status !== "approved") return;
-  const { data: items } = await db.from("schedule_items").select("area,week_number,completed");
+  const { data: items } = await db.from("schedule_items").select("session_key,week_number,completed");
   if (!items) return;
-  const week = $("#progress-week");
-  const calculate = () => {
-    const through = week.value === "all" ? Infinity : Number(week.value);
-    const values = {};
-    for (const area of progressAreas) {
-      const relevant = items.filter(item => item.area === area && item.week_number <= through);
-      values[area] = relevant.length ? Math.round(relevant.filter(item => item.completed).length / relevant.length * 100) : 0;
-    }
-    renderProgress(values);
-  };
-  week.addEventListener("change", calculate);
-  calculate();
+  renderProgress(items);
 }
 
 function syntaxHighlight(source) {
