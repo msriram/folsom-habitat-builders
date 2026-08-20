@@ -60,6 +60,11 @@ Object.assign(notebookHomework, {
   12: { session: 12, reflects: 11, title: 'Final reliability and team celebration', link: 'meeting-12.html', core: { label: 'Fun · Activity 3', href: 'downloads/bioglow/core-values-fun-3.pdf', task: 'Create a kind award idea for each teammate or for the whole team. Explain what each award recognizes.' }, questions: [['final_checklist','What needs to be packed, reset, or checked before the next full practice or event?'],['repeatability_check','Which run still needs more repeatable tests? What result would convince you it is ready?'],['project_rehearsal','What part of the project explanation is already clear, and what question from a judge or guest should the team practice answering?'],['team_award','Write a kind award idea for one teammate or for the whole team. What strength does it recognize?'],['core_fun_3','Create a kind award idea for each teammate or for the whole team. Explain what each award recognizes.']] }
 });
 
+// Coach views read this same source instead of carrying a second copy of the
+// season's homework focus. Update the homework rhythm and the coach view
+// updates with it.
+window.FIREFLIES_HOMEWORK_RHYTHM = { assignments: fallbackAssignments, notebookHomework };
+
 const futureTaskTitles = {
   remaining_models: 'Mission model reflection', base_robot_plan: 'Base robot priorities', first_attachment: 'First attachment idea', team_name_cause_check: 'Team name and cause check',
   drive_baseline: 'Driving baseline', attachment_test: 'Attachment test', run_observation: 'Test-run observation', project_cause_check: 'Project cause check',

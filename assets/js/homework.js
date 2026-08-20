@@ -18,7 +18,7 @@ if (!forms.length) {
     // The default gate copy already explains the sign-in action.
   } else {
     const { data: profile } = await db.from('profiles').select('id,role,approval_status,linked_student_id').eq('id', session.user.id).maybeSingle();
-    configureHomeworkView(profile);
+    await configureHomeworkView(profile, db);
     await applyHomeworkPublication(db, profile);
     for (const form of forms) {
       const week = Number(form.dataset.weekNumber);
@@ -93,7 +93,7 @@ function questionLabel(key) {
 // This prevents a coach from seeing student homework flash briefly on refresh.
 document.body.removeAttribute('data-homework-auth-loading');
 
-function configureHomeworkView(profile) {
+async function configureHomeworkView(profile, db) {
   const approved = profile?.approval_status === 'approved';
   const isCoach = approved && ['coach', 'student_coach'].includes(profile.role);
   if (isCoach) {
@@ -107,25 +107,41 @@ function configureHomeworkView(profile) {
     setTimeout(renderCoachWeekThreeCard, 0);
     if (coachSessionsTab) coachSessionsTab.hidden = false;
     if (coachQueue && coachQueueHost) coachQueueHost.append(coachQueue);
-    if (coachQueue) {
-      coachQueue.hidden = false;
-      const descriptions = [
-        'CS2N: Iris Rover and Moving Forward.',
-        'CS2N: Proportional Relationships and Sequential Movements.',
-        'CS2N: Turning in Place and Turn Around the Craters.',
-        'CS2N: Swing Turns and Steer Around the Crater.',
-        'CS2N: Wait Until Near and Move Until Near.',
-        'CS2N: Color and touch sensor drills.',
-        'CS2N: Forever, Repeat, and Repeat Until loops.',
-        'CS2N: Discrete decisions and looped decisions.',
-        'Optional CS2N: Nested decisions and landslide challenge.',
-        'Optional CS2N: Subterranean Challenge.',
-        'Optional CS2N: Obstacle detection.',
-        'Optional CS2N: Line tracking.'
-      ];
-      coachQueue.innerHTML = `<div class="section-title"><div><span class="eyebrow">Coach view</span><h3>All 12 session assignments</h3></div><span class="status-chip">Collapsed queue</span></div>${descriptions.map((description, index) => { const session = index + 1; const link = session === 1 ? 'meeting-01.html' : session === 2 ? 'meeting-02.html' : 'resources.html'; return `<details class="homework-notebook coach-session" data-session-number="${session}"><summary class="notebook-title"><div><span>Session ${session}</span><h3>Session ${session} preparation</h3></div><strong aria-hidden="true"></strong><em>Click to expand</em></summary><section class="notebook-cell"><div class="cell-prompt"><span>Coach assignment</span><p>${description}</p></div><a class="button secondary" href="${link}">${session <= 2 ? 'Open session plan →' : 'Open official resources →'}</a></section></details>`; }).join('')}`;
-    }
+    if (coachQueue) await renderCoachSessionFocus(db, coachQueue);
   }
+}
+
+async function renderCoachSessionFocus(db, host) {
+  host.hidden = false;
+  host.innerHTML = '<p class="muted">Loading session focus…</p>';
+  const [{ data: scheduleItems, error: scheduleError }, { data: assignments, error: assignmentError }] = await Promise.all([
+    db.from('schedule_items').select('session_key,area,label,completed,sort_order').like('session_key', 'meeting-%').order('sort_order'),
+    db.from('assignments').select('week_number,title,description,due_at,published').order('week_number')
+  ]);
+  if (scheduleError || assignmentError) {
+    host.innerHTML = '<p class="form-message">Session focus is unavailable right now.</p>';
+    window.FIREFLIES_DIAGNOSTICS?.report('Coach session focus', scheduleError || assignmentError);
+    return;
+  }
+  const scheduleBySession = new Map();
+  (scheduleItems || []).forEach(item => {
+    const items = scheduleBySession.get(item.session_key) || [];
+    items.push(item);
+    scheduleBySession.set(item.session_key, items);
+  });
+  const assignmentByWeek = new Map((assignments || []).map(item => [Number(item.week_number), item]));
+  const rhythm = window.FIREFLIES_HOMEWORK_RHYTHM?.assignments || {};
+  host.innerHTML = `<div class="section-title"><div><span class="eyebrow">Coach view</span><h3>Session focus</h3></div><span class="status-chip">Schedule + homework</span></div>${Array.from({ length: 12 }, (_, index) => {
+    const session = index + 1;
+    const schedule = scheduleBySession.get(`meeting-${String(session).padStart(2, '0')}`) || [];
+    const assignment = assignmentByWeek.get(session);
+    const homework = assignment || rhythm[session] || {};
+    const title = homework.title || `Session ${session}`;
+    const focus = assignment?.description || homework.priority || 'Open the session plan for the current focus.';
+    const sessionLink = `meeting-${String(session).padStart(2, '0')}.html`;
+    const checklist = schedule.length ? `<section class="notebook-cell"><div class="cell-prompt"><span>Schedule checklist</span><ul class="coach-session-focus-list">${schedule.map(item => `<li class="${item.completed ? 'is-complete' : ''}"><strong>${esc(item.area)}:</strong> ${esc(item.label)}</li>`).join('')}</ul></div></section>` : '';
+    return `<details class="homework-notebook coach-session" data-session-number="${session}"><summary class="notebook-title"><div><span>Session ${session}</span><h3>${esc(title)}</h3></div><strong>${schedule.length ? `${schedule.filter(item => item.completed).length}/${schedule.length} complete` : 'Session plan'}</strong><em>Click to expand</em></summary><section class="notebook-cell"><div class="cell-prompt"><span>Homework focus</span><p>${esc(focus)}</p></div></section>${checklist}<footer><span>Source-linked</span><span><a href="${sessionLink}">Open session plan</a> · <a href="portal.html#homework">Open homework</a></span></footer></details>`;
+  }).join('')}`;
 }
 
 function renderCoachWeekTwoCard() {
