@@ -28,6 +28,7 @@ function formatDue(value) {
 function applyRhythm() {
   const week = currentWeek();
   document.querySelector('[data-homework-week="2"] [data-core-values-activity]')?.remove();
+  document.querySelector('[data-homework-week="2"] .worksheet-preview-cell')?.remove();
   const coreValues = ['Discovery', 'Innovation', 'Impact', 'Inclusion', 'Teamwork', 'Fun'];
   const coreIndex = week - 2;
   const scheduledOverride = week === 4 ? ['Fun', 2] : null;
