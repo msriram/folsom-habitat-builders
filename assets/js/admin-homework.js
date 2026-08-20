@@ -60,11 +60,14 @@ async function load(assignment, selectedStudentId = null) {
   const questionMap = new Map((questions || []).map(question => [question.question_key, question.prompt]));
   const students = (users || []).filter(u => u.role === 'student');
   const byStudent = new Map((submissions || []).map(s => [s.student_id, s]));
-  const reviewed = students.filter(s => (byStudent.get(s.id)?.coach_feedback || '').trim()).length;
+  const reviewed = students.filter(s => ['revise', 'complete'].includes(byStudent.get(s.id)?.status)).length;
   publishStatus.textContent = assignment.reviews_published
     ? `Reviews available ${assignment.reviews_published_at ? `since ${new Date(assignment.reviews_published_at).toLocaleDateString()}` : ''}`
-    : `Reviews publish automatically after initial feedback for all students (${reviewed} of ${students.length}).`;
-  publishButton.hidden = true;
+    : `Review decisions recorded for ${reviewed} of ${students.length} students.`;
+  publishButton.hidden = false;
+  publishButton.disabled = assignment.reviews_published || students.length === 0 || reviewed < students.length;
+  publishButton.textContent = assignment.reviews_published ? 'Reviews published' : 'Publish homework reviews';
+  publishButton.onclick = () => publish(assignment);
   tabs.innerHTML = students.map(student => {
     const submission = byStudent.get(student.id);
     const status = submissionStatusLabel(submission?.status);
@@ -100,7 +103,7 @@ async function show(assignment, student, submission, questionMap = new Map()) {
 }
 
 function feedbackEditor(assignment, student, feedback, submission) {
-  return `<section class="coach-review-actions"><label>Coach feedback<textarea rows="5" data-feedback>${esc(feedback)}</textarea></label><div class="hero-actions"><button class="button secondary" data-save-feedback>Save feedback</button><button class="button secondary" data-request-revision>Request revision</button><button class="button primary" data-mark-complete>Mark completed</button></div></section>`;
+  return `<section class="coach-review-actions"><label>Coach feedback<textarea rows="5" data-feedback>${esc(feedback)}</textarea></label><div class="hero-actions"><button class="button secondary" data-request-revision>Request revision</button><button class="button primary" data-mark-complete>Mark completed</button></div></section>`;
 }
 
 function bindFeedback(assignment, student, submission) {
@@ -112,12 +115,9 @@ function bindFeedback(assignment, student, submission) {
       window.FIREFLIES_DIAGNOSTICS?.report('Homework feedback', result.error);
       event.currentTarget.textContent = 'Try again';
     } else {
-      const { data: released, error: releaseError } = await db.rpc('release_homework_reviews', { target_assignment: assignment.id });
-      if (releaseError) window.FIREFLIES_DIAGNOSTICS?.report('Release homework reviews', releaseError);
-      await load({ ...assignment, reviews_published: released === true || assignment.reviews_published, reviews_published_at: released === true ? new Date().toISOString() : assignment.reviews_published_at }, student.id);
+      await load(assignment, student.id);
     }
   };
-  detail.querySelector('[data-save-feedback]').onclick = event => save(submission.status === 'revise' ? 'revise' : submission.status === 'complete' ? 'complete' : 'submitted', event);
   detail.querySelector('[data-request-revision]').onclick = event => save('revise', event);
   detail.querySelector('[data-mark-complete]').onclick = event => save('complete', event);
 }
