@@ -108,6 +108,24 @@ function applyRhythm() {
     week2Detail.dataset.homeworkOnly = 'team-name';
     week2Detail.innerHTML = `<summary class="notebook-title"><div><span>Week 2 · Homework</span><h3>Choose a team name and a cause anchor</h3></div><strong>Due Wednesday, August 19</strong><em>Click to expand</em></summary><section class="notebook-cell"><div class="cell-prompt"><span>Homework questions</span><h4>Connect our interests to a shared team direction</h4><p>Bring your own idea. There is no single correct team name or cause.</p><ol><li>What team name are you proposing?</li><li>What biodiversity cause should this name help us investigate?</li><li>Why does this name fit our interests and BIOGLOW?</li><li>What should the team investigate or build next?</li></ol></div></section><footer><span>Connected schedule</span><span><a href="meeting-02.html">Session 2 plan</a> · <a href="resources.html">Official resources</a></span></footer><section class="submission-gate" data-homework-gate="2"><h3>Turn in Week 2</h3><p>Sign in with an approved student account to submit this homework.</p><a class="button primary" href="login.html">Sign in</a></section><form class="homework-submit notebook-response" data-homework-form data-week-number="2" hidden><div class="section-title"><div><span class="eyebrow">Your response</span><h3>Week 2 submission</h3></div><span class="status-chip" data-submit-status>Not submitted</span></div><label>What team name are you proposing?<input name="team_name" maxlength="120" required></label><label>What biodiversity cause should this name help us investigate?<textarea name="cause" rows="5" minlength="40" maxlength="2000" required></textarea></label><label>Why does this name fit our interests and BIOGLOW?<textarea name="reason" rows="5" minlength="40" maxlength="2000" required></textarea></label><label>What should the team investigate or build next?<textarea name="next_step" rows="4" minlength="20" maxlength="1200" required></textarea></label><div data-existing-files class="submission-files"></div><button class="button primary" type="submit">Submit Week 2 homework</button><p data-homework-message aria-live="polite"></p></form>`;
   }
+  // Week 2 has already been published. Keep its original Iris Rover task and
+  // submission fields intact even when its card is rebuilt for coach/student views.
+  if (week2Detail && !week2Detail.querySelector('[data-week2-cs2n]')) {
+    const programming = document.createElement('section');
+    programming.className = 'notebook-cell cs2n-homework-question';
+    programming.dataset.week2Cs2n = '';
+    programming.innerHTML = '<div class="cell-prompt"><span>Programming</span><h4>CS2N · Iris Rover: moving forward</h4><p>Complete Introduction: Iris Rover and Moving Forward, then upload one screenshot of your completed program.</p></div><div class="hero-actions"><a class="button secondary" href="portal.html?tab=robot">Open Robot Lab</a><a class="button secondary" href="https://www.cs2n.org/u/mp/badge_pages/2991" target="_blank" rel="noopener">Open CS2N lesson ↗</a></div>';
+    week2Detail.querySelector('footer')?.before(programming);
+    const form = week2Detail.querySelector('form[data-homework-form]');
+    const files = form?.querySelector('[data-existing-files]');
+    if (form && files) {
+      const response = document.createElement('section');
+      response.className = 'cs2n-homework-question';
+      response.dataset.week2Cs2nResponse = '';
+      response.innerHTML = '<span class="eyebrow">CS2N programming</span><h4>Iris Rover: moving forward</h4><p>Submit one screenshot of your completed program and a short explanation.</p><label>CS2N program screenshot<input name="cs2n_screenshot" type="file" accept="image/jpeg,image/png,image/webp" required></label><label>How did your program work?<textarea name="cs2n_reflection" rows="4" minlength="20" maxlength="2000" required></textarea></label>';
+      files.before(response);
+    }
+  }
   document.querySelector('[data-homework-week="2"] [data-core-values-activity]')?.remove();
   document.querySelector('[data-homework-week="2"] .worksheet-preview-cell')?.remove();
   const coreValues = ['Discovery', 'Innovation', 'Impact', 'Inclusion', 'Teamwork', 'Fun'];
