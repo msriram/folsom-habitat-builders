@@ -147,26 +147,28 @@ async function renderCoachHomeworkControls(db, profile) {
       controls.className = 'homework-mail-controls';
       summary.append(controls);
     }
-    controls.innerHTML = `<a href="#" data-preview-homework="${week}">Preview Homework</a><a href="#" data-post-homework="${week}">Post Homework</a><span class="form-message" data-homework-mail-message></span>`;
+    const isPublished = statusByWeek.get(week) === true;
+    controls.innerHTML = `<a href="#" data-preview-homework="${week}">Preview Homework</a><a href="#" data-post-homework="${week}">${isPublished ? 'Send reminder' : 'Post Homework'}</a><span class="form-message" data-homework-mail-message></span>`;
     controls.querySelector('[data-preview-homework]')?.addEventListener('click', event => {
       event.preventDefault();
       sendCoachHomeworkEmail(db, week, false, controls, status);
     });
     controls.querySelector('[data-post-homework]')?.addEventListener('click', event => {
       event.preventDefault();
-      sendCoachHomeworkEmail(db, week, true, controls, status);
+      sendCoachHomeworkEmail(db, week, true, controls, status, isPublished);
     });
   });
 }
 
-async function sendCoachHomeworkEmail(db, week, deliverToTeam, controls, status) {
-  if (deliverToTeam && !confirm(`Post Week ${week} homework and email all approved students, parents, and coaches?`)) return;
+async function sendCoachHomeworkEmail(db, week, deliverToTeam, controls, status, isReminder = false) {
+  const action = isReminder ? 'Send a reminder for' : 'Post';
+  if (deliverToTeam && !confirm(`${action} Week ${week} homework and email all approved students, parents, and coaches?`)) return;
   const message = controls.querySelector('[data-homework-mail-message]');
   const link = controls.querySelector(deliverToTeam ? '[data-post-homework]' : '[data-preview-homework]');
   if (link) link.textContent = 'Sending…';
   if (message) message.textContent = '';
-  const { data, error } = await db.functions.invoke('gmail-send-test', { body: { kind: 'current', weekNumber: week, deliverToTeam } });
-  if (link) link.textContent = deliverToTeam ? 'Post Homework' : 'Preview Homework';
+  const { data, error } = await db.functions.invoke('gmail-send-test', { body: { kind: 'current', weekNumber: week, deliverToTeam, reminder: isReminder } });
+  if (link) link.textContent = deliverToTeam ? (isReminder ? 'Send reminder' : 'Post Homework') : 'Preview Homework';
   if (error || data?.error) {
     if (message) message.textContent = data?.error || 'Email could not be sent.';
     return;
@@ -174,7 +176,7 @@ async function sendCoachHomeworkEmail(db, week, deliverToTeam, controls, status)
   if (deliverToTeam) {
     status.textContent = 'Published';
     status.classList.add('is-published');
-    if (message) message.textContent = `Posted to ${data?.sent || 0} account(s).`;
+    if (message) message.textContent = `${isReminder ? 'Reminder sent' : 'Posted'} to ${data?.sent || 0} account(s).`;
   } else if (message) {
     message.textContent = 'Preview sent to sriram87@gmail.com.';
   }
