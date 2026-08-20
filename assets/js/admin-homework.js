@@ -22,8 +22,11 @@ if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
   } else {
     const { data: me } = await db.from('profiles').select('role,approval_status').eq('id', session.user.id).single();
     if (!['coach', 'student_coach'].includes(me?.role) || me.approval_status !== 'approved') {
-      state.textContent = 'Approved coach access required.';
+      if (document.querySelector('[data-embedded-review-workspace]')) state.hidden = true;
+      else state.textContent = 'Approved coach access required.';
     } else {
+      document.querySelector('[data-embedded-review-workspace]')?.removeAttribute('hidden');
+      document.querySelector('[data-coach-review-open]')?.removeAttribute('hidden');
       state.hidden = true;
       shell.hidden = false;
       const { data: assignments, error } = await db.from('assignments')
@@ -136,7 +139,7 @@ async function publish(assignment) {
     return;
   }
   await load({ ...assignment, reviews_published: true, reviews_published_at: new Date().toISOString() });
-  publishMessage.innerHTML = `Published. <a href="homework-reviews.html?assignment=${encodeURIComponent(assignment.id)}">Open the team roll-up →</a>`;
+  publishMessage.innerHTML = `Published. <a href="portal.html?tab=reviews&assignment=${encodeURIComponent(assignment.id)}">Open the team roll-up →</a>`;
 }
 
 function showError(message) { state.hidden = false; state.textContent = message; shell.hidden = true; }
