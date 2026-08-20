@@ -60,6 +60,22 @@ Object.assign(notebookHomework, {
   12: { session: 12, reflects: 11, title: 'Final reliability and team celebration', link: 'meeting-12.html', core: { label: 'Fun · Activity 3', href: 'downloads/bioglow/core-values-fun-3.pdf', task: 'Create a kind award idea for each teammate or for the whole team. Explain what each award recognizes.' }, questions: [['final_checklist','What needs to be packed, reset, or checked before the next full practice or event?'],['repeatability_check','Which run still needs more repeatable tests? What result would convince you it is ready?'],['project_rehearsal','What part of the project explanation is already clear, and what question from a judge or guest should the team practice answering?'],['team_award','Write a kind award idea for one teammate or for the whole team. What strength does it recognize?'],['core_fun_3','Create a kind award idea for each teammate or for the whole team. Explain what each award recognizes.']] }
 });
 
+const futureTaskTitles = {
+  remaining_models: 'Mission model reflection', base_robot_plan: 'Base robot priorities', first_attachment: 'First attachment idea', team_name_cause_check: 'Team name and cause check',
+  drive_baseline: 'Driving baseline', attachment_test: 'Attachment test', run_observation: 'Test-run observation', project_cause_check: 'Project cause check',
+  first_reliable_mission: 'Reliable mission goal', test_evidence: 'Testing evidence', next_attachment_change: 'Next attachment change', project_research_step: 'Project research step',
+  second_mission_plan: 'Second mission plan', attachment_iteration: 'Attachment iteration', handoff_communication: 'Team handoff', project_solution_idea: 'Project solution idea',
+  five_run_result: 'Five-run result', failure_pattern: 'Failure pattern', prototype_sketch: 'Project prototype', project_feedback: 'Project feedback',
+  run_score: 'Run score', time_budget: 'Time budget', risk_choice: 'Risk and reliability choice', project_evidence: 'Project evidence',
+  match_strategy: 'Match strategy', points_time_choice: 'Points and time choice', timed_run_note: 'Timed-run note', project_impact_plan: 'Project impact plan',
+  best_timed_run: 'Best timed run', recovery_plan: 'Recovery plan', project_story: 'Project story', skill_to_share: 'Skill to share',
+  final_checklist: 'Final checklist', repeatability_check: 'Repeatability check', project_rehearsal: 'Project rehearsal', team_award: 'Team celebration'
+};
+
+function futureTaskTitle(key) {
+  return futureTaskTitles[key] || String(key).replace(/_/g, ' ').replace(/\b\w/g, letter => letter.toUpperCase());
+}
+
 function currentWeek() {
   const today = new Date();
   const date = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -173,10 +189,12 @@ function applyRhythm() {
     const detail = document.createElement('details');
     detail.className = 'homework-notebook homework-next';
     detail.dataset.homeworkWeek = weekNumber;
-    const fields = assignment.questions.map(([key, prompt]) => `<label>${prompt}<textarea name="${key}" rows="4" minlength="20" maxlength="2000" required></textarea></label>`).join('');
-    const questionList = assignment.questions.map(([, prompt]) => `<li>${prompt}</li>`).join('');
-    const coreActivity = assignment.core ? `<section class="notebook-cell"><div class="cell-prompt"><span>Core Values task</span><h4>${assignment.core.label}</h4><p>${assignment.core.task}</p></div><div class="notebook-downloads"><a href="${assignment.core.href}" target="_blank" rel="noopener"><strong>Open ${assignment.core.label} ↗</strong><small>Official Core Values activity book</small></a></div></section>` : '';
-    detail.innerHTML = `<summary class="notebook-title"><div><span>Week ${weekNumber} · Homework</span><h3>${assignment.title}</h3></div><strong>Due ${fallbackAssignments[weekNumber].due}</strong><em>Click to expand</em></summary><section class="notebook-cell"><div class="cell-prompt"><span>Robot and project tracks</span><h4>Reflect on Session ${assignment.reflects || weekNumber - 1}; prepare for Session ${assignment.session}</h4><p>Use the robot questions to build toward reliable points and timing. Keep the project questions focused on the team name, biodiversity cause, and the next useful step.</p><ol>${questionList}</ol></div></section>${coreActivity}<footer><span>Connected schedule</span><span><a href="${assignment.link}">Session ${assignment.session} plan</a> · <a href="resources.html">Official resources</a></span></footer><form class="homework-submit notebook-response" data-homework-form data-week-number="${weekNumber}" hidden><div class="section-title"><div><span class="eyebrow">Your response</span><h3>Week ${weekNumber} submission</h3></div><span class="status-chip" data-submit-status>Not submitted</span></div>${fields}<div data-existing-files class="submission-files"></div><button class="button primary" type="submit">Submit Week ${weekNumber} homework</button><p data-homework-message aria-live="polite"></p></form>`;
+    const coreQuestion = assignment.questions.find(([key]) => key.startsWith('core_'));
+    const contentQuestions = assignment.questions.filter(([key]) => !key.startsWith('core_'));
+    const fields = assignment.questions.map(([key, prompt], index) => `<label><span>Task ${index + 1} · ${futureTaskTitle(key)}</span>${prompt}<textarea name="${key}" rows="4" minlength="20" maxlength="2000" required></textarea></label>`).join('');
+    const taskCells = contentQuestions.map(([key, prompt], index) => `<section class="notebook-cell"><div class="cell-prompt"><span>Task ${index + 1}</span><h4>${futureTaskTitle(key)}</h4><p>${prompt}</p></div></section>`).join('');
+    const coreActivity = assignment.core ? `<section class="notebook-cell"><div class="cell-prompt"><span>Task ${contentQuestions.length + 1} · Core Values</span><h4>${assignment.core.label}</h4><p>${coreQuestion?.[1] || assignment.core.task}</p></div><div class="notebook-downloads"><a href="${assignment.core.href}" target="_blank" rel="noopener"><strong>Open ${assignment.core.label} ↗</strong><small>Official Core Values activity book</small></a></div></section>` : '';
+    detail.innerHTML = `<summary class="notebook-title"><div><span>Week ${weekNumber} · Homework</span><h3>${assignment.title}</h3></div><strong>Due ${fallbackAssignments[weekNumber].due}</strong><em>Click to expand</em></summary><section class="notebook-cell"><div class="cell-prompt"><span>Homework plan</span><h4>Reflect on Session ${assignment.reflects || weekNumber - 1}; prepare for Session ${assignment.session}</h4><p>Each task below is part of this homework. The robot track builds toward reliable points and timing; the project track stays connected to the team name, biodiversity cause, and next useful step.</p></div></section>${taskCells}${coreActivity}<footer><span>Connected schedule</span><span><a href="${assignment.link}">Session ${assignment.session} plan</a> · <a href="resources.html">Official resources</a></span></footer><section class="submission-gate" data-homework-gate="${weekNumber}"><h3>Turn in Week ${weekNumber}</h3><p>Sign in with an approved student account to submit this homework.</p><a class="button primary" href="login.html">Sign in</a></section><form class="homework-submit notebook-response" data-homework-form data-week-number="${weekNumber}" hidden><div class="section-title"><div><span class="eyebrow">Your response</span><h3>Week ${weekNumber} submission</h3></div><span class="status-chip" data-submit-status>Not submitted</span></div>${fields}<div data-existing-files class="submission-files"></div><button class="button primary" type="submit">Submit Week ${weekNumber} homework</button><p data-homework-message aria-live="polite"></p></form>`;
     document.querySelector('[data-cs2n-robot-homework]')?.before(detail) || document.querySelector('[data-panel="homework"]')?.append(detail);
   });
   const assignments = { ...fallbackAssignments };
