@@ -19,6 +19,7 @@ if (!forms.length) {
   } else {
     const { data: profile } = await db.from('profiles').select('id,role,approval_status,linked_student_id').eq('id', session.user.id).maybeSingle();
     configureHomeworkView(profile);
+    await applyHomeworkPublication(db, profile);
     for (const form of forms) {
       const week = Number(form.dataset.weekNumber);
       const gate = document.querySelector(`[data-homework-gate="${week}"]`);
@@ -33,6 +34,20 @@ if (!forms.length) {
       }
     }
   }
+}
+
+async function applyHomeworkPublication(db, profile) {
+  const approved = profile?.approval_status === 'approved';
+  const isCoach = approved && ['coach', 'student_coach'].includes(profile.role);
+  if (isCoach) return;
+  const { data: assignments, error } = await db.from('assignments').select('week_number,published').order('week_number');
+  const publishedWeeks = new Set((assignments || []).filter(item => item.published).map(item => Number(item.week_number)));
+  // If the publication check is unavailable, keep future work private rather
+  // than briefly exposing the entire season to a student or parent.
+  homeworkDetails.forEach(detail => {
+    const week = Number(detail.dataset.homeworkWeek);
+    detail.hidden = error ? week > 2 : !publishedWeeks.has(week);
+  });
 }
 
 async function openParentSubmission(db, studentId, gate, week) {
