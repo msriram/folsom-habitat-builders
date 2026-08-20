@@ -121,7 +121,7 @@ function applyRhythm() {
       ['project_sparks_summary', 'Read the Project Sparks page. In your own words, what does it say and what idea from the page could help a team begin an Innovation Project?'],
       ['challenge_story_summary', 'Read the Challenge Story page. In your own words, what is the challenge story asking teams to notice, explore, or improve?'],
       ['model_build', 'Which numbered model did you help build, improve, or observe in Session 2 (Model 5, 6, 7, or 1)? Describe what it is meant to do and one detail you noticed.'],
-      ['model_purpose', 'Pick one model from Session 2. What happens when the robot interacts with it, and what kind of attachment, push, pull, or movement might be useful?'],
+      ['model_purpose', 'Rewatch the Robot Game Missions video. Choose one mission model and explain in your own words how it works, what it represents, and how it connects to a Project Spark.'],
       ['board_measurements', 'Record two board measurements from Session 2. Name the start and end landmarks for each measurement, and explain how one measurement could help a robot run.'],
       ['robot_maneuver', 'Describe one robot movement or maneuver your group tried. What did it do, what worked or did not work, and what is one change you would test next?']
     ];
@@ -134,7 +134,7 @@ function applyRhythm() {
     const taskList = week3Detail.querySelector('.cell-prompt ol');
     if (taskList) taskList.innerHTML = `${sessionQuestions.map(([, prompt]) => `<li>${prompt}</li>`).join('')}<li><strong>Core Values · Discovery Activity 1:</strong> Find out how many countries have FIRST LEGO League teams. Choose at least three countries and learn how to say “hello” and “My name is...” in languages spoken there.</li>`;
     const prompt = week3Detail.querySelector('.cell-prompt');
-    if (prompt && !prompt.querySelector('[data-discovery-link]')) prompt.insertAdjacentHTML('beforeend', '<div class="notebook-downloads"><a data-discovery-link href="downloads/bioglow/core-values-discovery-1.pdf#page=3" target="_blank" rel="noopener"><strong>Discovery Activity 1 · page 3 ↗</strong><small>Open the Core Values activity book</small></a></div>');
+    if (prompt && !prompt.querySelector('[data-model-video-link]')) prompt.insertAdjacentHTML('beforeend', '<div class="notebook-downloads"><a data-model-video-link href="https://www.youtube.com/watch?v=uhZZ8O1StiQ" target="_blank" rel="noopener"><strong>Rewatch Robot Game Missions video ↗</strong><small>Observe how the mission models work</small></a><a data-discovery-link href="downloads/bioglow/core-values-discovery-1.pdf#page=3" target="_blank" rel="noopener"><strong>Discovery Activity 1 · page 3 ↗</strong><small>Open the Core Values activity book</small></a></div>');
     const form = week3Detail.querySelector('form[data-homework-form]');
     const responseHeader = form?.querySelector('.section-title')?.outerHTML;
     if (form && responseHeader) form.innerHTML = `${responseHeader}${sessionQuestions.map(([key, prompt]) => `<label>${prompt}<textarea name="${key}" rows="5" minlength="30" maxlength="2000" required></textarea></label>`).join('')}<label>Core Values · Discovery Activity 1 — FIRST LEGO League around the world<textarea name="core_values_discovery" rows="6" minlength="40" maxlength="2000" required></textarea></label><div data-existing-files class="submission-files"></div><button class="button primary" type="submit">Submit Week 3 homework</button><p data-homework-message aria-live="polite"></p>`;
