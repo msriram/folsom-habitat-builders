@@ -40,6 +40,8 @@ async function setupAdmin(supabase,profile){
   const sendCoachButton=document.querySelector('[data-send-coach-test]');
   const sendHomeworkMessage=document.querySelector('[data-homework-send-message]');
   const homeworkWeekSelect=document.querySelector('[data-homework-week-select]');
+  const weekTwoOption=homeworkWeekSelect?.querySelector('option[value="2"]');
+  if(weekTwoOption)weekTwoOption.textContent='Week 2 · Choose a team name and a cause anchor';
   if(sendHomeworkButton)sendHomeworkButton.onclick=async()=>{
     if(!confirm(`Send Week ${homeworkWeekSelect?.value||''} homework now to all approved students and parents?`))return;
     sendHomeworkButton.disabled=true;sendHomeworkButton.textContent='Sending…';sendHomeworkMessage.textContent='';
