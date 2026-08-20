@@ -402,9 +402,10 @@ tr:last-child td { border-bottom: 0; }
 body[data-homework-auth-loading] [data-homework-week], body[data-homework-auth-loading] [data-coach-homework-view], body[data-homework-auth-loading] [data-coach-review-link] { visibility:hidden; }
 .guide-sidebar { position:fixed; z-index:30; right:24px; bottom:24px; width:min(380px,calc(100vw - 32px)); pointer-events:none; }
 .guide-sidebar-inner { max-height:min(680px,calc(100vh - 120px)); overflow:auto; padding:20px; border:1px solid var(--border); border-radius:16px; background:var(--card); box-shadow:0 18px 55px rgba(12,35,24,.24); pointer-events:auto; }
-.guide-launcher { display:grid; place-items:center; width:58px; height:58px; margin-left:auto; border:2px solid var(--forest); border-radius:50%; background:var(--forest); color:#fff; box-shadow:0 12px 28px rgba(12,65,38,.3); font-size:1.45rem; cursor:pointer; pointer-events:auto; transition:transform .18s ease,background .18s ease; }
-.guide-launcher:hover,.guide-launcher:focus-visible { transform:translateY(-2px) scale(1.04); background:var(--leaf); outline:none; }
-.guide-launcher.is-open { background:var(--ink); }
+.guide-launcher { display:grid; place-items:center; width:58px; height:58px; margin-left:auto; border:2px solid #fff; border-radius:50%; background:conic-gradient(from 210deg,#ff5a7d,#ffb84a,#73dd82,#50c8ff,#8c77ff,#ff5a7d); color:#fff; box-shadow:0 12px 28px rgba(70,70,150,.35),0 0 0 2px rgba(110,80,220,.28); font-size:1.45rem; cursor:pointer; pointer-events:auto; transition:transform .18s ease,box-shadow .18s ease; }
+.guide-launcher-icon { display:grid; place-items:center; width:38px; height:38px; border-radius:50%; background:#17243d; color:#fff; text-shadow:0 0 8px #fff; }
+.guide-launcher:hover,.guide-launcher:focus-visible { transform:translateY(-2px) scale(1.06); box-shadow:0 16px 34px rgba(70,70,150,.45),0 0 0 3px rgba(255,192,78,.46); outline:none; }
+.guide-launcher.is-open { transform:scale(.96); }
 .guide-panel-actions { display:flex; align-items:center; gap:8px; }
 .guide-close { width:30px; height:30px; border:1px solid var(--border); border-radius:50%; background:var(--surface); color:var(--ink); font-size:1.25rem; line-height:1; cursor:pointer; }
 .guide-sidebar h2 { margin:.25rem 0; font-size:1.55rem; }
