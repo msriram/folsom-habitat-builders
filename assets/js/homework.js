@@ -131,7 +131,7 @@ async function openStudentForm(db, studentId, form, gate, week) {
   const message = form.querySelector('[data-homework-message]');
   const status = form.querySelector('[data-submit-status]');
   const existing = form.querySelector('[data-existing-files]');
-  const { data: assignment, error: assignmentError } = await db.from('assignments').select('id,title').eq('week_number', week).eq('published', true).single();
+  const { data: assignment, error: assignmentError } = await db.from('assignments').select('id,title,due_at').eq('week_number', week).eq('published', true).single();
   if (assignmentError) { if (gate) gate.innerHTML = '<p>Homework is unavailable right now.</p>'; return; }
   if (gate) gate.hidden = true;
   form.hidden = false;
@@ -143,7 +143,14 @@ async function openStudentForm(db, studentId, form, gate, week) {
     renderStudentFiles(existing, submission.submission_files, db);
     const detail = form.closest('[data-homework-week]');
     if (detail && week === 0) detail.open = false;
+    if (submission.status === 'complete') {
+      form.querySelectorAll('input,textarea,button').forEach(field => { field.disabled = true; });
+      message.textContent = 'Completed by your coach.';
+    } else if (submission.status === 'revise') {
+      message.textContent = 'Revision requested. Read your coach feedback, update your work, and submit again.';
+    }
   }
+  updateStudentHomeworkCard(form.closest('[data-homework-week]'), submission?.status, assignment.due_at);
   form.onsubmit = async event => {
     event.preventDefault();
     if (form.dataset.submitting === 'true') return;
@@ -174,10 +181,20 @@ async function openStudentForm(db, studentId, form, gate, week) {
       if (fileError) { window.FIREFLIES_DIAGNOSTICS?.report('Save homework file', fileError); message.textContent = 'A file could not be saved right now.'; return; }
     }
     status.textContent = 'Submitted';
+    updateStudentHomeworkCard(form.closest('[data-homework-week]'), 'submitted', assignment.due_at);
     message.textContent = `${assignment.title} submitted.`;
     if (fileField) fileField.value = '';
     if (programmingScreenshot) programmingScreenshot.value = '';
   };
+}
+
+function updateStudentHomeworkCard(detail, status, dueAt) {
+  if (!detail) return;
+  const due = detail.querySelector('summary strong');
+  if (!due) return;
+  const label = ({ submitted: 'Submitted', review: 'Submitted', revise: 'Revision Requested', complete: 'Completed' })[status];
+  if (label) { due.textContent = label; return; }
+  if (dueAt) due.textContent = `Due ${new Date(dueAt).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}`;
 }
 
 function distinctSubmissionFiles(files = []) {

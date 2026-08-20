@@ -27,13 +27,13 @@ if (cfg.forceDemo || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
       state.hidden = true;
       shell.hidden = false;
       const { data: assignments, error } = await db.from('assignments')
-        .select('id,title,week_number,reviews_published,reviews_published_at')
-        .eq('published', true).order('week_number');
+        .select('id,title,week_number,published,reviews_published,reviews_published_at')
+        .order('week_number');
       if (error) {
         showError('Homework review is unavailable right now.');
       } else {
         assignmentSelect.innerHTML = (assignments || []).map(a =>
-          `<option value="${a.id}">Week ${a.week_number}: ${esc(a.title)}</option>`).join('');
+          `<option value="${a.id}">Week ${a.week_number}: ${esc(a.title)}${a.published ? '' : ' (coach draft)'}</option>`).join('');
         assignmentSelect.onchange = () => load(aById(assignments, assignmentSelect.value));
         if (assignments?.[0]) await load(assignments[0]);
       }
@@ -69,8 +69,7 @@ async function load(assignment, selectedStudentId = null) {
   publishButton.onclick = () => publish(assignment);
   tabs.innerHTML = students.map(student => {
     const submission = byStudent.get(student.id);
-    const hasFeedback = Boolean((submission?.coach_feedback || '').trim());
-    const status = hasFeedback ? 'Feedback ready' : submission ? 'Needs feedback' : 'Not submitted';
+    const status = submissionStatusLabel(submission?.status);
     return `<button data-student="${student.id}"><strong>${esc(student.display_name)}</strong><span>${status}</span></button>`;
   }).join('') || '<p>No approved students yet.</p>';
   tabs.onclick = event => {
@@ -91,32 +90,26 @@ async function load(assignment, selectedStudentId = null) {
 async function show(assignment, student, submission, questionMap = new Map()) {
   if (!student) return;
   if (!submission) {
-    detail.innerHTML = `<div class="section-title"><div><h2>${esc(student.display_name)}</h2><p class="status-chip">Not submitted</p></div></div><p>This student can still be included in the roll-up once a coach records feedback.</p>${feedbackEditor(assignment, student, '', null)}`;
-    bindFeedback(assignment, student, null);
+    detail.innerHTML = `<div class="section-title"><div><h2>${esc(student.display_name)}</h2><p class="status-chip">Not submitted</p></div></div><p>There is no student submission to review yet.</p>`;
     return;
   }
   const files = await Promise.all(distinctSubmissionFiles(submission.submission_files).map(async file => {
     const { data } = await db.storage.from('homework-files').createSignedUrl(file.storage_path, 900);
     return { ...file, url: data?.signedUrl };
   }));
-  detail.innerHTML = `<div class="section-title"><div><h2>${esc(student.display_name)}</h2><p>${submission.submitted_at ? new Date(submission.submitted_at).toLocaleString() : 'Coach record'}</p></div><span class="status-chip">${esc(submission.status)}</span></div>${(submission.submission_answers || []).sort((a, b) => a.display_order - b.display_order).map(answer => `<article class="answer-card"><span class="eyebrow">Question</span><h3>${esc(questionMap.get(answer.question_key) || label(answer.question_key))}</h3><p>${esc(answer.answer_text || JSON.stringify(answer.answer_json || ''))}</p></article>`).join('')}<div class="submission-gallery">${files.map(file => file.mime_type.startsWith('image/') ? `<a href="${file.url}" target="_blank"><img src="${file.url}" alt="${esc(file.file_name)}"><span>${esc(file.file_name)}</span></a>` : `<a class="file-chip" href="${file.url}" target="_blank">${esc(file.file_name)}</a>`).join('')}</div>${feedbackEditor(assignment, student, submission.coach_feedback || '', submission)}`;
+  detail.innerHTML = `<div class="section-title"><div><h2>${esc(student.display_name)}</h2><p>${submission.submitted_at ? new Date(submission.submitted_at).toLocaleString() : 'Coach record'}</p></div><span class="status-chip">${submissionStatusLabel(submission.status)}</span></div>${(submission.submission_answers || []).sort((a, b) => a.display_order - b.display_order).map(answer => `<article class="answer-card"><span class="eyebrow">Question</span><h3>${esc(questionMap.get(answer.question_key) || label(answer.question_key))}</h3><p>${esc(answer.answer_text || JSON.stringify(answer.answer_json || ''))}</p></article>`).join('')}<div class="submission-gallery">${files.map(file => file.mime_type.startsWith('image/') ? `<a href="${file.url}" target="_blank"><img src="${file.url}" alt="${esc(file.file_name)}"><span>${esc(file.file_name)}</span></a>` : `<a class="file-chip" href="${file.url}" target="_blank">${esc(file.file_name)}</a>`).join('')}</div>${feedbackEditor(assignment, student, submission.coach_feedback || '', submission)}`;
   bindFeedback(assignment, student, submission);
 }
 
 function feedbackEditor(assignment, student, feedback, submission) {
-  return `<label>Coach feedback<textarea rows="5" data-feedback>${esc(feedback)}</textarea></label><button class="button primary" data-save-feedback>${submission ? 'Save feedback' : 'Record feedback and include student'}</button>`;
+  return `<section class="coach-review-actions"><label>Coach feedback<textarea rows="5" data-feedback>${esc(feedback)}</textarea></label><div class="hero-actions"><button class="button secondary" data-save-feedback>Save feedback</button><button class="button secondary" data-request-revision>Request revision</button><button class="button primary" data-mark-complete>Mark completed</button></div></section>`;
 }
 
 function bindFeedback(assignment, student, submission) {
-  detail.querySelector('[data-save-feedback]').onclick = async event => {
+  const save = async (status, event) => {
     const feedback = detail.querySelector('[data-feedback]').value.trim();
-    if (!feedback) { publishMessage.textContent = 'Add feedback before saving.'; return; }
-    let result;
-    if (submission) {
-      result = await db.from('submissions').update({ coach_feedback: feedback, status: 'review' }).eq('id', submission.id);
-    } else {
-      result = await db.from('submissions').insert({ assignment_id: assignment.id, student_id: student.id, status: 'review', coach_feedback: feedback });
-    }
+    if (status === 'revise' && !feedback) { publishMessage.textContent = 'Add feedback so the student knows what to revise.'; return; }
+    const result = await db.from('submissions').update({ coach_feedback: feedback, status }).eq('id', submission.id);
     if (result.error) {
       window.FIREFLIES_DIAGNOSTICS?.report('Homework feedback', result.error);
       event.currentTarget.textContent = 'Try again';
@@ -124,6 +117,13 @@ function bindFeedback(assignment, student, submission) {
       await load(assignment, student.id);
     }
   };
+  detail.querySelector('[data-save-feedback]').onclick = event => save(submission.status === 'revise' ? 'revise' : submission.status === 'complete' ? 'complete' : 'submitted', event);
+  detail.querySelector('[data-request-revision]').onclick = event => save('revise', event);
+  detail.querySelector('[data-mark-complete]').onclick = event => save('complete', event);
+}
+
+function submissionStatusLabel(status) {
+  return ({ submitted: 'Submitted', review: 'Submitted', revise: 'Revision Requested', complete: 'Completed' })[status] || 'Not submitted';
 }
 
 async function publish(assignment) {
