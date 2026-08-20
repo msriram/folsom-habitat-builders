@@ -118,6 +118,8 @@ function applyRhythm() {
   // from page 3 of the Core Values activity book.
   if (week3Detail) {
     const sessionQuestions = [
+      ['project_sparks_summary', 'Read the Project Sparks page. In your own words, what does it say and what idea from the page could help a team begin an Innovation Project?'],
+      ['challenge_story_summary', 'Read the Challenge Story page. In your own words, what is the challenge story asking teams to notice, explore, or improve?'],
       ['model_build', 'Which numbered model did you help build, improve, or observe in Session 2 (Model 5, 6, 7, or 1)? Describe what it is meant to do and one detail you noticed.'],
       ['model_purpose', 'Pick one model from Session 2. What happens when the robot interacts with it, and what kind of attachment, push, pull, or movement might be useful?'],
       ['board_measurements', 'Record two board measurements from Session 2. Name the start and end landmarks for each measurement, and explain how one measurement could help a robot run.'],
