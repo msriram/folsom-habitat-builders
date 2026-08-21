@@ -267,6 +267,12 @@ async function openStudentForm(db, studentId, form, gate, week) {
     }
   }
   updateStudentHomeworkCard(form.closest('[data-homework-week]'), submission?.status, assignment.due_at);
+  let hasSubmitted = Boolean(submission);
+  const formSubmitButton = form.querySelector('button[type="submit"]');
+  if (formSubmitButton && hasSubmitted) formSubmitButton.textContent = 'Re-submit';
+  form.querySelectorAll('input, textarea, select').forEach(field => field.addEventListener('input', () => {
+    if (hasSubmitted && form.dataset.submitting !== 'true' && formSubmitButton?.textContent === 'Submitted') formSubmitButton.textContent = 'Re-submit';
+  }));
   form.onsubmit = async event => {
     event.preventDefault();
     if (submission?.status === 'complete') {
@@ -276,7 +282,8 @@ async function openStudentForm(db, studentId, form, gate, week) {
     if (form.dataset.submitting === 'true') return;
     form.dataset.submitting = 'true';
     const submitButton = form.querySelector('button[type="submit"]');
-    const submitLabel = submitButton?.textContent || 'Submit homework';
+    const submitLabel = hasSubmitted ? 'Re-submit' : 'Submit';
+    let savedSuccessfully = false;
     if (submitButton) { submitButton.disabled = true; submitButton.textContent = 'Submitting…'; }
     message.textContent = 'Saving…';
     try {
@@ -305,11 +312,13 @@ async function openStudentForm(db, studentId, form, gate, week) {
     status.textContent = 'Submitted';
     updateStudentHomeworkCard(form.closest('[data-homework-week]'), 'submitted', assignment.due_at);
     message.textContent = `${assignment.title} submitted.`;
+    hasSubmitted = true;
+    savedSuccessfully = true;
     if (fileField) fileField.value = '';
     if (programmingScreenshot) programmingScreenshot.value = '';
     } finally {
       form.dataset.submitting = 'false';
-      if (submitButton) { submitButton.disabled = false; submitButton.textContent = submitLabel; }
+      if (submitButton) { submitButton.disabled = false; submitButton.textContent = savedSuccessfully ? 'Submitted' : submitLabel; }
     }
   };
 }
