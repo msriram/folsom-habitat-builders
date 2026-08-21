@@ -412,6 +412,7 @@ body[data-homework-auth-loading] [data-homework-week], body[data-homework-auth-l
 .markdown-content p,.markdown-content li,.markdown-content blockquote { white-space:normal; }
 .markdown-content code { padding:.1em .35em; border-radius:4px; background:var(--surface); font-family:var(--mono,ui-monospace,SFMono-Regular,Menlo,monospace); }
 .markdown-content blockquote { margin:.75rem 0; padding:.1rem 0 .1rem .8rem; border-left:3px solid var(--border); color:var(--muted); }
+.coach-review-actions button:disabled,.coach-review-actions textarea:disabled { opacity:.48; cursor:not-allowed; }
 .guide-close { width:30px; height:30px; border:1px solid var(--border); border-radius:50%; background:var(--surface); color:var(--ink); font-size:1.25rem; line-height:1; cursor:pointer; }
 .guide-sidebar h2 { margin:.25rem 0; font-size:1.55rem; }
 .guide-sidebar .portal-heading { align-items:flex-start; flex-direction:column; gap:8px; }

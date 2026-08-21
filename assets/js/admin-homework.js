@@ -133,7 +133,8 @@ async function show(assignment, student, submission, questionMap = new Map()) {
 }
 
 function feedbackEditor(assignment, student, feedback, submission) {
-  return `<section class="coach-review-actions"><label>Coach feedback<textarea rows="5" data-feedback>${esc(feedback)}</textarea></label><div class="hero-actions"><button class="button secondary" data-request-revision>Request revision</button><button class="button primary" data-mark-complete>Mark completed</button></div></section>`;
+  const completed = submission.status === 'complete';
+  return `<section class="coach-review-actions"><label>Coach feedback<textarea rows="5" data-feedback ${completed ? 'disabled' : ''}>${esc(feedback)}</textarea></label><div class="hero-actions"><button class="button secondary" data-request-revision ${completed ? 'disabled' : ''}>Request revision</button><button class="button primary" data-mark-complete ${completed ? 'disabled' : ''}>${completed ? 'Marked completed' : 'Mark completed'}</button></div></section>`;
 }
 
 function bindFeedback(assignment, student, submission) {

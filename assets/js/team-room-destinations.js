@@ -58,6 +58,6 @@ if (destinationTabs && destinationPanels) {
   document.querySelectorAll('a[href="ai-questions.html"]').forEach(link => { link.href = 'portal.html?tab=research'; });
 
   await import('./homework-reviews.js?v=team-room-review-order1');
-  await import('./admin-homework.js?v=team-room-review-order1');
+  await import('./admin-homework.js?v=team-room-coach-state1');
   await import('./ai-questions.js?v=team-room-review-order1');
 }
