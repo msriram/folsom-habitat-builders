@@ -276,8 +276,10 @@ async function openStudentForm(db, studentId, form, gate, week) {
     if (form.dataset.submitting === 'true') return;
     form.dataset.submitting = 'true';
     const submitButton = form.querySelector('button[type="submit"]');
+    const submitLabel = submitButton?.textContent || 'Submit homework';
     if (submitButton) { submitButton.disabled = true; submitButton.textContent = 'Submitting…'; }
     message.textContent = 'Saving…';
+    try {
     const fileField = form.elements.files;
     const programmingScreenshot = form.elements.cs2n_screenshot;
     const selectedFiles = [...(fileField ? fileField.files : []), ...(programmingScreenshot ? programmingScreenshot.files : [])];
@@ -305,6 +307,10 @@ async function openStudentForm(db, studentId, form, gate, week) {
     message.textContent = `${assignment.title} submitted.`;
     if (fileField) fileField.value = '';
     if (programmingScreenshot) programmingScreenshot.value = '';
+    } finally {
+      form.dataset.submitting = 'false';
+      if (submitButton) { submitButton.disabled = false; submitButton.textContent = submitLabel; }
+    }
   };
 }
 
