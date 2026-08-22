@@ -47,6 +47,8 @@ async function summarizeWithAi(instructions: string, input: string, fallback: st
 Deno.serve(async req => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return reply({ error: "Method not allowed" }, 405);
+  const body = await req.json().catch(() => ({}));
+  const preview = body?.preview === true;
 
   const token = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   const { data: { user } } = token ? await admin.auth.getUser(token) : { data: { user: null } };
@@ -108,8 +110,11 @@ Deno.serve(async req => {
   const latestLabel = latestSession ? `Session ${sessionNumber(latestSession.session_key)} · ${new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeZone: "America/Los_Angeles" }).format(new Date(`${latestSession.session_date}T12:00:00`))}` : "Latest session";
   const homeworkSection = completedAssignment ? `<h2 style="font-size:18px">Homework completed</h2><p><strong>Week ${completedAssignment.week_number}: ${esc(completedAssignment.title)}</strong><br>Due ${esc(due)}<br>${esc(completedAssignment.description)}</p><p>${completedHomeworkCount || 0} homework submission${completedHomeworkCount === 1 ? " was" : "s were"} received.</p>${assignmentQuestions?.length ? `<h3 style="font-size:16px">What the team worked on</h3><ol>${assignmentQuestions.map(question => `<li style="margin:8px 0">${esc(question.prompt)}</li>`).join("")}</ol>` : ""}${robotTask ? `<h3 style="font-size:16px">Robot programming</h3><p><strong>${esc(robotTask.title)}</strong><br>${esc(robotTask.description)}</p>` : ""}<p><a href="${homeworkLink}" style="display:inline-block;background:#175b3c;color:#fff;padding:11px 16px;border-radius:6px;text-decoration:none">Open homework</a></p>` : "";
   const html = `<p style="margin:0;color:#64746d;font-size:12px;letter-spacing:.1em;text-transform:uppercase">Habitat Builders · Family digest</p><h1 style="font-size:25px">This week with the team</h1><h2 style="font-size:18px">Overall progress</h2><p>${items.filter(item => item.completed).length} of ${items.length} session checklist items are complete, with ${completedSessions.length} of ${sessionGroups.length} sessions fully completed.</p><h2 style="font-size:18px">Session completed</h2><p><strong>${esc(lastCompleted.replace("meeting-", "Session "))}</strong></p><h2 style="font-size:18px">${esc(latestLabel)}</h2><p>${esc(sessionSummary).replace(/\n/g, "<br>")}</p><h2 style="font-size:18px">Research with AI · last 7 days</h2><p>${esc(researchSummary).replace(/\n/g, "<br>")}</p><p><a href="${questionLink}">Explore the team’s Research with AI →</a></p>${homeworkSection}<p style="margin-top:28px;color:#64746d">Thank you for supporting the team’s learning, teamwork, and curiosity.</p>`;
-  const { data: people } = await admin.from("profiles").select("display_name,email").eq("team_id", profile.team_id).in("role", ["student", "parent"]).eq("approval_status", "approved").eq("is_active", true).not("email", "is", null);
+  const { data: people } = preview
+    ? await admin.from("profiles").select("display_name,email").eq("email", "sriram87@gmail.com").eq("approval_status", "approved").eq("is_active", true).limit(1)
+    : await admin.from("profiles").select("display_name,email").eq("team_id", profile.team_id).in("role", ["student", "parent"]).eq("approval_status", "approved").eq("is_active", true).not("email", "is", null);
   const recipients = [...new Map((people || []).filter(person => person.email).map(person => [person.email!.toLowerCase(), person])).values()];
+  if (preview && !recipients.length) return reply({ error: "The Sriram coach account is not available for a preview" }, 404);
   let sent = 0;
   let failed = 0;
   for (const person of recipients) {
@@ -117,5 +122,5 @@ Deno.serve(async req => {
     const sentResult = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", { method: "POST", headers: { Authorization: `Bearer ${gmailTokens.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify({ raw: encode(raw) }) });
     if (sentResult.ok) sent++; else failed++;
   }
-  return reply({ sent, failed, recipients: recipients.length });
+  return reply({ sent, failed, recipients: recipients.length, preview });
 });

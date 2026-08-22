@@ -235,7 +235,6 @@ async function setupRoleAccess() {
     document.querySelector("[data-coach-review-link]")?.removeAttribute("hidden");
     document.querySelector("[data-coach-homework-view]")?.removeAttribute("hidden");
   }
-  if (profile.role === "coach" || profile.is_admin) setupTeamDigest(db);
 }
 
 function teamDigestError(error, data) {
