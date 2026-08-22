@@ -221,14 +221,19 @@ async function renderCoachSessionFocus(db, host) {
   const rhythm = window.FIREFLIES_HOMEWORK_RHYTHM?.assignments || {};
   host.innerHTML = `<div class="section-title"><div><span class="eyebrow">Coach view</span><h3>Session focus</h3></div><span class="status-chip">Schedule + homework</span></div>${Array.from({ length: 12 }, (_, index) => {
     const session = index + 1;
+    const homeworkWeek = session + 1;
     const schedule = scheduleBySession.get(`meeting-${String(session).padStart(2, '0')}`) || [];
-    const assignment = assignmentByWeek.get(session);
-    const homework = assignment || rhythm[session] || {};
-    const title = homework.title || `Session ${session}`;
-    const focus = assignment?.description || homework.priority || 'Open the session plan for the current focus.';
+    const assignment = assignmentByWeek.get(homeworkWeek);
+    const homework = assignment || rhythm[homeworkWeek] || {};
+    const hasNextHomework = homeworkWeek <= 12;
+    const title = hasNextHomework ? (homework.title || `Week ${homeworkWeek} homework`) : 'Season wrap-up';
+    const focus = hasNextHomework
+      ? (assignment?.description || homework.priority || `Use Session ${session} evidence to prepare Week ${homeworkWeek} homework.`)
+      : 'Session 12 closes the planned homework sequence.';
     const sessionLink = `meeting-${String(session).padStart(2, '0')}.html`;
     const checklist = schedule.length ? `<section class="notebook-cell"><div class="cell-prompt"><span>Schedule checklist</span><ul class="coach-session-focus-list">${schedule.map(item => `<li class="${item.completed ? 'is-complete' : ''}"><strong>${esc(item.area)}:</strong> ${esc(item.label)}</li>`).join('')}</ul></div></section>` : '';
-    return `<details class="homework-notebook coach-session" data-session-number="${session}"><summary class="notebook-title"><div><span>Session ${session}</span><h3>${esc(title)}</h3></div><strong>${schedule.length ? `${schedule.filter(item => item.completed).length}/${schedule.length} complete` : 'Session plan'}</strong><em>Click to expand</em></summary><section class="notebook-cell"><div class="cell-prompt"><span>Homework focus</span><p>${esc(focus)}</p></div></section>${checklist}<footer><span>Source-linked</span><span><a href="${sessionLink}">Open session plan</a> · <a href="portal.html#homework">Open homework</a></span></footer></details>`;
+    const homeworkLink = hasNextHomework ? ` · <a href="portal.html?tab=homework&week=${homeworkWeek}#homework">Open Week ${homeworkWeek} homework</a>` : '';
+    return `<details class="homework-notebook coach-session" data-session-number="${session}"><summary class="notebook-title"><div><span>${hasNextHomework ? `Session ${session} → Week ${homeworkWeek}` : `Session ${session} · Season closeout`}</span><h3>${esc(title)}</h3></div><strong>${schedule.length ? `${schedule.filter(item => item.completed).length}/${schedule.length} complete` : 'Session plan'}</strong><em>Click to expand</em></summary><section class="notebook-cell"><div class="cell-prompt"><span>${hasNextHomework ? `Week ${homeworkWeek} homework focus` : 'Season closeout'}</span><p>${esc(focus)}</p></div></section>${checklist}<footer><span>Source-linked</span><span><a href="${sessionLink}">Open session plan</a>${homeworkLink}</span></footer></details>`;
   }).join('')}`;
 }
 

@@ -1,7 +1,7 @@
 // Keep the visible homework rhythm tied to the season calendar.  The team season
-// starts on Sunday, August 2, 2026, so the active week changes at local midnight
-// each Sunday without requiring a content edit or deployment.
-const SEASON_START = new Date(2026, 7, 2);
+// starts on Saturday, August 1, 2026, so the active week changes at local
+// midnight each Saturday without requiring a content edit or deployment.
+const SEASON_START = new Date(2026, 7, 1);
 const DAY = 24 * 60 * 60 * 1000;
 
 const fallbackAssignments = {
@@ -240,6 +240,7 @@ function applyRhythm() {
   const assignments = { ...fallbackAssignments };
   document.body.dataset.currentHomeworkWeek = String(week);
 
+  const requestedWeek = Number(new URLSearchParams(location.search).get('week'));
   const details = [...document.querySelectorAll('details[data-homework-week]')];
   details.forEach(detail => {
     const number = Number(detail.dataset.homeworkWeek);
@@ -247,7 +248,7 @@ function applyRhythm() {
     detail.classList.toggle('homework-current', active);
     detail.classList.toggle('homework-past', number < week);
     detail.classList.toggle('homework-future', number > week);
-    detail.open = active;
+    detail.open = active || number === requestedWeek;
     const summary = detail.querySelector('summary');
     const label = summary?.querySelector('span');
     const due = summary?.querySelector('strong');
@@ -270,7 +271,7 @@ function applyRhythm() {
   setText('#dashboard-next-assignment', next?.title || 'Next assignment will appear when it is published.');
   setText('#dashboard-next-due', next?.due || 'To be announced');
   setText('[data-homework-rhythm-label]', `Week ${week} · This week`);
-  setText('[data-homework-rhythm-status]', `Week ${week} is active now; the next week opens automatically on Sunday.`);
+  setText('[data-homework-rhythm-status]', `Week ${week} is active now; the next week opens automatically at midnight on Saturday.`);
   renderNotebookProgress();
   document.dispatchEvent(new Event('fireflies:homework-cards-ready'));
 }
