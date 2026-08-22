@@ -41,6 +41,20 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
 async function setupAdmin(supabase,profile){
   document.querySelector('[data-admin-locked]')?.setAttribute('hidden','');
   document.querySelector('[data-admin-view]')?.removeAttribute('hidden');
+  const gmailButton=document.querySelector('[data-connect-gmail]');
+  gmailButton?.addEventListener('click',async()=>{
+    gmailButton.disabled=true;
+    gmailButton.textContent='Opening Gmail…';
+    const {data,error}=await supabase.functions.invoke('gmail-oauth-start');
+    if(error||!data?.url){
+      window.FIREFLIES_DIAGNOSTICS?.report('Gmail connection',error||data);
+      setState('Gmail could not be connected right now.');
+      gmailButton.disabled=false;
+      gmailButton.textContent='Reconnect Gmail';
+      return;
+    }
+    window.location.assign(data.url);
+  });
   const pendingRoot=document.querySelector('[data-pending-users]');
   const approvedRoot=document.querySelector('[data-approved-users]');
   const approvedStudentsRoot=document.querySelector('[data-approved-students]');
