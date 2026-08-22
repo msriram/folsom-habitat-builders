@@ -282,7 +282,7 @@ async function initializeAccountMenu(header) {
   const config = await loadPortalConfig();
   const colorThemeKey = "fireflies-color-theme";
   const colorThemes = ["forest", "ocean", "violet", "sunset", "rose", "cobalt", "citrus", "slate", "berry", "mint", "lagoon", "ember"];
-  const colorThemeNames = {forest:"Firefly Forest",ocean:"Blue Current",violet:"Electric Violet",sunset:"Sunset Glow",rose:"Rose Quartz",cobalt:"Cobalt Circuit",citrus:"Crunchy Citrus",slate:"Cool Slate",berry:"Berry Burst",mint:"Fresh Mint",lagoon:"Lagoon Glow",ember:"Ember Trail"};
+  const colorThemeNames = {forest:"Habitat Green",ocean:"Blue Current",violet:"Electric Violet",sunset:"Sunset Glow",rose:"Rose Quartz",cobalt:"Cobalt Circuit",citrus:"Crunchy Citrus",slate:"Cool Slate",berry:"Berry Burst",mint:"Fresh Mint",lagoon:"Lagoon Glow",ember:"Ember Trail"};
   const signIn = header.querySelector("[data-google-signin]");
   const signOut = header.querySelector("[data-signout]");
   const colorThemeButtons = [...document.querySelectorAll("[data-color-theme]")];
