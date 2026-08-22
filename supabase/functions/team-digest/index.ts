@@ -6,10 +6,11 @@ const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const gmailClientId = (Deno.env.get("GMAIL_CLIENT_ID") || "").trim();
 const gmailClientSecret = (Deno.env.get("GMAIL_CLIENT_SECRET") || "").trim();
 const openaiKey = (Deno.env.get("OPENAI_API_KEY") || "").trim();
-const siteUrl = "https://msriram.github.io/folsom-fireflies";
+const siteOrigin = "https://msriram.github.io";
+const siteUrl = `${siteOrigin}/folsom-fireflies`;
 const admin = createClient(supabaseUrl, serviceKey);
 const cors = {
-  "Access-Control-Allow-Origin": siteUrl,
+  "Access-Control-Allow-Origin": siteOrigin,
   "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Content-Type": "application/json",
