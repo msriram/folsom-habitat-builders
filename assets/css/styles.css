@@ -15,8 +15,8 @@
   --amber: #f3a51f;
   --sky: #3e83a8;
   --border: rgba(23, 49, 38, .14);
-  --shadow: 0 18px 50px rgba(23, 49, 38, .12);
-  --radius: 22px;
+  --shadow: 0 12px 32px rgba(23, 49, 38, .1);
+  --radius: 14px;
   --content: 1600px;
 }
 
@@ -209,7 +209,7 @@ html[data-theme="dark"] .site-header { background: var(--header); }
   min-height: 72px; display: flex; align-items: center; gap: 20px;
 }
 .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 850; }
-.brand img { width: 48px; height: 48px; }
+.brand img { width: 52px; height: 52px; object-fit:contain; }
 .brand span small { display: block; font-size: .72rem; color: var(--muted); font-weight: 650; letter-spacing: .04em; }
 .brand-subtitle-long { display: none; }
 @media (min-width: 1420px) {
@@ -462,7 +462,7 @@ body[data-team-room-auth-loading] .portal-shell, body[data-team-room-auth-loadin
 .progress-heading { margin-top:30px; }.progress-heading label { display:grid; gap:5px; font-weight:800; }.progress-heading select { padding:.6rem .75rem; border:1px solid var(--border); border-radius:8px; background:var(--paper); color:var(--ink); }
 .coding-lesson-steps { margin:20px 0; }.coding-lesson-steps code { display:block; overflow:auto; padding:12px; border-radius:8px; background:var(--surface); color:var(--ink); }
 .role-list { margin:0; }.role-list div { display:grid; grid-template-columns:130px 1fr; gap:12px; padding:8px 0; border-bottom:1px solid var(--border); }.role-list dt { font-weight:850; }.role-list dd { margin:0; color:var(--muted); }
-.resource-links { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); border:1px solid var(--border); border-radius:12px; overflow:hidden; }.resource-links a { display:grid; padding:20px; text-decoration:none; color:var(--ink); border-right:1px solid var(--border); }.resource-links a:last-child { border:0; }.resource-links span { color:var(--muted); font-size:.9rem; }
+.resource-links { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; }.resource-links a { display:grid; gap:3px; padding:18px; text-decoration:none; color:var(--ink); border:1px solid var(--border); border-radius:12px; background:var(--card); transition:border-color .18s ease,transform .18s ease,box-shadow .18s ease; }.resource-links a:hover,.resource-links a:focus-visible { border-color:color-mix(in srgb,var(--forest) 60%,var(--border)); transform:translateY(-2px); box-shadow:0 8px 22px rgba(23,49,38,.08); }.resource-links span { color:var(--muted); font-size:.9rem; }
 .page-head,.meeting-head { padding:46px 0 34px; background:var(--page-wash); border-bottom:1px solid var(--border); }.meeting-head a { display:block; margin-bottom:20px; }
 .homework-weeks { display:grid; gap:18px; }.homework-week { border:1px solid var(--border); border-left:5px solid var(--surface-strong); border-radius:10px; padding:22px; background:var(--card); }.homework-week.current { border-left-color:var(--forest); }.homework-week header,.homework-week footer { display:flex; justify-content:space-between; gap:18px; align-items:center; }.homework-week h2 { font-size:1.6rem; margin:.2rem 0; }.homework-week header span { color:var(--forest); font-weight:900; }.homework-week footer { border-top:1px solid var(--border); padding-top:14px; }.submission-gate { padding:28px; background:var(--surface); border-radius:12px; }
 .auth-state { margin-top:14px; padding:12px 15px; border:1px solid var(--border); border-radius:8px; background:var(--card); max-width:760px; }.auth-page { min-height:100vh; display:grid; place-items:center; background:var(--page-wash); padding:24px; }.auth-card { max-width:480px; padding:36px; border:1px solid var(--border); border-radius:14px; background:var(--card); text-align:center; }.auth-card img { margin:auto; }.google-button { width:100%; padding:.85rem; border:1px solid var(--border); border-radius:8px; background:var(--card); color:var(--ink); font-weight:800; cursor:pointer; }.google-button span { margin-right:12px; color:#4285f4; }.auth-note { color:var(--muted); }
@@ -566,3 +566,15 @@ html[data-theme="dark"] .live-alert{background:#193522;border-color:#487655}html
 
 /* Resize Ask AI directly from its top or left edge; no extra control is needed. */
 .guide-sidebar.is-resizing,.guide-sidebar.is-resizing *{user-select:none}.guide-sidebar.is-resizing .guide-sidebar-inner{overflow:hidden}
+
+/* Habitat Builders identity: a compact team-workspace treatment, not a campaign hero. */
+.habitat-hub{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(100deg,var(--page-wash) 0%,var(--page-wash) 56%,color-mix(in srgb,var(--surface-strong) 68%,var(--page-wash)) 100%)}
+.habitat-hub::after{content:"";position:absolute;z-index:-1;width:min(520px,44vw);aspect-ratio:1;right:25%;top:50%;translate:50% -50%;background:url('../img/habitat-builders-habitat.png') center/contain no-repeat;opacity:.13;filter:saturate(.9)}
+.habitat-hub>.container{position:relative}.habitat-hub .next-meeting{background:color-mix(in srgb,var(--card) 94%,transparent);backdrop-filter:blur(10px);box-shadow:0 10px 28px rgba(23,49,38,.08)}
+.site-header .brand{min-width:max-content}.site-header .brand span{line-height:1.15}.site-footer .brand img{filter:drop-shadow(0 4px 10px rgba(0,0,0,.2))}
+.plain-panel,.card,.table-wrap,.homework-notebook,.auth-card{box-shadow:0 6px 20px rgba(23,49,38,.045)}
+.meeting-row{border-radius:10px;padding-inline:12px;transition:background-color .16s ease,transform .16s ease}.meeting-row:hover,.meeting-row:focus-visible{transform:translateX(2px);outline:none}
+.button,.google-button,.portal-tabs button,.portal-tabs a,.mini-action{transition:transform .16s ease,box-shadow .16s ease,background-color .16s ease,border-color .16s ease}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid color-mix(in srgb,var(--glow) 58%,transparent);outline-offset:2px}
+@media(max-width:900px){.habitat-hub::after{right:4%;top:12%;translate:0 0;width:300px;opacity:.08}}
+@media(max-width:560px){.habitat-hub::after{width:240px;right:-70px;top:20px}.brand img{width:44px;height:44px}.brand span small{font-size:.64rem}.resource-links a{border:1px solid var(--border)}}

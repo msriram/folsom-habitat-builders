@@ -15,7 +15,7 @@ const saveMessage=document.querySelector('[data-account-profile-message]');
 const familyPanel=document.querySelector('[data-family-panel]');
 const familyChild=document.querySelector('[data-family-child]');
 const adminDashboard=document.querySelector('[data-admin-profile-dashboard]');
-const mascot='assets/img/logo.svg';
+const mascot='assets/img/habitat-builders-logo.png';
 
 let pendingPhoto=null;
 let pendingPhotoUrl=null;

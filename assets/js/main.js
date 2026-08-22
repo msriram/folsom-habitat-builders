@@ -83,7 +83,7 @@
       <div class="site-header">
         <div class="nav-wrap">
           <a class="brand" href="index.html">
-            <img src="assets/img/logo.svg" alt="" width="48" height="48">
+            <img src="assets/img/habitat-builders-logo.png" alt="" width="52" height="52">
             <span>Habitat Builders<small class="brand-subtitle"><span class="brand-subtitle-short">A Folsom FLL Team</span><span class="brand-subtitle-long">A Folsom Theodore Judah Elementary 4th Grade FLL Team</span></small></span>
           </a>
           <nav class="site-nav" id="site-nav" aria-label="Main navigation">
@@ -116,7 +116,7 @@
             <div class="account-menu-wrap">
               <button class="round-control account-button" type="button" aria-label="Open account menu" aria-expanded="false" aria-controls="account-menu">
                 <svg class="signed-out-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.8 20c.7-4 3.1-6 7.2-6s6.5 2 7.2 6"/></svg>
-                <img class="signed-in-mascot" src="assets/img/logo.svg" alt="" hidden>
+                <img class="signed-in-mascot" src="assets/img/habitat-builders-logo.png" alt="" hidden>
               </button>
               <div class="account-dropdown" id="account-menu" hidden>
                 <div class="account-summary">
@@ -204,7 +204,7 @@
         <div class="container">
           <div class="footer-grid">
             <div>
-              <a class="brand" href="index.html"><img src="assets/img/logo.svg" alt="" width="48" height="48"><span>Habitat Builders<small>A Folsom FLL Team</small></span></a>
+              <a class="brand" href="index.html"><img src="assets/img/habitat-builders-logo.png" alt="" width="52" height="52"><span>Habitat Builders<small>A Folsom FLL Team</small></span></a>
               <p>The team workspace for our 2026–27 robot work, biodiversity project, sessions, assignments, and family coordination.</p>
             </div>
             <div><strong>Focus areas</strong><p><a href="robot.html">Robot Challenge</a><br><a href="project.html">Innovation Project</a><br><a href="core-values.html">Core Values</a><br><a href="tournament.html">Tournament Format</a><br><a href="resources.html">Official Resources</a></p></div>
@@ -323,7 +323,7 @@ async function initializeAccountMenu(header) {
     let avatarTarget = null;
     let avatarKind = null;
     const showSignedInAvatar = photoUrl => {
-      mascot.src = photoUrl || "assets/img/logo.svg";
+      mascot.src = photoUrl || "assets/img/habitat-builders-logo.png";
       mascot.classList.toggle("profile-photo", Boolean(photoUrl));
       mascot.removeAttribute("hidden");
       outline.setAttribute("hidden", "");
