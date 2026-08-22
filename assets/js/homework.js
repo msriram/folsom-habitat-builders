@@ -173,7 +173,7 @@ async function sendCoachHomeworkEmail(db, week, deliverToTeam, controls, status,
   const { data, error } = await db.functions.invoke('gmail-send-test', { body: { kind: 'current', weekNumber: week, deliverToTeam, reminder: isReminder } });
   if (link) link.textContent = deliverToTeam ? (isReminder ? 'Send reminder' : 'Post Homework') : 'Preview Homework';
   if (error || data?.error) {
-    if (message) message.textContent = data?.error || 'Email could not be sent.';
+    if (message) message.textContent = await emailErrorMessage(error, data);
     return;
   }
   if (deliverToTeam) {
@@ -183,6 +183,20 @@ async function sendCoachHomeworkEmail(db, week, deliverToTeam, controls, status,
   } else if (message) {
     message.textContent = 'Preview sent to sriram87@gmail.com.';
   }
+}
+
+async function emailErrorMessage(error, data) {
+  if (data?.error) return data.error;
+  try {
+    const response = error?.context;
+    const payload = response?.clone ? await response.clone().json() : null;
+    if (payload?.error) return payload.error;
+  } catch {
+    // Fall through to a concise browser-safe message.
+  }
+  return error?.message && error.message !== 'Edge Function returned a non-2xx status code'
+    ? error.message
+    : 'Email could not be sent. Please try again.';
 }
 
 async function renderCoachSessionFocus(db, host) {
