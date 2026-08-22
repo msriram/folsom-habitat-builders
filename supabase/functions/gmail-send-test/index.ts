@@ -6,6 +6,7 @@ const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const clientId = (Deno.env.get("GMAIL_CLIENT_ID") || "").trim();
 const clientSecret = (Deno.env.get("GMAIL_CLIENT_SECRET") || "").trim();
 const admin = createClient(url, serviceKey);
+const emailLogo = "https://msriram.github.io/folsom-fireflies/assets/img/habitat-builders-logo.png";
 const cors = {"Access-Control-Allow-Origin":"https://msriram.github.io","Access-Control-Allow-Headers":"authorization, apikey, content-type, x-client-info","Access-Control-Allow-Methods":"POST, OPTIONS","Content-Type":"application/json"};
 const reply=(body:unknown,status=200)=>Response.json(body,{status,headers:cors});
 const encode=(value:string)=>btoa(unescape(encodeURIComponent(value))).replaceAll("+","-").replaceAll("/","_").replace(/=+$/," ").trim();
@@ -48,7 +49,7 @@ Deno.serve(async req=>{
   const send = async (to:string, name="team member", role="parent") => {
     const intro=role === "student" ? "Set aside time to explore, create your own response, and upload any required work." : "Please help your student set aside time to explore, create their own response, and upload any required work.";
     const personalized=content.replace("Hello Sriram,",`Hello ${name},`).replace("Please help your student set aside time to explore, create their own response, and upload any required work.",intro);
-    const raw=`To: ${to}\r\nSubject: ${subject}\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<div style="font-family:Arial,sans-serif;line-height:1.5;color:#173a2a;max-width:680px">${personalized}</div>`;
+    const raw=`To: ${to}\r\nSubject: ${subject}\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<div style="font-family:Arial,sans-serif;line-height:1.5;color:#173a2a;max-width:680px"><img src="${emailLogo}" width="76" height="76" alt="Habitat Builders" style="display:block;width:76px;height:76px;margin:0 0 14px;border:0;border-radius:12px">${personalized}</div>`;
     return fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send",{method:"POST",headers:{Authorization:`Bearer ${tokens.access_token}`,"Content-Type":"application/json"},body:JSON.stringify({raw:encode(raw)})});
   };
   if(body?.deliverToTeam===true){

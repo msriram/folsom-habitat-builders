@@ -8,6 +8,7 @@ const gmailClientSecret = (Deno.env.get("GMAIL_CLIENT_SECRET") || "").trim();
 const openaiKey = (Deno.env.get("OPENAI_API_KEY") || "").trim();
 const siteOrigin = "https://msriram.github.io";
 const siteUrl = `${siteOrigin}/folsom-fireflies`;
+const emailLogo = `${siteUrl}/assets/img/habitat-builders-logo.png`;
 const admin = createClient(supabaseUrl, serviceKey);
 const cors = {
   "Access-Control-Allow-Origin": siteOrigin,
@@ -119,7 +120,7 @@ Deno.serve(async req => {
   let sent = 0;
   let failed = 0;
   for (const person of recipients) {
-    const raw = `To: ${person.email}\r\nSubject: Habitat Builders: Weekly Team Digest\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<div style="font-family:Arial,sans-serif;line-height:1.5;color:#173a2a;max-width:680px"><p>Hello ${esc(person.display_name || "team member")},</p>${html}</div>`;
+    const raw = `To: ${person.email}\r\nSubject: Habitat Builders: Weekly Team Digest\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n<div style="font-family:Arial,sans-serif;line-height:1.5;color:#173a2a;max-width:680px"><img src="${emailLogo}" width="76" height="76" alt="Habitat Builders" style="display:block;width:76px;height:76px;margin:0 0 14px;border:0;border-radius:12px"><p>Hello ${esc(person.display_name || "team member")},</p>${html}</div>`;
     const sentResult = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", { method: "POST", headers: { Authorization: `Bearer ${gmailTokens.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify({ raw: encode(raw) }) });
     if (sentResult.ok) sent++; else failed++;
   }
