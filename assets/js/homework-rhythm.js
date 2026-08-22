@@ -8,7 +8,7 @@ const fallbackAssignments = {
   0: { title: 'Explore biodiversity and understand the game', due: 'Wednesday, August 5', priority: 'Finish the biodiversity paragraph and bring one rules question to Session 1.' },
   1: { title: 'Field and robot baseline', due: 'Wednesday, August 12', priority: 'Use the notebook to prepare for Session 1: establish the field baseline, build a first mechanism, and test a simple movement.' },
   2: { title: 'Choose a team name and a cause anchor', due: 'Wednesday, August 19', priority: 'Connect our biodiversity interests to a team name, a cause, and one question we can investigate together.' },
-  3: { title: 'Model build, Field map, and Robot Maneuver', due: 'Wednesday, August 26', priority: 'Reflect on the models, board measurements, and robot movement from Session 2, then complete Discovery Activity 1.' },
+  3: { title: 'Model build and Habitat Builders connection', due: 'Wednesday, August 26', priority: 'Reflect on a Session 2 model, connect an individual interest to Habitat Builders, and complete Discovery Activity 1.' },
   4: { title: 'Dock strategy and keystone species', due: 'Wednesday, September 2', priority: 'Use Session 4 to connect a mission strategy to a biodiversity idea and record the team decision.' },
   5: { title: 'Research and existing solutions', due: 'Wednesday, September 9', priority: 'Bring one reliable source, one existing solution, and one expert or user question to Session 5.' },
   6: { title: 'Solution plan and pseudocode', due: 'Wednesday, September 16', priority: 'Turn the team idea into a plan and a small robot program you can test in Session 6.' },
@@ -63,10 +63,28 @@ Object.assign(notebookHomework, {
 // Coach views read this same source instead of carrying a second copy of the
 // season's homework focus. Update the homework rhythm and the coach view
 // updates with it.
+// Session 3 measurement work becomes a Week 4 reflection, not retroactive
+// Week 3 homework.
+notebookHomework[4] = {
+  session: 4,
+  reflects: 3,
+  title: 'Finish models and plan the base robot',
+  link: 'meeting-04.html',
+  core: { label: 'Innovation · Activity 1', href: 'downloads/bioglow/core-values-innovation-1.pdf', task: 'Choose a small object and a marked area. List three different ways a robot or person could move the object into the area. Which idea would you test first, and why?' },
+  questions: [
+    ['remaining_models', 'Which mission model did the team finish, improve, or still need to finish after Session 3? What does that model do?'],
+    ['field_measurements', 'What two field measurements or landmarks did the team record in Session 3? Explain how one measurement could help make a robot run more repeatable.'],
+    ['base_robot_plan', 'What should the base robot do well before we add complicated attachments? Name two design or driving priorities.'],
+    ['first_attachment', 'Choose one model or mission. What simple attachment action might help: push, pull, lift, guide, or carry? Explain your first idea.'],
+    ['team_name_cause_check', 'Our team name is Habitat Builders. How can this week’s robot work or project discussion connect to the biodiversity interest that matters most to you?'],
+    ['core_innovation_1', 'Choose a small object and a marked area. List three different ways a robot or person could move the object into the area. Which idea would you test first, and why?']
+  ]
+};
+
 window.FIREFLIES_HOMEWORK_RHYTHM = { assignments: fallbackAssignments, notebookHomework };
 
 const futureTaskTitles = {
-  remaining_models: 'Mission model reflection', base_robot_plan: 'Base robot priorities', first_attachment: 'First attachment idea', team_name_cause_check: 'Team name and cause check',
+  remaining_models: 'Mission model reflection', field_measurements: 'Field measurements', base_robot_plan: 'Base robot priorities', first_attachment: 'First attachment idea', team_name_cause_check: 'Team name and cause check',
   drive_baseline: 'Driving baseline', attachment_test: 'Attachment test', run_observation: 'Test-run observation', project_cause_check: 'Project cause check',
   first_reliable_mission: 'Reliable mission goal', test_evidence: 'Testing evidence', next_attachment_change: 'Next attachment change', project_research_step: 'Project research step',
   second_mission_plan: 'Second mission plan', attachment_iteration: 'Attachment iteration', handoff_communication: 'Team handoff', project_solution_idea: 'Project solution idea',
@@ -187,24 +205,23 @@ function applyRhythm() {
     const sessionQuestions = [
       ['project_sparks_summary', 'Read the Project Sparks page. In your own words, what does it say and what idea from the page could help a team begin an Innovation Project?'],
       ['challenge_story_summary', 'Read the Challenge Story page. In your own words, what is the challenge story asking teams to notice, explore, or improve?'],
-      ['model_build', 'Which numbered model did you help build, improve, or observe in Session 2 (Model 5, 6, 7, or 1)? Describe what it is meant to do and one detail you noticed.'],
-      ['model_purpose', 'Rewatch the Robot Game Missions video. Choose one mission model and explain in your own words how it works, what it represents, and how it connects to a Project Spark.'],
-      ['board_measurements', 'Record two board measurements from Session 2. Name the start and end landmarks for each measurement, and explain how one measurement could help a robot run.'],
-      ['robot_maneuver', 'Describe one robot movement or maneuver your group tried. What did it do, what worked or did not work, and what is one change you would test next?']
+      ['model_build', 'What model did you build, improve, or observe in Session 2? Rewatch the Robot Game Missions video, then explain in your own words how the model works and what kind of attachment could help a robot complete it. You may draw your idea and upload a photo. Be ready to explain it in class.'],
+      ['model_purpose', 'Mission name and Spark connection — our team name is Habitat Builders. Choose an interest angle that matters to you, such as invasive species, rainforest protection, or another biodiversity idea. How could Habitat Builders investigate or build something that helps?']
     ];
     const weekHeading = week3Detail.querySelector('summary h3');
     const promptHeading = week3Detail.querySelector('.cell-prompt h4');
     const promptText = week3Detail.querySelector('.cell-prompt p');
-    if (weekHeading) weekHeading.textContent = 'Model build, Field map, and Robot Maneuver';
+    if (weekHeading) weekHeading.textContent = 'Model build and Habitat Builders connection';
     if (promptHeading) promptHeading.textContent = 'Use what we did in Session 2';
-    if (promptText) promptText.textContent = 'Think back to the models, field measurements, and robot movement from Session 2. These are observations from our own work, not extra research questions.';
+    if (promptText) promptText.textContent = 'Think back to the Session 2 models and connect your own biodiversity interest to our Habitat Builders team name. Field measurements move to next week.';
     const taskList = week3Detail.querySelector('.cell-prompt ol');
     if (taskList) taskList.innerHTML = `${sessionQuestions.map(([, prompt]) => `<li>${prompt}</li>`).join('')}<li><strong>Core Values · Discovery Activity 1:</strong> Find out how many countries have FIRST LEGO League teams. Choose at least three countries and learn how to say “hello” and “My name is...” in languages spoken there.</li>`;
     const prompt = week3Detail.querySelector('.cell-prompt');
     if (prompt && !prompt.querySelector('[data-model-video-link]')) prompt.insertAdjacentHTML('beforeend', '<div class="notebook-downloads"><a data-model-video-link href="https://www.youtube.com/watch?v=uhZZ8O1StiQ" target="_blank" rel="noopener"><strong>Rewatch Robot Game Missions video ↗</strong><small>Observe how the mission models work</small></a><a data-discovery-link href="downloads/bioglow/core-values-discovery-1.pdf#page=3" target="_blank" rel="noopener"><strong>Discovery Activity 1 · page 3 ↗</strong><small>Open the Core Values activity book</small></a></div>');
     const form = week3Detail.querySelector('form[data-homework-form]');
     const responseHeader = form?.querySelector('.section-title')?.outerHTML;
-    if (form && responseHeader) form.innerHTML = `${responseHeader}${sessionQuestions.map(([key, prompt]) => `<label>${prompt}<textarea name="${key}" rows="5" minlength="30" maxlength="2000" required></textarea></label>`).join('')}<label>Core Values · Discovery Activity 1 — FIRST LEGO League around the world<textarea name="core_values_discovery" rows="6" minlength="40" maxlength="2000" required></textarea></label><div data-existing-files class="submission-files"></div><button class="button primary" type="submit">Submit Week 3 homework</button><p data-homework-message aria-live="polite"></p>`;
+    const sketchUpload = '<label>Optional model sketch or drawing<input name="files" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"></label>';
+    if (form && responseHeader) form.innerHTML = `${responseHeader}${sessionQuestions.map(([key, prompt]) => `<label>${prompt}<textarea name="${key}" rows="5" minlength="30" maxlength="2000" required></textarea></label>`).join('')}${sketchUpload}<label>Core Values · Discovery Activity 1 — FIRST LEGO League around the world<textarea name="core_values_discovery" rows="6" minlength="40" maxlength="2000" required></textarea></label><div data-existing-files class="submission-files"></div><button class="button primary" type="submit">Submit Week 3 homework</button><p data-homework-message aria-live="polite"></p>`;
   }
 
   Object.entries(notebookHomework).forEach(([weekNumber, assignment]) => {
