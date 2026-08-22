@@ -23,7 +23,7 @@ else{
         const {data:signed}=await db.storage.from('profile-photos').createSignedUrl(profile.photo_path,900);
         if(signed?.signedUrl)imageUrl=signed.signedUrl;
       }
-      document.title=`${profile.display_name} | Folsom FLL Team`;
+      document.title=`${profile.display_name} | Habitat Builders`;
       state.hidden=true;
       root.hidden=false;
       root.innerHTML=`<div class="student-profile-head"><img class="profile-avatar-large" src="${esc(imageUrl)}" alt=""><div><h1>${esc(profile.display_name)}${profile.tag_name?` <small>“${esc(profile.tag_name)}”</small>`:''}</h1><p><strong>Parents:</strong> ${esc(profile.parent_names||'Not listed')}</p></div></div><div class="grid three">${fact('Favorite character',profile.favorite_hero)}${fact('Favorite movie',profile.favorite_movie)}${fact('Favorite show',profile.favorite_show)}${fact('Favorite place',profile.favorite_place)}${fact('Favorite LEGO build',profile.favorite_lego)}${fact('Wants to learn',profile.learning_goal)}</div>`;

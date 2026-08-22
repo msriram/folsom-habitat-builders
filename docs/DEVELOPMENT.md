@@ -1,6 +1,6 @@
 # Developer Guide
 
-This document contains the technical instructions for running and maintaining the Folsom FLL Team Hub.
+This document contains the technical instructions for running and maintaining the Habitat Builders Hub.
 
 ## Requirements
 

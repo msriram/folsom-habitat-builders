@@ -1,10 +1,10 @@
-# Folsom FLL Team Hub
+# Habitat Builders Hub
 
 This repository powers the shared website for a five-student FIRST LEGO League team during the 2026–27 season. It is designed as a practical team workspace—not a marketing site.
 
 ## Live website
 
-[Open the Folsom FLL Team Hub](https://msriram.github.io/folsom-fireflies/)
+[Open the Habitat Builders Hub](https://msriram.github.io/folsom-fireflies/)
 
 ## What the website is for
 

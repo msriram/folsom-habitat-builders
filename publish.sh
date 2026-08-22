@@ -14,7 +14,7 @@ fi
 
 git add .
 if ! git diff --cached --quiet; then
-  git commit -m "Update Folsom Fireflies team site"
+  git commit -m "Update Habitat Builders team site"
 fi
 
 git branch -M main

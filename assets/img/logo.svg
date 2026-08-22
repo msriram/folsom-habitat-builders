@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-labelledby="title desc">
-  <title id="title">Folsom Fireflies logo</title>
-  <desc id="desc">A glowing firefly shaped like a small robot over a leaf.</desc>
+  <title id="title">Habitat Builders team emblem</title>
+  <desc id="desc">A small glowing robot above a green leaf, representing engineering in service of habitats.</desc>
   <defs>
     <radialGradient id="glow" cx="50%" cy="50%" r="60%">
       <stop offset="0" stop-color="#fff7a8"/>

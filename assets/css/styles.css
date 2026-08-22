@@ -211,6 +211,11 @@ html[data-theme="dark"] .site-header { background: var(--header); }
 .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 850; }
 .brand img { width: 48px; height: 48px; }
 .brand span small { display: block; font-size: .72rem; color: var(--muted); font-weight: 650; letter-spacing: .04em; }
+.brand-subtitle-long { display: none; }
+@media (min-width: 1420px) {
+  .brand-subtitle-short { display: none; }
+  .brand-subtitle-long { display: inline; }
+}
 .site-nav { display: flex; gap: 5px; align-items: center; margin-left: 18px; }
 .site-nav a,.nav-dropdown-toggle { text-decoration: none; color: var(--ink); padding: .55rem .75rem; border-radius: 999px; font-weight: 700; font-size: .92rem; }
 .site-nav a:hover, .site-nav a[aria-current="page"],.nav-dropdown-toggle:hover,.nav-dropdown-toggle[aria-current="page"] { background: var(--surface-strong); color: var(--forest); }

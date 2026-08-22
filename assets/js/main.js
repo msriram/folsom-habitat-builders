@@ -59,7 +59,7 @@
   const colorThemeKey = "fireflies-color-theme";
   const colorThemes = ["forest", "ocean", "violet", "sunset", "rose", "cobalt", "citrus", "slate", "berry", "mint", "lagoon", "ember"];
   const colorThemeOptions = [
-    ["forest", "Firefly Forest"], ["ocean", "Blue Current"], ["violet", "Electric Violet"], ["sunset", "Sunset Glow"], ["rose", "Rose Quartz"],
+    ["forest", "Habitat Green"], ["ocean", "Blue Current"], ["violet", "Electric Violet"], ["sunset", "Sunset Glow"], ["rose", "Rose Quartz"],
     ["cobalt", "Cobalt Circuit"], ["citrus", "Crunchy Citrus"], ["slate", "Cool Slate"], ["berry", "Berry Burst"], ["mint", "Fresh Mint"], ["lagoon", "Lagoon Glow"], ["ember", "Ember Trail"]
   ];
   const applyColorTheme = theme => {
@@ -84,7 +84,7 @@
         <div class="nav-wrap">
           <a class="brand" href="index.html">
             <img src="assets/img/logo.svg" alt="" width="48" height="48">
-            <span>Folsom FLL Team<small>FLL Challenge · 2026–27</small></span>
+            <span>Habitat Builders<small class="brand-subtitle"><span class="brand-subtitle-short">A Folsom FLL Team</span><span class="brand-subtitle-long">A Folsom Theodore Judah Elementary 4th Grade FLL Team</span></small></span>
           </a>
           <nav class="site-nav" id="site-nav" aria-label="Main navigation">
             ${navItems.map(([label, href]) => `<a href="${href}" ${page === label ? 'aria-current="page"' : ''}>${label}</a>`).join("")}
@@ -204,13 +204,13 @@
         <div class="container">
           <div class="footer-grid">
             <div>
-              <a class="brand" href="index.html"><img src="assets/img/logo.svg" alt="" width="48" height="48"><span>Folsom FLL Team<small>Learn · Build · Test · Share</small></span></a>
-              <p>Schedules, assignments, robot work, project research, and family information for the 2026–27 season.</p>
+              <a class="brand" href="index.html"><img src="assets/img/logo.svg" alt="" width="48" height="48"><span>Habitat Builders<small>A Folsom FLL Team</small></span></a>
+              <p>The team workspace for our 2026–27 robot work, biodiversity project, sessions, assignments, and family coordination.</p>
             </div>
             <div><strong>Focus areas</strong><p><a href="robot.html">Robot Challenge</a><br><a href="project.html">Innovation Project</a><br><a href="core-values.html">Core Values</a><br><a href="tournament.html">Tournament Format</a><br><a href="resources.html">Official Resources</a></p></div>
             <div><strong>Privacy</strong><p><small>We avoid publishing children's full names, contact information, school schedules, or identifiable photos without parent permission.</small></p></div>
           </div>
-          <div class="footer-bottom"><small>© <span data-year></span> Folsom FLL Team</small><small>Independent community team site. FIRST® and LEGO® are trademarks of their respective owners.</small></div>
+          <div class="footer-bottom"><small>© <span data-year></span> Habitat Builders</small><small>Independent Folsom community team site. FIRST® and LEGO® are trademarks of their respective owners.</small></div>
         </div>
       </footer>`;
     footer.querySelector("[data-year]").textContent = new Date().getFullYear();
