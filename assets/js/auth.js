@@ -41,26 +41,6 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
 async function setupAdmin(supabase,profile){
   document.querySelector('[data-admin-locked]')?.setAttribute('hidden','');
   document.querySelector('[data-admin-view]')?.removeAttribute('hidden');
-  const sendHomeworkButton=document.querySelector('[data-send-homework-now]');
-  const sendCoachButton=document.querySelector('[data-send-coach-test]');
-  const sendHomeworkMessage=document.querySelector('[data-homework-send-message]');
-  const homeworkWeekSelect=document.querySelector('[data-homework-week-select]');
-  const weekTwoOption=homeworkWeekSelect?.querySelector('option[value="2"]');
-  if(weekTwoOption)weekTwoOption.textContent='Week 2 · Choose a team name and a cause anchor';
-  if(sendHomeworkButton)sendHomeworkButton.onclick=async()=>{
-    if(!confirm(`Send Week ${homeworkWeekSelect?.value||''} homework now to all approved students and parents?`))return;
-    sendHomeworkButton.disabled=true;sendHomeworkButton.textContent='Sending…';sendHomeworkMessage.textContent='';
-    const {data,error}=await supabase.functions.invoke('gmail-send-test',{body:{kind:'current',weekNumber:Number(homeworkWeekSelect?.value||0),deliverToTeam:true}});
-    sendHomeworkMessage.textContent=error?'The homework email could not be sent.':`Homework email sent to ${data?.sent||0} account(s)${data?.failed?`; ${data.failed} failed`:''}.`;
-    sendHomeworkButton.disabled=false;sendHomeworkButton.textContent='Send selected homework';
-  };
-  if(sendCoachButton)sendCoachButton.onclick=async()=>{
-    if(!confirm(`Send Week ${homeworkWeekSelect?.value||''} homework test only to sriram87@gmail.com?`))return;
-    sendCoachButton.disabled=true;sendCoachButton.textContent='Sending…';sendHomeworkMessage.textContent='';
-    const {data,error}=await supabase.functions.invoke('gmail-send-test',{body:{kind:'current',weekNumber:Number(homeworkWeekSelect?.value||0),deliverToTeam:true,coachesOnly:true}});
-    sendHomeworkMessage.textContent=error?'The coach test email could not be sent.':`Coach test email sent to ${data?.sent||0} coach account(s)${data?.failed?`; ${data.failed} failed`:''}.`;
-    sendCoachButton.disabled=false;sendCoachButton.textContent='Send selected homework to coaches';
-  };
   const pendingRoot=document.querySelector('[data-pending-users]');
   const approvedRoot=document.querySelector('[data-approved-users]');
   const approvedStudentsRoot=document.querySelector('[data-approved-students]');
