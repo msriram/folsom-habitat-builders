@@ -1,6 +1,11 @@
 const config=window.FIREFLIES_PORTAL_CONFIG||{};
 const states=document.querySelectorAll('[data-auth-state]');
 const setState=text=>states.forEach(element=>element.textContent=text);
+const requestedDestination=()=>{
+  const candidate=new URLSearchParams(location.search).get('returnTo');
+  if(!candidate||!/^[-a-zA-Z0-9_./?=&%#]+$/.test(candidate)||candidate.startsWith('//'))return 'portal.html?tab=homework';
+  return candidate;
+};
 
 if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
   setState('Sign-in is unavailable right now.');
@@ -10,7 +15,7 @@ if(config.forceDemo||!config.supabaseUrl||!config.supabaseAnonKey){
   const supabase=createClient(config.supabaseUrl,config.supabaseAnonKey);
   document.querySelector('[data-google-login]')?.addEventListener('click',async()=>{
     setState('Opening Google sign-in…');
-    const redirectTo=new URL('portal.html?tab=homework',location.href).href;
+    const redirectTo=new URL(requestedDestination(),location.href).href;
     const {error}=await supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo}});
     if(error){window.FIREFLIES_DIAGNOSTICS?.report('Google sign-in',error);setState('Sign-in is unavailable right now.');}
   });

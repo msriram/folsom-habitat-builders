@@ -400,6 +400,7 @@ tr:last-child td { border-bottom: 0; }
 .teamwork-tool-card:hover, .teamwork-tool-card:focus-visible { color:inherit; transform:translateY(-2px); border-color:var(--forest); box-shadow:0 14px 30px rgba(23,49,38,.14); }
 .teamwork-tool-card .card-link { display:block; margin-top:1rem; color:var(--forest); font-weight:800; }
 body[data-homework-auth-loading] [data-homework-week], body[data-homework-auth-loading] [data-coach-homework-view], body[data-homework-auth-loading] [data-coach-review-link] { visibility:hidden; }
+body[data-team-room-auth-loading] .portal-shell, body[data-team-room-auth-loading] .guide-sidebar { visibility:hidden; }
 .guide-sidebar { position:fixed; z-index:30; right:24px; bottom:24px; width:min(380px,calc(100vw - 32px)); pointer-events:none; }
 .guide-sidebar-inner { max-height:min(680px,calc(100vh - 120px)); overflow:auto; padding:20px; border:1px solid var(--border); border-radius:16px; background:var(--card); box-shadow:0 18px 55px rgba(12,35,24,.24); pointer-events:auto; }
 .guide-launcher { display:grid; place-items:center; width:58px; height:58px; margin-left:auto; border:2px solid #fff; border-radius:50%; background:conic-gradient(from 210deg,#ff5a7d,#ffb84a,#73dd82,#50c8ff,#8c77ff,#ff5a7d); color:#fff; box-shadow:0 12px 28px rgba(70,70,150,.35),0 0 0 2px rgba(110,80,220,.28); font-size:1.45rem; cursor:pointer; pointer-events:auto; transition:transform .18s ease,box-shadow .18s ease; }
