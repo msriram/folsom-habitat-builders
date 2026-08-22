@@ -31,6 +31,26 @@ const material = {
 };
 
 const sessionNumber = Number(document.body.dataset.session?.match(/meeting-(\d+)/)?.[1]);
+const queuedSessionFlow = {
+  5: { title: 'Choose a direction and start a guided mission', intro: 'Use the Session 4 research to choose a direction worth testing, while starting a guided robot mission with careful evidence.', done: ['One project direction is selected with a reason', 'Sources and remaining research questions are recorded', 'A guided mission run and attachment are documented', 'Each crew has one next test'] },
+  6: { title: 'Prototype, pseudocode, and mission strategy', intro: 'Turn the selected direction into a first prototype plan while writing and testing one clear mission routine.', done: ['Prototype materials and next step are recorded', 'One mission has pseudocode and a tested program', 'Mission status is marked completed, testing, or next', 'One blocker has an owner'] },
+  7: { title: 'Prototype and robot iteration', intro: 'Develop the project prototype and improve robot attachments and programs using test evidence.', done: ['A prototype sketch or model exists', 'One feedback note produces a specific change', 'An attachment or program iteration has reliability evidence', 'The next test is assigned'] },
+  8: { title: 'Feedback, refinement, and reliable runs', intro: 'Collect outside feedback, refine the project, and strengthen a robot run without adding unnecessary complexity.', done: ['Feedback is recorded from an outside perspective', 'One project revision is explained', 'A mission run meets the team reliability target', 'The mission order is updated with a reason'] },
+  9: { title: 'Points, timing, and project impact', intro: 'Use evidence to balance score, time, and risk while explaining the project’s positive impact.', done: ['A timed run includes a score and mission count', 'A robot change is tied to test evidence', 'The project impact is stated clearly', 'The team can point to evidence for its claims'] },
+  10: { title: 'Presentation draft and timed match', intro: 'Build the project story and practice a complete timed match with participation and accessible attachments.', done: ['A project presentation draft exists', 'A timed 2:30 match is recorded', 'Attachment handoffs and participation are practiced', 'One presentation or match improvement is assigned'] },
+  11: { title: 'Final explanations and refinements', intro: 'Refine the project and robot design explanations so every student can clearly share evidence and contributions.', done: ['Robot design explanation is outlined', 'Project presentation is revised from feedback', 'Each student has a meaningful contribution', 'One final improvement is recorded'] },
+  12: { title: 'Full event rehearsal', intro: 'Practice the complete event experience: presentations, multiple matches, recovery plans, and readiness checks.', done: ['Two full presentation practices are completed', 'Multiple timed matches are recorded', 'A recovery plan is ready for a failed mission', 'Packing and event-readiness checklist is complete'] }
+};
+const queued = queuedSessionFlow[sessionNumber];
+if (queued) {
+  const heading = document.querySelector('.meeting-head h1');
+  const intro = document.querySelector('.meeting-head p');
+  if (heading) heading.textContent = queued.title;
+  if (intro) intro.textContent = queued.intro;
+  const doneHeading = [...document.querySelectorAll('main h2')].find(item => item.textContent.trim() === 'Definition of done');
+  const checklist = doneHeading?.nextElementSibling;
+  if (checklist?.matches('ul')) checklist.innerHTML = queued.done.map(item => `<li>${item}</li>`).join('');
+}
 const target = document.querySelector('[data-session-material]') || (() => {
   const section = document.createElement('section');
   section.className = 'section compact tint';
