@@ -235,6 +235,35 @@ async function setupRoleAccess() {
     document.querySelector("[data-coach-review-link]")?.removeAttribute("hidden");
     document.querySelector("[data-coach-homework-view]")?.removeAttribute("hidden");
   }
+  if (profile.role === "coach") setupTeamDigest(db);
+}
+
+function teamDigestError(error, data) {
+  return data?.error || error?.message || 'The email digest could not be sent right now.';
+}
+
+function setupTeamDigest(db) {
+  const card = document.querySelector('[data-team-digest]');
+  const button = document.querySelector('[data-send-team-digest]');
+  const message = document.querySelector('[data-team-digest-message]');
+  if (!card || !button || !message) return;
+  card.hidden = false;
+  button.addEventListener('click', async () => {
+    if (!window.confirm('Send the family digest now to all approved students and parents?')) return;
+    button.disabled = true;
+    button.textContent = 'Preparing digest…';
+    message.textContent = '';
+    const { data, error } = await db.functions.invoke('team-digest');
+    if (error || data?.error) {
+      window.FIREFLIES_DIAGNOSTICS?.report('Team digest', error || data);
+      message.textContent = teamDigestError(error, data);
+      button.disabled = false;
+      button.textContent = 'Send email digest';
+      return;
+    }
+    message.textContent = `Digest sent to ${data.sent} of ${data.recipients} students and parents.${data.failed ? ` ${data.failed} could not be delivered.` : ''}`;
+    button.textContent = 'Digest sent';
+  });
 }
 
 function sessionNumber(sessionKey) {
