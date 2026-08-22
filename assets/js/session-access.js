@@ -33,6 +33,18 @@ function showUnavailable(message) {
   document.querySelector('main').innerHTML = `<section class="section compact tint"><div class="container"><div class="plain-panel"><span class="eyebrow">Schedule</span><h1>Session plan not available yet</h1><p>${message}</p><a class="button secondary" href="season.html">Back to Schedule</a></div></div></section>`;
 }
 
+async function addPublishedStudentReviews(db) {
+  const { data: reviews, error } = await db.from('session_student_reviews')
+    .select('attendance,work_completed,went_well,next_improvement,student:profiles!session_student_reviews_student_id_fkey(display_name)')
+    .eq('session_key', sessionKey)
+    .order('updated_at');
+  if (error || !reviews?.length) return;
+  const section = document.createElement('section');
+  section.className = 'section compact published-session-reviews';
+  section.innerHTML = `<div class="container"><article class="plain-panel"><div class="section-title"><div><span class="eyebrow">Session recap</span><h2>Student attendance and notes</h2></div></div><div class="session-student-review-list"><table class="session-review-table published-session-review-table"><thead><tr><th>Student</th><th>Areas focused</th><th>Highlights</th><th>Improvements</th><th>Attendance</th></tr></thead><tbody>${reviews.map(review => `<tr><th scope="row">${escapeSession(review.student?.display_name || 'Student')}</th><td>${escapeSession(review.work_completed || '—').replace(/\n/g, '<br>')}</td><td>${escapeSession(review.went_well || '—').replace(/\n/g, '<br>')}</td><td>${escapeSession(review.next_improvement || '—').replace(/\n/g, '<br>')}</td><td>${review.attendance === 'present' ? 'Present' : 'Absent'}</td></tr>`).join('')}</tbody></table></div></article></div>`;
+  document.querySelector('main').append(section);
+}
+
 try {
   if (!sessionConfig.forceDemo && sessionConfig.supabaseUrl && sessionConfig.supabaseAnonKey) {
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
@@ -83,6 +95,7 @@ try {
         notes.innerHTML = `<div class="container"><article class="plain-panel"><span class="eyebrow">Coach recap</span><h2>Session notes</h2><div class="session-note-copy">${escapeSession(current.coach_notes).replace(/\n/g, '<br>')}</div></article></div>`;
         document.querySelector('main').append(notes);
       }
+      if (current.published) await addPublishedStudentReviews(db);
     }
 
     if (!sessionKey) {

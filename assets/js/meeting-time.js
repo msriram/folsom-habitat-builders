@@ -9,6 +9,17 @@ if(nextMeeting)nextMeeting.textContent='Friday, August 14 · 6:00 PM · 90 minut
 document.querySelectorAll('h2').forEach(heading=>{if(heading.textContent.trim()!=='Location')return;const copy=heading.nextElementSibling;if(copy?.tagName==='P')copy.textContent="Coach Sriram's garage";});
 if(sessionNumber===1){const bring=[...document.querySelectorAll('h2')].find(heading=>heading.textContent.trim()==='Bring');const list=bring?.nextElementSibling;if(list?.tagName==='UL')list.innerHTML='<li>Laptop or tablet</li><li>Notebook, pen/pencil, and eraser</li><li>Ideas or materials to share with the team, if any</li>';}
 
+// Each session produces the evidence for the following week's homework.
+// Update legacy static links so Session 2 always opens Week 3, Session 3 opens
+// Week 4, and so on.
+if (sessionNumber && sessionNumber < 12) {
+  const homeworkWeek = sessionNumber + 1;
+  document.querySelectorAll('a[href*="portal.html"][href*="homework"]').forEach(link => {
+    link.href = `portal.html?tab=homework&week=${homeworkWeek}#homework`;
+    link.textContent = `Open Week ${homeworkWeek} homework →`;
+  });
+}
+
 document.querySelectorAll('.meeting-row[href^="meeting-"]').forEach(row => {
   const match = row.getAttribute('href')?.match(/meeting-(\d+)/);
   const n = Number(match?.[1]);

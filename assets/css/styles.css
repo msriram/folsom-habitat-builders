@@ -557,5 +557,7 @@ html[data-theme="dark"] .live-alert{background:#193522;border-color:#487655}html
 /* Publication state is shown neutrally; the controls explain what happens next. */
 .homework-publication-status.is-published{color:var(--muted)}
 
+.published-session-review-table{min-width:820px}.published-session-review-table td{white-space:pre-wrap;line-height:1.45}.published-session-review-table td:last-child{white-space:nowrap;font-weight:800}
+
 /* Resize Ask AI directly from its top or left edge; no extra control is needed. */
 .guide-sidebar.is-resizing,.guide-sidebar.is-resizing *{user-select:none}.guide-sidebar.is-resizing .guide-sidebar-inner{overflow:hidden}

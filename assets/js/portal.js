@@ -206,7 +206,7 @@ async function getLiveContext() {
     const db = createClient(config.supabaseUrl, config.supabaseAnonKey);
     const { data: { session } } = await db.auth.getSession();
     if (!session) return { config, db, session: null, profile: null };
-    const { data: profile } = await db.from("profiles").select("id,team_id,display_name,role,approval_status,linked_student_id").eq("id", session.user.id).maybeSingle();
+    const { data: profile } = await db.from("profiles").select("id,team_id,display_name,email,role,is_admin,approval_status,linked_student_id").eq("id", session.user.id).maybeSingle();
     return { config, db, session, profile };
   })();
   return liveContextPromise;
@@ -235,7 +235,7 @@ async function setupRoleAccess() {
     document.querySelector("[data-coach-review-link]")?.removeAttribute("hidden");
     document.querySelector("[data-coach-homework-view]")?.removeAttribute("hidden");
   }
-  if (profile.role === "coach") setupTeamDigest(db);
+  if (profile.role === "coach" || profile.is_admin) setupTeamDigest(db);
 }
 
 function teamDigestError(error, data) {
