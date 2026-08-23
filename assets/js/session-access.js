@@ -30,7 +30,7 @@ function escapeSession(value) {
 }
 
 function showUnavailable(message) {
-  document.querySelector('main').innerHTML = `<section class="section compact tint"><div class="container"><div class="plain-panel"><span class="eyebrow">Schedule</span><h1>Session plan not available yet</h1><p>${message}</p><a class="button secondary" href="season.html">Back to Schedule</a></div></div></section>`;
+  document.querySelector('main').innerHTML = `<section class="section compact tint"><div class="container"><div class="plain-panel"><span class="eyebrow">Sessions</span><h1>Session plan not available yet</h1><p>${message}</p><a class="button secondary" href="season.html">Back to Sessions</a></div></div></section>`;
 }
 
 async function addPublishedStudentReviews(db) {

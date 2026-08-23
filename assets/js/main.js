@@ -71,7 +71,7 @@
     ["Home", "index.html"],
     ["Homework", "portal.html#homework"],
     ["Team", "roster.html"],
-    ["Schedule", "season.html"],
+    ["Sessions", "season.html"],
     ["Resources", "resources.html"]
   ];
 
