@@ -568,13 +568,21 @@ html[data-theme="dark"] .live-alert{background:#193522;border-color:#487655}html
 .guide-sidebar.is-resizing,.guide-sidebar.is-resizing *{user-select:none}.guide-sidebar.is-resizing .guide-sidebar-inner{overflow:hidden}
 
 /* Habitat Builders identity: a compact team-workspace treatment, not a campaign hero. */
-.habitat-hub{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(100deg,var(--page-wash) 0%,var(--page-wash) 56%,color-mix(in srgb,var(--surface-strong) 68%,var(--page-wash)) 100%)}
-.habitat-hub::after{content:"";position:absolute;z-index:-1;width:min(520px,44vw);aspect-ratio:1;right:25%;top:50%;translate:50% -50%;background:url('../img/habitat-builders-habitat.png') center/contain no-repeat;opacity:.13;filter:saturate(.9)}
+html{background:var(--paper)}
+body{position:relative;isolation:isolate;background:transparent}
+body::before{content:"";position:fixed;z-index:0;inset:72px 0 0;pointer-events:none;background:url('../img/habitat-builders-habitat.png') center 16vh/min(860px,72vw) auto no-repeat;opacity:.17;filter:saturate(.9)}
+body>[data-site-header],body>main,body>[data-site-footer]{position:relative;z-index:1}
+main{background:color-mix(in srgb,var(--paper) 86%,transparent)}
+.section.tint,.hub-intro,.page-head,.meeting-head{background-color:color-mix(in srgb,var(--surface) 90%,transparent)}
+.portal-shell{background:color-mix(in srgb,var(--page-wash) 88%,transparent)}
+.portal-hero{background:linear-gradient(135deg,color-mix(in srgb,var(--surface-strong) 88%,transparent),color-mix(in srgb,var(--notice) 88%,transparent))}
+.habitat-hub{background:linear-gradient(100deg,color-mix(in srgb,var(--page-wash) 88%,transparent) 0%,color-mix(in srgb,var(--page-wash) 82%,transparent) 56%,color-mix(in srgb,var(--surface-strong) 68%,transparent) 100%)}
+.habitat-hub::after{display:none}
 .habitat-hub>.container{position:relative}.habitat-hub .next-meeting{background:color-mix(in srgb,var(--card) 94%,transparent);backdrop-filter:blur(10px);box-shadow:0 10px 28px rgba(23,49,38,.08)}
 .site-header .brand{min-width:max-content}.site-header .brand span{line-height:1.15}.site-footer .brand img{filter:drop-shadow(0 4px 10px rgba(0,0,0,.2))}
 .plain-panel,.card,.table-wrap,.homework-notebook,.auth-card{box-shadow:0 6px 20px rgba(23,49,38,.045)}
 .meeting-row{border-radius:10px;padding-inline:12px;transition:background-color .16s ease,transform .16s ease}.meeting-row:hover,.meeting-row:focus-visible{transform:translateX(2px);outline:none}
 .button,.google-button,.portal-tabs button,.portal-tabs a,.mini-action{transition:transform .16s ease,box-shadow .16s ease,background-color .16s ease,border-color .16s ease}
 input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid color-mix(in srgb,var(--glow) 58%,transparent);outline-offset:2px}
-@media(max-width:900px){.habitat-hub::after{right:4%;top:12%;translate:0 0;width:300px;opacity:.08}}
-@media(max-width:560px){.habitat-hub::after{width:240px;right:-70px;top:20px}.brand img{width:44px;height:44px}.brand span small{font-size:.64rem}.resource-links a{border:1px solid var(--border)}}
+@media(max-width:900px){body::before{background-size:min(680px,92vw);background-position:center 15vh;opacity:.14}}
+@media(max-width:560px){body::before{background-size:min(520px,112vw);background-position:center 13vh;opacity:.12}.brand img{width:44px;height:44px}.brand span small{font-size:.64rem}.resource-links a{border:1px solid var(--border)}}
