@@ -571,7 +571,11 @@ html[data-theme="dark"] .live-alert{background:#193522;border-color:#487655}html
 html{background:var(--paper)}
 body{position:relative;isolation:isolate;background:transparent}
 body::before{content:"";position:fixed;z-index:0;inset:72px 0 0;pointer-events:none;background:url('../img/habitat-builders-habitat.png') center 16vh/min(860px,72vw) auto no-repeat;opacity:.17;filter:saturate(.9)}
-body>[data-site-header],body>main,body>[data-site-footer]{position:relative;z-index:1}
+/* Keep header menus above every page panel and the decorative habitat artwork. */
+body>[data-site-header]{position:relative;z-index:70;isolation:isolate}
+body>main,body>[data-site-footer]{position:relative;z-index:1}
+.account-menu-wrap{z-index:80}
+.account-dropdown{z-index:90}
 main{background:color-mix(in srgb,var(--paper) 86%,transparent)}
 .section.tint,.hub-intro,.page-head,.meeting-head{background-color:color-mix(in srgb,var(--surface) 90%,transparent)}
 .portal-shell{background:color-mix(in srgb,var(--page-wash) 88%,transparent)}
