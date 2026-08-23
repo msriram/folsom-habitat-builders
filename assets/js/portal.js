@@ -269,19 +269,19 @@ function sessionNumber(sessionKey) {
   return Number(String(sessionKey || '').match(/(\d+)$/)?.[1] || 0);
 }
 
-function renderProgress(items = null) {
+function renderProgress(items = null, robotSetup = null, missionRuns = [], milestones = []) {
   const cards = $("#progress-cards");
   const parent = $("#parent-progress");
   const heading = cards?.previousElementSibling;
   if (heading) {
     const title = heading.querySelector('h3');
     const detail = heading.querySelector('.muted');
-    if (title) title.textContent = 'Session progress';
-    if (detail) detail.textContent = 'Updated from the completed items in each session plan.';
+    if (title) title.textContent = 'Team progress';
+    if (detail) detail.textContent = 'A clear view of the season: sessions, models, robot work, attachments, and the Innovation Project.';
     heading.querySelector('label')?.remove();
   }
   if (!items) {
-    cards.innerHTML = '<article class="card"><strong>Session progress</strong><p class="muted">Sign in to see the shared session checklist.</p></article>';
+    cards.innerHTML = '<article class="card"><strong>Team progress</strong><p class="muted">Sign in to see the shared season progress.</p></article>';
     if (parent) parent.innerHTML = '<p class="muted">Sign in to see your linked student’s session progress.</p>';
     return;
   }
@@ -291,24 +291,45 @@ function renderProgress(items = null) {
     sessions.set(key, [...(sessions.get(key) || []), item]);
   });
   const groups = [...sessions.entries()].sort(([left], [right]) => sessionNumber(left) - sessionNumber(right));
-  const totalItems = items.length;
-  const completedItems = items.filter(item => item.completed).length;
   const completedSessions = groups.filter(([, rows]) => rows.length && rows.every(row => row.completed)).length;
   const next = groups.find(([, rows]) => rows.some(row => !row.completed));
-  const checklistPercent = totalItems ? Math.round(completedItems / totalItems * 100) : 0;
   const sessionPercent = groups.length ? Math.round(completedSessions / groups.length * 100) : 0;
   const nextNumber = next ? sessionNumber(next[0]) : null;
-  cards.innerHTML = `<article class="card"><strong>Session checklist</strong><div class="progress-track"><div class="progress-bar" style="width:${checklistPercent}%"></div></div><span>${completedItems} of ${totalItems} items complete</span></article><article class="card"><strong>Completed sessions</strong><div class="progress-track"><div class="progress-bar" style="width:${sessionPercent}%"></div></div><span>${completedSessions} of ${groups.length} sessions complete</span></article><article class="card"><strong>Next checklist</strong><p>${nextNumber ? `Session ${nextNumber} has ${next[1].filter(item => !item.completed).length} item${next[1].filter(item => !item.completed).length === 1 ? '' : 's'} left.` : 'All scheduled checklists are complete.'}</p><a class="button secondary" href="season.html">Open session plan</a></article>`;
-  if (parent) parent.innerHTML = `<div class="progress-row"><strong>Session checklist</strong><div class="progress-track"><div class="progress-bar" style="width:${checklistPercent}%"></div></div><span>${completedItems} of ${totalItems}</span></div><div class="progress-row"><strong>Completed sessions</strong><div class="progress-track"><div class="progress-bar" style="width:${sessionPercent}%"></div></div><span>${completedSessions} of ${groups.length}</span></div>`;
+  const modelRows = items.filter(item => /model/i.test(item.label));
+  const completedModels = modelRows.filter(item => item.completed).length;
+  const modelPercent = modelRows.length ? Math.round(completedModels / modelRows.length * 100) : 0;
+  const setupFields = ['table_length_mm','table_width_mm','robot_length_mm','robot_width_mm','wheel_diameter_mm','distance_per_motor_rotation_mm','turn_90_motor_rotations'];
+  const baseRobotComplete = setupFields.filter(field => robotSetup?.[field] !== null && robotSetup?.[field] !== undefined && robotSetup?.[field] !== '').length;
+  const baseRobotPercent = Math.round(baseRobotComplete / setupFields.length * 100);
+  const attachmentNames = new Set((missionRuns || []).map(row => String(row.attachment_name || '').trim()).filter(Boolean));
+  const attachmentTarget = 5;
+  const attachmentPercent = Math.min(100, Math.round(attachmentNames.size / attachmentTarget * 100));
+  const projectComplete = milestones.filter(row => row.completed).length;
+  const projectPercent = milestones.length ? Math.round(projectComplete / milestones.length * 100) : 0;
+  const progressCard = (title, value, detail, href) => `<article class="card"><strong>${title}</strong><div class="progress-track"><div class="progress-bar" style="width:${value}%"></div></div><span>${detail}</span>${href ? `<a class="button secondary" href="${href}">Open →</a>` : ''}</article>`;
+  cards.innerHTML = [
+    progressCard('Sessions', sessionPercent, `${completedSessions} of ${groups.length} complete`, 'season.html'),
+    progressCard('Mission models', modelPercent, modelRows.length ? `${completedModels} of ${modelRows.length} complete` : 'Not planned yet', 'season.html'),
+    progressCard('Base robot', baseRobotPercent, `${baseRobotComplete} of ${setupFields.length} setup checks complete`, 'portal.html?tab=robot'),
+    progressCard('Attachments', attachmentPercent, `${attachmentNames.size} of ${attachmentTarget} planned attachments`, 'portal.html?tab=robot'),
+    progressCard('Innovation Project', projectPercent, milestones.length ? `${projectPercent}% complete · ${projectComplete} of ${milestones.length} milestones` : 'Roadmap is loading', 'project.html'),
+    `<article class="card"><strong>Next session</strong><p>${nextNumber ? `Session ${nextNumber} has ${next[1].filter(item => !item.completed).length} checklist item${next[1].filter(item => !item.completed).length === 1 ? '' : 's'} left.` : 'All scheduled sessions are complete.'}</p><a class="button secondary" href="season.html">Open session plan</a></article>`
+  ].join('');
+  if (parent) parent.innerHTML = `<div class="progress-row"><strong>Sessions</strong><div class="progress-track"><div class="progress-bar" style="width:${sessionPercent}%"></div></div><span>${completedSessions} of ${groups.length}</span></div><div class="progress-row"><strong>Innovation Project</strong><div class="progress-track"><div class="progress-bar" style="width:${projectPercent}%"></div></div><span>${projectPercent}%</span></div>`;
 }
 
 async function setupProgress() {
   renderProgress();
   const { db, session, profile } = await getLiveContext();
   if (!db || !session || profile?.approval_status !== "approved") return;
-  const { data: items } = await db.from("schedule_items").select("session_key,week_number,completed");
-  if (!items) return;
-  renderProgress(items);
+  const [itemsResult, setupResult, runsResult, milestonesResult] = await Promise.all([
+    db.from("schedule_items").select("session_key,week_number,label,completed"),
+    db.from("robot_setup").select("table_length_mm,table_width_mm,robot_length_mm,robot_width_mm,wheel_diameter_mm,distance_per_motor_rotation_mm,turn_90_motor_rotations").maybeSingle(),
+    db.from("robot_mission_runs").select("attachment_name"),
+    db.from("innovation_project_milestones").select("completed")
+  ]);
+  if (!itemsResult.data) return;
+  renderProgress(itemsResult.data, setupResult.data, runsResult.data || [], milestonesResult.data || []);
 }
 
 function syntaxHighlight(source) {

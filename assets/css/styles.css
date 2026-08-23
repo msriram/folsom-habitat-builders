@@ -574,6 +574,7 @@ body::before{content:"";position:fixed;z-index:0;inset:72px 0 0;pointer-events:n
 /* Keep header menus above every page panel and the decorative habitat artwork. */
 body>[data-site-header]{position:relative;z-index:70;isolation:isolate}
 body>main,body>[data-site-footer]{position:relative;z-index:1}
+.project-progress-score{display:grid;grid-template-columns:auto minmax(150px,230px);gap:10px;align-items:center}.project-progress-score strong{font-size:1.35rem;color:var(--forest)}.innovation-stage{margin-top:24px}.innovation-stage h3{margin:0 0 9px;font-size:.9rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.innovation-milestone-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.innovation-milestone{display:grid;grid-template-columns:auto 1fr;gap:11px;align-items:start;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--ink)}.innovation-milestone input{width:18px;height:18px;margin:2px 0 0;accent-color:var(--forest)}.innovation-milestone strong,.innovation-milestone small{display:block}.innovation-milestone small{margin-top:3px;color:var(--muted);line-height:1.35}.innovation-milestone.is-complete{background:color-mix(in srgb,var(--notice) 78%,var(--surface));border-color:color-mix(in srgb,var(--leaf) 58%,var(--border))}.innovation-milestone.is-complete strong{text-decoration:line-through}.innovation-milestone:has(input:not(:disabled)){cursor:pointer}.innovation-milestone:has(input:not(:disabled)):hover{border-color:var(--leaf)}
 .account-menu-wrap{z-index:80}
 .account-dropdown{z-index:90}
 main{background:color-mix(in srgb,var(--paper) 86%,transparent)}
@@ -590,3 +591,4 @@ main{background:color-mix(in srgb,var(--paper) 86%,transparent)}
 input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid color-mix(in srgb,var(--glow) 58%,transparent);outline-offset:2px}
 @media(max-width:900px){body::before{background-size:min(680px,92vw);background-position:center 15vh;opacity:.14}}
 @media(max-width:560px){body::before{background-size:min(520px,112vw);background-position:center 13vh;opacity:.12}.brand img{width:44px;height:44px}.brand span small{font-size:.64rem}.resource-links a{border:1px solid var(--border)}}
+@media(max-width:700px){.project-progress-score{grid-template-columns:1fr}.innovation-milestone-list{grid-template-columns:1fr}}
