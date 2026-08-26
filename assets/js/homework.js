@@ -121,11 +121,12 @@ async function configureHomeworkView(profile, db) {
 
 async function renderCoachHomeworkControls(db, profile) {
   const canSend = profile?.role === 'coach' && (profile.is_admin || profile.email?.toLowerCase() === 'sriram87@gmail.com');
-  const { data: assignments, error } = await db.from('assignments').select('week_number,published').order('week_number');
+  const { data: assignments, error } = await db.from('assignments').select('id,week_number,published,reminder_highlight').order('week_number');
   if (error) return;
-  const statusByWeek = new Map((assignments || []).map(assignment => [Number(assignment.week_number), Boolean(assignment.published)]));
+  const assignmentByWeek = new Map((assignments || []).map(assignment => [Number(assignment.week_number), assignment]));
   document.querySelectorAll('details[data-homework-week]').forEach(detail => {
     const week = Number(detail.dataset.homeworkWeek);
+    const assignment = assignmentByWeek.get(week);
     const summary = detail.querySelector(':scope > summary');
     const heading = summary?.querySelector(':scope > div');
     if (!summary || !heading || !Number.isFinite(week)) return;
@@ -136,8 +137,8 @@ async function renderCoachHomeworkControls(db, profile) {
       status.className = 'homework-publication-status';
       heading.querySelector('span')?.after(status);
     }
-    status.textContent = statusByWeek.get(week) ? 'Published' : 'Unpublished';
-    status.classList.toggle('is-published', statusByWeek.get(week) === true);
+    status.textContent = assignment?.published ? 'Published' : 'Unpublished';
+    status.classList.toggle('is-published', assignment?.published === true);
     if (!canSend) {
       summary.querySelector('em')?.remove();
       return;
@@ -150,8 +151,8 @@ async function renderCoachHomeworkControls(db, profile) {
       controls.className = 'homework-mail-controls';
       summary.append(controls);
     }
-    const isPublished = statusByWeek.get(week) === true;
-    controls.innerHTML = `<a href="#" data-preview-homework="${week}">Preview Homework</a><a href="#" data-post-homework="${week}">${isPublished ? 'Send reminder' : 'Post Homework'}</a><span class="form-message" data-homework-mail-message></span>`;
+    const isPublished = assignment?.published === true;
+    controls.innerHTML = `<a href="#" data-edit-homework-highlight="${week}">${assignment?.reminder_highlight ? 'Weekly highlight ✓' : 'Set weekly highlight'}</a><a href="#" data-preview-homework="${week}">Preview Homework</a><a href="#" data-post-homework="${week}">${isPublished ? 'Send reminder' : 'Post Homework'}</a><span class="form-message" data-homework-mail-message></span>`;
     controls.querySelector('[data-preview-homework]')?.addEventListener('click', event => {
       event.preventDefault();
       sendCoachHomeworkEmail(db, week, false, controls, status);
@@ -159,6 +160,41 @@ async function renderCoachHomeworkControls(db, profile) {
     controls.querySelector('[data-post-homework]')?.addEventListener('click', event => {
       event.preventDefault();
       sendCoachHomeworkEmail(db, week, true, controls, status, isPublished);
+    });
+    let editor = detail.querySelector('[data-homework-highlight-editor]');
+    if (!editor) {
+      editor = document.createElement('section');
+      editor.dataset.homeworkHighlightEditor = String(week);
+      editor.className = 'homework-highlight-editor';
+      editor.hidden = true;
+      summary.after(editor);
+    }
+    editor.innerHTML = `<form data-homework-highlight-form><div class="section-title"><div><span class="eyebrow">Weekly highlight</span><h3>Email focus for Week ${week}</h3></div><button class="mini-action" type="button" data-close-homework-highlight>Close</button></div><p class="muted">This short focus appears above the normal homework notice. Add one item per line; leave it blank to remove the highlight.</p><label>What should students focus on?<textarea rows="7" maxlength="4000" data-homework-highlight-text>${esc(assignment?.reminder_highlight || '')}</textarea></label><div class="hero-actions"><button class="button primary" type="submit">Save highlight</button><span class="form-message" data-homework-highlight-message></span></div></form>`;
+    controls.querySelector('[data-edit-homework-highlight]')?.addEventListener('click', event => {
+      event.preventDefault();
+      detail.open = true;
+      editor.hidden = false;
+      editor.querySelector('[data-homework-highlight-text]')?.focus();
+    });
+    editor.querySelector('[data-close-homework-highlight]')?.addEventListener('click', () => { editor.hidden = true; });
+    editor.querySelector('[data-homework-highlight-form]')?.addEventListener('submit', async event => {
+      event.preventDefault();
+      const textarea = editor.querySelector('[data-homework-highlight-text]');
+      const message = editor.querySelector('[data-homework-highlight-message]');
+      const button = editor.querySelector('button[type="submit"]');
+      if (!textarea || !button) return;
+      button.disabled = true;
+      if (message) message.textContent = '';
+      const { error: saveError } = await db.rpc('set_assignment_reminder_highlight', { target_week: week, new_highlight: textarea.value });
+      button.disabled = false;
+      if (saveError) {
+        window.FIREFLIES_DIAGNOSTICS?.report('Save homework highlight', saveError);
+        if (message) message.textContent = 'The weekly highlight could not be saved.';
+        return;
+      }
+      if (assignment) assignment.reminder_highlight = textarea.value.trim() || null;
+      controls.querySelector('[data-edit-homework-highlight]').textContent = assignment?.reminder_highlight ? 'Weekly highlight ✓' : 'Set weekly highlight';
+      if (message) message.textContent = 'Weekly highlight saved.';
     });
   });
 }
