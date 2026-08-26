@@ -78,18 +78,27 @@ async function load(assignment, selectedStudentId = null) {
   currentAssignmentId = assignment.id;
   publishPanel.hidden = false;
   publishMessage.textContent = '';
-  const [{ data: users, error: userError }, { data: submissions, error }, { data: questions, error: questionError }] = await Promise.all([
+  const [{ data: users, error: userError }, { data: submissions, error }, { data: questions, error: questionError }, { data: programmingTask, error: programmingTaskError }] = await Promise.all([
     db.rpc('admin_users'),
     db.from('submissions').select('id,student_id,status,submitted_at,score,coach_feedback,submission_answers(question_key,display_order,answer_type,answer_text,answer_json),submission_files(id,file_name,storage_path,mime_type,size_bytes)').eq('assignment_id', assignment.id),
-    db.from('assignment_questions').select('question_key,prompt,display_order').eq('assignment_id', assignment.id).order('display_order')
+    db.from('assignment_questions').select('question_key,prompt,display_order').eq('assignment_id', assignment.id).order('display_order'),
+    db.from('robot_homework_tasks').select('id,title,description,cs2n_url').eq('week_number', assignment.week_number).maybeSingle()
   ]);
-  if (error || userError || questionError) {
+  if (error || userError || questionError || programmingTaskError) {
     showError('Homework review is unavailable right now.');
+    return;
+  }
+  const { data: programmingSubmissions, error: programmingError } = programmingTask
+    ? await db.from('robot_homework_submissions').select('id,student_id,reflection,screenshot_path,screenshot_file_name,score,coach_feedback,submitted_at').eq('task_id', programmingTask.id)
+    : { data: [], error: null };
+  if (programmingError) {
+    showError('Programming submissions are unavailable right now.');
     return;
   }
   const questionMap = new Map((questions || []).map(question => [question.question_key, question.prompt]));
   const students = (users || []).filter(u => u.role === 'student');
   const byStudent = new Map((submissions || []).map(s => [s.student_id, s]));
+  const programmingByStudent = new Map((programmingSubmissions || []).map(s => [s.student_id, s]));
   const completed = students.filter(s => byStudent.get(s.id)?.status === 'complete').length;
   publishStatus.textContent = assignment.reviews_published
     ? `Reviews available ${assignment.reviews_published_at ? `since ${new Date(assignment.reviews_published_at).toLocaleDateString()}` : ''}`
@@ -101,35 +110,67 @@ async function load(assignment, selectedStudentId = null) {
   tabs.innerHTML = students.map(student => {
     const submission = byStudent.get(student.id);
     const status = submissionStatusLabel(submission?.status);
-    return `<button data-student="${student.id}"><strong>${esc(student.display_name)}</strong><span>${status}</span></button>`;
+    const programming = programmingByStudent.get(student.id);
+    return `<button data-student="${student.id}"><strong>${esc(student.display_name)}</strong><span>${status}${programming ? ' · CS2N submitted' : ''}</span></button>`;
   }).join('') || '<p>No approved students yet.</p>';
   tabs.onclick = event => {
     const button = event.target.closest('[data-student]');
     if (!button) return;
     tabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
     button.classList.add('active');
-    show(assignment, students.find(s => s.id === button.dataset.student), byStudent.get(button.dataset.student), questionMap);
+    show(assignment, students.find(s => s.id === button.dataset.student), byStudent.get(button.dataset.student), questionMap, programmingTask, programmingByStudent.get(button.dataset.student));
   };
   const first = selectedStudentId || students[0]?.id;
   if (first) {
     const button = tabs.querySelector(`[data-student="${first}"]`);
     button?.classList.add('active');
-    show(assignment, students.find(s => s.id === first), byStudent.get(first), questionMap);
+    show(assignment, students.find(s => s.id === first), byStudent.get(first), questionMap, programmingTask, programmingByStudent.get(first));
   }
 }
 
-async function show(assignment, student, submission, questionMap = new Map()) {
+async function show(assignment, student, submission, questionMap = new Map(), programmingTask = null, programmingSubmission = null) {
   if (!student) return;
-  if (!submission) {
+  if (!submission && !programmingSubmission) {
     detail.innerHTML = `<div class="section-title"><div><h2>${esc(student.display_name)}</h2><p class="status-chip">Not submitted</p></div></div><p>There is no student submission to review yet.</p>`;
     return;
   }
-  const files = await Promise.all(distinctSubmissionFiles(submission.submission_files).map(async file => {
+  const files = await Promise.all(distinctSubmissionFiles(submission?.submission_files || []).map(async file => {
     const { data } = await db.storage.from('homework-files').createSignedUrl(file.storage_path, 900);
     return { ...file, url: data?.signedUrl };
   }));
-  detail.innerHTML = `<div class="section-title"><div><h2>${esc(student.display_name)}</h2><p>${submission.submitted_at ? new Date(submission.submitted_at).toLocaleString() : 'Coach record'}</p></div><span class="status-chip">${submissionStatusLabel(submission.status)}</span></div>${(submission.submission_answers || []).sort((a, b) => a.display_order - b.display_order).map(answer => `<article class="answer-card"><span class="eyebrow">Question</span><h3>${esc(questionMap.get(answer.question_key) || label(answer.question_key))}</h3><div class="markdown-content">${markdown(answer.answer_text || JSON.stringify(answer.answer_json || ''))}</div></article>`).join('')}<div class="submission-gallery">${files.map(file => file.mime_type.startsWith('image/') ? `<a href="${file.url}" target="_blank"><img src="${file.url}" alt="${esc(file.file_name)}"><span>${esc(file.file_name)}</span></a>` : `<a class="file-chip" href="${file.url}" target="_blank">${esc(file.file_name)}</a>`).join('')}</div>${feedbackEditor(assignment, student, submission.coach_feedback || '', submission)}`;
-  bindFeedback(assignment, student, submission);
+  const { data: programmingImage } = programmingSubmission?.screenshot_path
+    ? await db.storage.from('robot-homework').createSignedUrl(programmingSubmission.screenshot_path, 900)
+    : { data: null };
+  const regularReview = submission
+    ? `${(submission.submission_answers || []).sort((a, b) => a.display_order - b.display_order).map(answer => `<article class="answer-card"><span class="eyebrow">Question</span><h3>${esc(questionMap.get(answer.question_key) || label(answer.question_key))}</h3><div class="markdown-content">${markdown(answer.answer_text || JSON.stringify(answer.answer_json || ''))}</div></article>`).join('')}<div class="submission-gallery">${files.map(file => file.mime_type.startsWith('image/') ? `<a href="${file.url}" target="_blank"><img src="${file.url}" alt="${esc(file.file_name)}"><span>${esc(file.file_name)}</span></a>` : `<a class="file-chip" href="${file.url}" target="_blank">${esc(file.file_name)}</a>`).join('')}</div>${feedbackEditor(assignment, student, submission.coach_feedback || '', submission)}`
+    : '<p class="muted">No written homework submission yet.</p>';
+  detail.innerHTML = `<div class="section-title"><div><h2>${esc(student.display_name)}</h2><p>${submission?.submitted_at ? new Date(submission.submitted_at).toLocaleString() : programmingSubmission?.submitted_at ? new Date(programmingSubmission.submitted_at).toLocaleString() : 'Coach record'}</p></div><span class="status-chip">${submissionStatusLabel(submission?.status)}</span></div>${regularReview}${programmingReview(programmingTask, programmingSubmission, programmingImage?.signedUrl)}`;
+  if (submission) bindFeedback(assignment, student, submission);
+  if (programmingSubmission) bindProgrammingFeedback(programmingSubmission);
+}
+
+function programmingReview(task, submission, screenshotUrl) {
+  if (!task) return '';
+  if (!submission) return `<section class="cs2n-coach-mark programming-review"><span class="eyebrow">Programming homework</span><h3>CS2N · ${esc(task.title)}</h3><p>No CS2N programming work submitted for this week.</p></section>`;
+  const screenshot = screenshotUrl ? `<a class="cs2n-screenshot" href="${esc(screenshotUrl)}" target="_blank" rel="noopener"><img src="${esc(screenshotUrl)}" alt="Submitted CS2N screenshot"><span>${esc(submission.screenshot_file_name || 'Open submitted screenshot')}</span></a>` : '<p class="muted">No programming screenshot was attached.</p>';
+  return `<section class="cs2n-coach-mark programming-review"><span class="eyebrow">Programming homework</span><h3>CS2N · ${esc(task.title)}</h3><p>${esc(task.description)}</p><article class="answer-card"><span class="eyebrow">Student response</span><div class="markdown-content">${markdown(submission.reflection || 'No response yet.')}</div></article>${screenshot}<label>Mark / 10<input type="number" min="0" max="10" step="0.5" value="${submission.score ?? ''}" data-programming-score="${submission.id}"></label><label>Coach note<textarea rows="4" data-programming-feedback="${submission.id}">${esc(submission.coach_feedback || '')}</textarea></label><div class="hero-actions"><button class="button secondary" type="button" data-save-programming-feedback="${submission.id}">Save programming review</button><span class="form-message" data-programming-message></span></div></section>`;
+}
+
+function bindProgrammingFeedback(submission) {
+  detail.querySelector('[data-save-programming-feedback]')?.addEventListener('click', async event => {
+    const score = detail.querySelector(`[data-programming-score="${submission.id}"]`)?.value;
+    const coachFeedback = detail.querySelector(`[data-programming-feedback="${submission.id}"]`)?.value.trim() || '';
+    const message = detail.querySelector('[data-programming-message]');
+    event.currentTarget.disabled = true;
+    const { error } = await db.from('robot_homework_submissions').update({ score: score === '' ? null : Number(score), coach_feedback: coachFeedback }).eq('id', submission.id);
+    event.currentTarget.disabled = false;
+    if (error) {
+      window.FIREFLIES_DIAGNOSTICS?.report('Programming homework feedback', error);
+      if (message) message.textContent = 'Programming review could not be saved.';
+      return;
+    }
+    if (message) message.textContent = 'Programming review saved.';
+  });
 }
 
 function feedbackEditor(assignment, student, feedback, submission) {
