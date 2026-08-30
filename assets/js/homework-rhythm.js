@@ -9,7 +9,7 @@ const fallbackAssignments = {
   1: { title: 'Field and robot baseline', due: 'Wednesday, August 12', priority: 'Use the notebook to prepare for Session 1: establish the field baseline, build a first mechanism, and test a simple movement.' },
   2: { title: 'Team name decision: Habitat Builders', due: 'Wednesday, August 19', priority: 'Review the original proposals, the Habitat Builders decision, and the biodiversity questions the name can help us investigate.' },
   3: { title: 'Model build and Habitat Builders connection', due: 'Wednesday, August 26', priority: 'Reflect on a Session 2 model, connect an individual interest to Habitat Builders, and complete Discovery Activity 1.' },
-  4: { title: 'Dock strategy and keystone species', due: 'Wednesday, September 2', priority: 'Use Session 4 to connect a mission strategy to a biodiversity idea and record the team decision.' },
+  4: { title: 'Model build and attachment plan', due: 'Wednesday, September 2', priority: 'Make a clear attachment sketch, plan a route from home base, and identify the measurements the team needs before Session 4.' },
   5: { title: 'Research and existing solutions', due: 'Wednesday, September 9', priority: 'Bring one reliable source, one existing solution, and one expert or user question to Session 5.' },
   6: { title: 'Solution plan and pseudocode', due: 'Wednesday, September 16', priority: 'Turn the team idea into a plan and a small robot program you can test in Session 6.' },
   7: { title: 'Prototype and test', due: 'Wednesday, September 23', priority: 'Document a first prototype, what happened in Session 7 testing, and the next change.' },
@@ -37,7 +37,7 @@ const notebookHomework = {
 // timed scoring runs; the project track stays lighter but keeps the team name
 // and biodiversity cause visible throughout.
 Object.assign(fallbackAssignments, {
-  4: { title: 'Finish models and plan the base robot', due: 'Wednesday, September 2', priority: 'Finish the needed models, identify base-robot needs, and keep Habitat Builders and the biodiversity cause in view.' },
+  4: { title: 'Model build and attachment plan', due: 'Wednesday, September 2', priority: 'Make a clear attachment sketch, plan a route from home base, and identify the measurements the team needs before Session 4.' },
   5: { title: 'Base robot driving and first attachment', due: 'Wednesday, September 9', priority: 'Use driving observations to improve the base robot and test one simple attachment idea.' },
   6: { title: 'First reliable mission and project research plan', due: 'Wednesday, September 16', priority: 'Document one repeatable mission approach and choose a useful next project research step.' },
   7: { title: 'Second mission and team communication', due: 'Wednesday, September 23', priority: 'Add a second mission or attachment, record what changed, and practice clear teamwork.' },
@@ -68,23 +68,20 @@ Object.assign(notebookHomework, {
 notebookHomework[4] = {
   session: 4,
   reflects: 3,
-  title: 'Finish models and plan the base robot',
+  title: 'Model build and attachment plan',
   link: 'meeting-04.html',
-  core: { label: 'Innovation · Activity 1', href: 'downloads/bioglow/core-values-innovation-1.pdf', task: 'Choose a small object and a marked area. List three different ways a robot or person could move the object into the area. Which idea would you test first, and why?' },
   questions: [
-    ['remaining_models', 'Which mission model did the team finish, improve, or still need to finish after Session 3? What does that model do?'],
-    ['field_measurements', 'What two field measurements or landmarks did the team record in Session 3? Explain how one measurement could help make a robot run more repeatable.'],
-    ['base_robot_plan', 'What should the base robot do well before we add complicated attachments? Name two design or driving priorities.'],
-    ['first_attachment', 'Choose one model or mission. What simple attachment action might help: push, pull, lift, guide, or carry? Explain your first idea.'],
-    ['team_name_cause_check', 'Our team name is Habitat Builders. How can this week’s robot work or project discussion connect to the biodiversity interest that matters most to you?'],
-    ['core_innovation_1', 'Choose a small object and a marked area. List three different ways a robot or person could move the object into the area. Which idea would you test first, and why?']
+    ['attachment_plan', 'Choose one model your group built or worked on in Session 3. Name the model and its job. Then design one attachment for that model: where will it touch, will it push, pull, lift, guide, or carry, and in which direction or angle should it move?'],
+    ['wireframe_route', 'Open the wireframe below. Start the robot in one home base. Draw the model, your robot, its planned path, and arrows that show the attachment movement. In your answer, name the home base and describe the route in order.'],
+    ['wireframe_measurements', 'On the same wireframe, label 2-4 measurements the team needs before testing: for example, home base to model, attachment reach, turning room, or a model contact point. List the measurements and explain how each one will help Session 4 testing.'],
+    ['spike_build_guide', 'Read the SPIKE Prime building instructions. In your own words, name two build choices that make a robot sturdy and repeatable. Which one should Habitat Builders use first, and why?']
   ]
 };
 
 window.FIREFLIES_HOMEWORK_RHYTHM = { assignments: fallbackAssignments, notebookHomework };
 
 const futureTaskTitles = {
-  remaining_models: 'Mission model reflection', field_measurements: 'Field measurements', base_robot_plan: 'Base robot priorities', first_attachment: 'First attachment idea', team_name_cause_check: 'Team name and cause check',
+  attachment_plan: 'Attachment plan', wireframe_route: 'Wireframe route', wireframe_measurements: 'Measurement plan', spike_build_guide: 'SPIKE robot build guide',
   drive_baseline: 'Driving baseline', attachment_test: 'Attachment test', run_observation: 'Test-run observation', project_cause_check: 'Project cause check',
   first_reliable_mission: 'Reliable mission goal', test_evidence: 'Testing evidence', next_attachment_change: 'Next attachment change', project_research_step: 'Project research step',
   second_mission_plan: 'Second mission plan', attachment_iteration: 'Attachment iteration', handoff_communication: 'Team handoff', project_solution_idea: 'Project solution idea',
@@ -231,10 +228,17 @@ function applyRhythm() {
     detail.dataset.homeworkWeek = weekNumber;
     const coreQuestion = assignment.questions.find(([key]) => key.startsWith('core_'));
     const contentQuestions = assignment.questions.filter(([key]) => !key.startsWith('core_'));
+    const attachmentPlanning = Number(weekNumber) === 4;
     const fields = assignment.questions.map(([key, prompt], index) => `<label><span>Task ${index + 1} · ${futureTaskTitle(key)}</span>${prompt}<textarea name="${key}" rows="4" minlength="20" maxlength="2000" required></textarea></label>`).join('');
     const taskCells = contentQuestions.map(([key, prompt], index) => `<section class="notebook-cell"><div class="cell-prompt"><span>Task ${index + 1}</span><h4>${futureTaskTitle(key)}</h4><p>${prompt}</p></div></section>`).join('');
     const coreActivity = assignment.core ? `<section class="notebook-cell"><div class="cell-prompt"><span>Task ${contentQuestions.length + 1} · Core Values</span><h4>${assignment.core.label}</h4><p>${coreQuestion?.[1] || assignment.core.task}</p></div><div class="notebook-downloads"><a href="${assignment.core.href}" target="_blank" rel="noopener"><strong>Open ${assignment.core.label} ↗</strong><small>Official Core Values activity book</small></a></div></section>` : '';
-    detail.innerHTML = `<summary class="notebook-title"><div><span>Week ${weekNumber} · Homework</span><h3>${assignment.title}</h3></div><strong>Due ${fallbackAssignments[weekNumber].due}</strong><em>Click to expand</em></summary><section class="notebook-cell"><div class="cell-prompt"><span>Homework plan</span><h4>Reflect on Session ${assignment.reflects || weekNumber - 1}; prepare for Session ${assignment.session}</h4><p>Each task below is part of this homework. The robot track builds toward reliable points and timing; the project track stays connected to the team name, biodiversity cause, and next useful step.</p></div></section>${taskCells}${coreActivity}<footer><span>Connected schedule</span><span><a href="${assignment.link}">Session ${assignment.session} plan</a> · <a href="resources.html">Official resources</a></span></footer><section class="submission-gate" data-homework-gate="${weekNumber}"><h3>Turn in Week ${weekNumber}</h3><p>Sign in with an approved student account to submit this homework.</p><a class="button primary" href="login.html">Sign in</a></section><form class="homework-submit notebook-response" data-homework-form data-week-number="${weekNumber}" hidden><div class="section-title"><div><span class="eyebrow">Your response</span><h3>Week ${weekNumber} submission</h3></div><span class="status-chip" data-submit-status>Not submitted</span></div>${fields}<div data-existing-files class="submission-files"></div><button class="button primary" type="submit">Submit Week ${weekNumber} homework</button><p data-homework-message aria-live="polite"></p></form>`;
+    const planCopy = attachmentPlanning
+      ? 'Session 3 did not include field measurements. This homework turns the model work into a clear drawing and a measurement plan so the team can measure the right things in Session 4.'
+      : 'Each task below is part of this homework. The robot track builds toward reliable points and timing; the project track stays connected to the team name, biodiversity cause, and next useful step.';
+    const wireframePreview = attachmentPlanning ? `<section class="notebook-cell"><div class="cell-prompt"><span>Print and mark</span><h4>Official BIOGLOW wireframe and path diagram</h4><p>Click the worksheet to open the printable PDF. Draw your model and robot on the mat, choose a home base, add the route and attachment arrows, then mark the measurements the team must take next session.</p></div><div class="worksheet-preview-grid"><a class="worksheet-preview-card" href="https://firstinspires.blob.core.windows.net/fll/challenge/2026-27/fll-challenge-bioglow-wireframe-grid.pdf" target="_blank" rel="noopener"><img src="assets/img/notebook/bioglow-wireframe-grid.png" alt="Official BIOGLOW wireframe and path diagram" loading="lazy"><strong>Open printable wireframe PDF ↗</strong><small>Print it or mark it digitally before Session 4</small></a></div></section>` : '';
+    const spikeBuildGuide = attachmentPlanning ? '<section class="notebook-cell"><div class="cell-prompt"><span>Build reference</span><h4>SPIKE Prime building instructions</h4><p>Use the guide to look closely at how a sturdy driving base is assembled: cable routing, motor placement, bracing, and attachment points.</p></div><div class="notebook-downloads"><a href="https://education.lego.com/en-us/product-resources/spike-prime/downloads/building-instructions/" target="_blank" rel="noopener"><strong>Open SPIKE Prime building instructions ↗</strong><small>LEGO Education build reference</small></a></div></section>' : '';
+    const uploadField = attachmentPlanning ? '<label>Share a photo of your attachment sketch or marked wireframe<input name="files" type="file" multiple accept="image/jpeg,image/png,image/webp,application/pdf"></label>' : '';
+    detail.innerHTML = `<summary class="notebook-title"><div><span>Week ${weekNumber} · Homework</span><h3>${assignment.title}</h3></div><strong>Due ${fallbackAssignments[weekNumber].due}</strong><em>Click to expand</em></summary><section class="notebook-cell"><div class="cell-prompt"><span>Homework plan</span><h4>Reflect on Session ${assignment.reflects || weekNumber - 1}; prepare for Session ${assignment.session}</h4><p>${planCopy}</p></div></section>${wireframePreview}${spikeBuildGuide}${taskCells}${coreActivity}<footer><span>Connected schedule</span><span><a href="${assignment.link}">Session ${assignment.session} plan</a> · <a href="resources.html">Official resources</a></span></footer><section class="submission-gate" data-homework-gate="${weekNumber}"><h3>Turn in Week ${weekNumber}</h3><p>Sign in with an approved student account to submit this homework.</p><a class="button primary" href="login.html">Sign in</a></section><form class="homework-submit notebook-response" data-homework-form data-week-number="${weekNumber}" hidden><div class="section-title"><div><span class="eyebrow">Your response</span><h3>Week ${weekNumber} submission</h3></div><span class="status-chip" data-submit-status>Not submitted</span></div>${fields}${uploadField}<div data-existing-files class="submission-files"></div><button class="button primary" type="submit">Submit Week ${weekNumber} homework</button><p data-homework-message aria-live="polite"></p></form>`;
     document.querySelector('[data-cs2n-robot-homework]')?.before(detail) || document.querySelector('[data-panel="homework"]')?.append(detail);
   });
   const assignments = { ...fallbackAssignments };
@@ -285,7 +289,7 @@ async function renderNotebookProgress() {
   section.dataset.notebookProgress = '';
   section.innerHTML = '<div class="section-title"><div><span class="eyebrow">Engineering Notebook</span><h3>Session progress</h3></div><span class="status-chip" data-notebook-progress-status>Loading…</span></div><p class="muted">The notebook sessions below are the same sessions in our schedule. A session becomes complete when its shared checklist is finished.</p><div class="notebook-session-list" data-notebook-session-list></div>';
   host.prepend(section);
-  const names = ['Field and Robot Baseline','Mission Science and Project Leads','First Reliable Missions','Dock Strategy and Keystone Species','Left Field and Seed Behavior','Problem Evidence and Expert Plan','Right Field Mechanisms','Project Decision and First Prototype','Match Strategy and Project Impact','Presentation Draft and Timed Match','Final Presentations and Robot Design','Full Event Rehearsal'];
+  const names = ['Field and Robot Baseline','Mission Science and Project Leads','First Reliable Missions','Attachment planning and wireframe measurements','Left Field and Seed Behavior','Problem Evidence and Expert Plan','Right Field Mechanisms','Project Decision and First Prototype','Match Strategy and Project Impact','Presentation Draft and Timed Match','Final Presentations and Robot Design','Full Event Rehearsal'];
   const list = section.querySelector('[data-notebook-session-list]');
   list.innerHTML = names.map((name,index) => `<a class="notebook-session-row" href="meeting-${String(index+1).padStart(2,'0')}.html"><strong>Session ${index+1}</strong><span>${name}</span><em data-notebook-session-status="${index+1}">Not recorded</em></a>`).join('');
   const cfg = window.FIREFLIES_PORTAL_CONFIG || {};
