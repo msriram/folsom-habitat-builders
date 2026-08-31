@@ -56,7 +56,7 @@ try {
     const approved = viewer?.approval_status === 'approved';
     const isCoach = approved && ['coach', 'student_coach'].includes(viewer.role);
     const { data: sessionRows, error } = approved
-      ? await db.from('schedule_sessions').select('session_key,session_date,coach_notes,published,published_at').order('session_date')
+      ? await db.from('schedule_sessions').select('session_key,session_date,coach_notes,published,published_at,completed,completed_at').order('session_date')
       : { data: [], error: null };
     const savedSessions = sessionRows || [];
     const sessionFor = key => savedSessions.find(item => item.session_key === key)
@@ -74,7 +74,7 @@ try {
       const notes = document.createElement('section');
       notes.className = 'section compact session-notes';
       if (isCoach) {
-        notes.innerHTML = `<div class="container"><div class="plain-panel"><div class="section-title"><div><span class="eyebrow">Coach workspace</span><h2>Session notes</h2></div><span class="status-chip" data-session-status>${current.published ? 'Published to team' : 'Coach only'}</span></div><textarea rows="8" maxlength="6000" data-session-notes placeholder="Record decisions, evidence, follow-ups, and what should be shared with the team.">${escapeSession(current.coach_notes)}</textarea><div class="hero-actions"><button class="button secondary" type="button" data-save-session-notes>Save notes</button><button class="button primary" type="button" data-toggle-session>${current.published ? 'Unpublish session' : 'Publish completed session'}</button><span class="form-message" data-session-message aria-live="polite"></span></div></div></div>`;
+        notes.innerHTML = `<div class="container"><div class="plain-panel"><div class="section-title"><div><span class="eyebrow">Coach workspace</span><h2>Session notes</h2></div><span class="status-chip" data-session-status>${current.completed ? 'Session complete' : current.published ? 'Published to team' : 'Coach only'}</span></div><textarea rows="8" maxlength="6000" data-session-notes placeholder="Record decisions, evidence, follow-ups, and what should be shared with the team.">${escapeSession(current.coach_notes)}</textarea><div class="hero-actions"><button class="button secondary" type="button" data-save-session-notes>Save notes</button><button class="button primary" type="button" data-toggle-session>${current.published ? 'Unpublish session' : 'Publish completed session'}</button><span class="form-message" data-session-message aria-live="polite"></span></div></div></div>`;
         document.querySelector('main').append(notes);
         notes.querySelector('[data-save-session-notes]').onclick = async () => {
           const message = notes.querySelector('[data-session-message]');
@@ -84,12 +84,25 @@ try {
         notes.querySelector('[data-toggle-session]').onclick = async () => {
           const next = !current.published;
           const message = notes.querySelector('[data-session-message]');
+          const button = notes.querySelector('[data-toggle-session]');
+          button.disabled = true;
+          if (next && !current.completed) {
+            button.textContent = 'Completing…';
+            const { data: completion, error: completeError } = await db.rpc('complete_schedule_session', { target_session: sessionKey });
+            if (completeError) { button.disabled = false; button.textContent = 'Publish completed session'; message.textContent = 'Could not complete this session.'; return; }
+            current.completed = true;
+            const carryMessage = completion?.carried_count ? ` ${completion.carried_count} unfinished item${completion.carried_count === 1 ? '' : 's'} moved to ${String(completion.next_session_key || 'the next session').replace('meeting-', 'Session ')}.` : '';
+            message.textContent = `Session completed.${carryMessage}`;
+          }
+          button.textContent = next ? 'Publishing…' : 'Unpublishing…';
           const { error: publishError } = await db.from('schedule_sessions').update({ published: next, published_by: next ? userSession.user.id : null, published_at: next ? new Date().toISOString() : null }).eq('session_key', sessionKey);
-          if (publishError) { message.textContent = 'Could not update publication status.'; return; }
+          if (publishError) { button.disabled = false; button.textContent = next ? 'Publish completed session' : 'Unpublish session'; message.textContent = 'Could not update publication status.'; return; }
           current.published = next;
-          notes.querySelector('[data-session-status]').textContent = next ? 'Published to team' : 'Coach only';
-          notes.querySelector('[data-toggle-session]').textContent = next ? 'Unpublish session' : 'Publish completed session';
-          message.textContent = next ? 'Session published for approved students and parents.' : 'Session returned to coach-only view.';
+          notes.querySelector('[data-session-status]').textContent = next ? 'Session complete' : 'Coach only';
+          button.disabled = false;
+          button.textContent = next ? 'Unpublish session' : 'Publish completed session';
+          message.textContent = next ? `${message.textContent ? `${message.textContent} ` : ''}Session published for approved students and parents.` : 'Session returned to coach-only view.';
+          if (next) document.dispatchEvent(new CustomEvent('fireflies:session-completed', { detail: { sessionKey } }));
         };
       } else if (current.coach_notes?.trim()) {
         notes.innerHTML = `<div class="container"><article class="plain-panel"><span class="eyebrow">Coach recap</span><h2>Session notes</h2><div class="session-note-copy">${escapeSession(current.coach_notes).replace(/\n/g, '<br>')}</div></article></div>`;

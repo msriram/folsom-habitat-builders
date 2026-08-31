@@ -12,15 +12,17 @@ if(list&&sessionKey&&!cfg.forceDemo&&cfg.supabaseUrl&&cfg.supabaseAnonKey){
     note.innerHTML='Sign in to see the shared completion checklist.';
     list.after(note);
   }else{
-    const [{data:profile},{data:items,error}]=await Promise.all([
+    const [{data:profile},{data:items,error},{data:sessionRecord}]=await Promise.all([
       db.from('profiles').select('role,approval_status').eq('id',session.user.id).maybeSingle(),
-      db.from('schedule_items').select('id,label,area,completed,sort_order').eq('session_key',sessionKey).order('sort_order')
+      db.from('schedule_items').select('id,label,area,completed,sort_order').eq('session_key',sessionKey).order('sort_order'),
+      db.from('schedule_sessions').select('completed').eq('session_key',sessionKey).maybeSingle()
     ]);
     const canEdit=profile?.approval_status==='approved'&&['coach','student_coach'].includes(profile.role);
     if(error){note.textContent='Shared checklist is temporarily unavailable.';list.after(note);}
     else if(items?.length){
-      list.innerHTML=items.map(item=>`<li><label class="schedule-check"><input type="checkbox" data-schedule-item="${item.id}" ${item.completed?'checked':''} ${canEdit?'':'disabled'}><span>${escapeHtml(item.label)}</span><small>${escapeHtml(item.area)}</small></label></li>`).join('');
-      note.textContent=canEdit?'Coach view: checking an item updates Team Room progress for everyone.':'Completion is updated by a coach.';
+      const locked=Boolean(sessionRecord?.completed);
+      list.innerHTML=items.map(item=>`<li><label class="schedule-check"><input type="checkbox" data-schedule-item="${item.id}" ${item.completed?'checked':''} ${canEdit&&!locked?'':'disabled'}><span>${escapeHtml(item.label)}</span><small>${escapeHtml(item.area)}</small></label></li>`).join('');
+      note.textContent=locked?'This session is complete. Any unfinished items were carried into the next session.':canEdit?'Coach view: checking an item updates Team Room progress for everyone.':'Completion is updated by a coach.';
       list.after(note);
       if(canEdit)list.addEventListener('change',async event=>{
         const input=event.target.closest('[data-schedule-item]');if(!input)return;
