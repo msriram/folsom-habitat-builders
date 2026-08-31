@@ -273,8 +273,7 @@
     main.append(section);
   }
 })();
-if (document.body.dataset.session) import('./session-materials.js?v=queued-flow1');
-if (document.body.dataset.session) import('./model-build-session-overrides.js?v=m8-m15-build1');
+if (document.body.dataset.session) import('./session-materials.js?v=queued-flow1').then(() => import('./model-build-session-overrides.js?v=m8-m15-build1'));
 if (window.FIREFLIES_PORTAL_CONFIG) import('./session-access.js?v=3');
 else { const portalConfig=document.createElement('script'); portalConfig.src='assets/js/portal-config.js?v=schedule2'; portalConfig.onload=()=>import('./session-access.js?v=3'); document.head.append(portalConfig); }
 import('./meeting-time.js?v=attachment-loop-focus1');
