@@ -83,7 +83,9 @@ Deno.serve(async req => {
   const sessionGroups = [...groups.entries()].sort(([a], [b]) => sessionNumber(a) - sessionNumber(b));
   const completedSessions = sessionGroups.filter(([, rows]) => rows.length && rows.every(row => row.completed));
   const lastCompleted = completedSessions.at(-1)?.[0] || "No complete session recorded yet";
-  const latestSession = (sessions || []).find(session => session.coach_notes?.trim()) || (sessions || [])[0];
+  // The digest must describe the latest published session, not silently fall
+  // back to an older one just because its recap field happens to be populated.
+  const latestSession = (sessions || [])[0];
   const rawNotes = latestSession?.coach_notes?.trim() || "The coach has not added a shareable session recap yet.";
   const { data: studentReviews } = latestSession
     ? await admin.from("session_student_reviews").select("work_completed,went_well,next_improvement").eq("team_id", profile.team_id).eq("session_key", latestSession.session_key)
