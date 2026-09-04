@@ -158,17 +158,21 @@ function programmingReview(task, submission, screenshotUrl) {
 
 function bindProgrammingFeedback(submission) {
   detail.querySelector('[data-save-programming-feedback]')?.addEventListener('click', async event => {
+    const button = event.currentTarget;
     const score = detail.querySelector(`[data-programming-score="${submission.id}"]`)?.value;
     const coachFeedback = detail.querySelector(`[data-programming-feedback="${submission.id}"]`)?.value.trim() || '';
     const message = detail.querySelector('[data-programming-message]');
-    event.currentTarget.disabled = true;
-    const { error } = await db.from('robot_homework_submissions').update({ score: score === '' ? null : Number(score), coach_feedback: coachFeedback }).eq('id', submission.id);
-    event.currentTarget.disabled = false;
+    button.disabled = true;
+    button.textContent = 'Saving…';
+    const { error } = await db.rpc('save_robot_homework_review', { target_submission: submission.id, new_score: score === '' ? null : Number(score), new_feedback: coachFeedback });
+    button.disabled = false;
     if (error) {
       window.FIREFLIES_DIAGNOSTICS?.report('Programming homework feedback', error);
-      if (message) message.textContent = 'Programming review could not be saved.';
+      if (message) message.textContent = error.message || 'Programming review could not be saved.';
+      button.textContent = 'Save programming review';
       return;
     }
+    button.textContent = 'Saved';
     if (message) message.textContent = 'Programming review saved.';
   });
 }

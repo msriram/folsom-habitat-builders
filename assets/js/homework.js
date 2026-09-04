@@ -302,6 +302,10 @@ async function openStudentForm(db, studentId, form, gate, week) {
   if (assignmentError) { if (gate) gate.innerHTML = '<p>Homework is unavailable right now.</p>'; return; }
   if (gate) gate.hidden = true;
   form.hidden = false;
+  // Homework is an evolving notebook, not a one-shot quiz. Students can turn
+  // in the work they have now and add or revise the remaining responses later.
+  form.noValidate = true;
+  form.querySelectorAll('[required]').forEach(field => { field.required = false; });
   let { data: submission } = await db.from('submissions').select('id,status,submitted_at,coach_feedback,submission_answers(question_key,answer_text),submission_files(id,file_name,storage_path,mime_type,size_bytes)').eq('assignment_id', assignment.id).eq('student_id', studentId).maybeSingle();
   if (submission) {
     const answers = Object.fromEntries((submission.submission_answers || []).map(answer => [answer.question_key, answer.answer_text]));
