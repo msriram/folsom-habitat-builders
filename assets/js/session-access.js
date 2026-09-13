@@ -2,9 +2,9 @@ const sessionConfig = window.FIREFLIES_PORTAL_CONFIG || {};
 const sessionKey = document.body.dataset.session;
 const plannedSessions = {
   'meeting-01': '2026-08-14', 'meeting-02': '2026-08-21', 'meeting-03': '2026-08-28',
-  'meeting-04': '2026-09-04', 'meeting-05': '2026-09-11', 'meeting-06': '2026-09-18',
-  'meeting-07': '2026-09-25', 'meeting-08': '2026-10-02', 'meeting-09': '2026-10-09',
-  'meeting-10': '2026-10-16', 'meeting-11': '2026-10-23', 'meeting-12': '2026-10-30'
+  'meeting-04': '2026-09-04', 'meeting-05': '2026-09-18', 'meeting-06': '2026-09-25',
+  'meeting-07': '2026-10-02', 'meeting-08': '2026-10-09', 'meeting-09': '2026-10-16',
+  'meeting-10': '2026-10-23', 'meeting-11': '2026-10-30', 'meeting-12': '2026-11-06'
 };
 
 const sessionNotesStyle = document.createElement('style');

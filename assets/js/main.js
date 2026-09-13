@@ -250,14 +250,14 @@
     2: ['Friday, August 21', 'Build, measure, and map the field', 'Continue the builds, measure the board, and map one useful distance to repeatable motor movement if possible.'],
     3: ['Friday, August 28', 'First reliable missions', 'Use the notebook mission pages to choose a small, repeatable test and record every result.'],
     4: ['Friday, September 4', 'Project Sparks and Challenge Story', 'Read the Sparks and Challenge Story pages, then connect one spark to a biodiversity problem.'],
-    5: ['Friday, September 11', 'Research and existing solutions', 'Continue research, use the Innovation Project planning page, and decide whether to improve an existing solution or create something new.'],
-    6: ['Friday, September 18', 'Solution plan and pseudocode', 'Plan the solution, use varied sources, write pseudocode, and test one robot mission program.'],
-    7: ['Friday, September 25', 'Prototype and test', 'Draw or build a prototype, document it, and test the robot and attachments.'],
-    8: ['Friday, October 2', 'Feedback and iteration', 'Share the project, collect feedback, revise the solution, and update a robot program or attachment.'],
-    9: ['Friday, October 9', 'Impact and mission strategy', 'Explain the project impact, choose a mission strategy, and record the next improvement.'],
-    10: ['Friday, October 16', 'Presentation draft', 'Outline and rehearse the project presentation with clear evidence and a Coopertition example.'],
-    11: ['Friday, October 23', 'Robot design explanation', 'Prepare the robot design explanation, attachment/code evidence, and a short team celebration.'],
-    12: ['Friday, October 30', 'Full event rehearsal', 'Review goals, practice judging and robot explanations, collect feedback, and prepare for event day.']
+    5: ['Friday, September 18', 'Finish the carried-over field builds', 'Complete the M8/M9 tree house, Mission 13–15 bases, and remaining Mission 13 and 15 model steps; verify placement and reset before attachment work resumes.'],
+    6: ['Friday, September 25', 'Build and test a mission attachment', 'Build the planned attachment or code change, check the field measurements, and compare five controlled runs.'],
+    7: ['Friday, October 2', 'Build and compare an attachment revision', 'Build one planned revision, compare it fairly with the earlier version, and decide whether to keep, revise, or defer it.'],
+    8: ['Friday, October 9', 'Build and test an integrated attachment run', 'Refine one attachment sequence, reset it consistently, and use ten recorded trials to decide whether it is ready.'],
+    9: ['Friday, October 16', 'Impact and mission strategy', 'Explain the project impact, choose a mission strategy, and record the next improvement.'],
+    10: ['Friday, October 23', 'Presentation draft', 'Outline and rehearse the project presentation with clear evidence and a Coopertition example.'],
+    11: ['Friday, October 30', 'Robot design explanation', 'Prepare the robot design explanation, attachment/code evidence, and a short team celebration.'],
+    12: ['Friday, November 6', 'Full event rehearsal', 'Review goals, practice judging and robot explanations, collect feedback, and prepare for event day.']
   };
   const sessionPlan = notebookSessions[sessionNumber];
   const main = document.querySelector('main#main');
@@ -276,7 +276,7 @@
 if (document.body.dataset.session) import('./session-materials.js?v=session4-recap1').then(() => import('./model-build-session-overrides.js?v=session4-recap1'));
 if (window.FIREFLIES_PORTAL_CONFIG) import('./session-access.js?v=3');
 else { const portalConfig=document.createElement('script'); portalConfig.src='assets/js/portal-config.js?v=schedule2'; portalConfig.onload=()=>import('./session-access.js?v=3'); document.head.append(portalConfig); }
-import('./meeting-time.js?v=attachment-loop-focus1');
+import('./meeting-time.js?v=session5-delay1');
 
 async function initializeAccountMenu(header) {
   const config = await loadPortalConfig();
