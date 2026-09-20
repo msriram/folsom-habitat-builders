@@ -84,7 +84,7 @@
         <div class="nav-wrap">
           <a class="brand" href="index.html">
             <img src="assets/img/habitat-builders-logo.png" alt="" width="52" height="52">
-            <span>Habitat Builders<small class="brand-subtitle"><span class="brand-subtitle-short">A Folsom FLL Team</span><span class="brand-subtitle-long">A Folsom Theodore Judah Elementary 4th Grade FLL Team</span></small></span>
+            <span>Rainforest Rangers<small class="brand-subtitle"><span class="brand-subtitle-short">Protect · Rebuild · Educate</span><span class="brand-subtitle-long">A Folsom Theodore Judah Elementary FLL Team · Protect · Rebuild · Educate</span></small></span>
           </a>
           <nav class="site-nav" id="site-nav" aria-label="Main navigation">
             ${navItems.map(([label, href]) => `<a href="${href}" ${page === label ? 'aria-current="page"' : ''}>${label}</a>`).join("")}
@@ -204,13 +204,13 @@
         <div class="container">
           <div class="footer-grid">
             <div>
-              <a class="brand" href="index.html"><img src="assets/img/habitat-builders-logo.png" alt="" width="52" height="52"><span>Habitat Builders<small>A Folsom FLL Team</small></span></a>
+              <a class="brand" href="index.html"><img src="assets/img/habitat-builders-logo.png" alt="" width="52" height="52"><span>Rainforest Rangers<small>Protect · Rebuild · Educate</small></span></a>
               <p>The team workspace for our 2026–27 robot work, biodiversity project, sessions, assignments, and family coordination.</p>
             </div>
             <div><strong>Focus areas</strong><p><a href="robot.html">Robot Challenge</a><br><a href="project.html">Innovation Project</a><br><a href="core-values.html">Core Values</a><br><a href="tournament.html">Tournament Format</a><br><a href="resources.html">Official Resources</a></p></div>
             <div><strong>Privacy</strong><p><small>We avoid publishing children's full names, contact information, school schedules, or identifiable photos without parent permission.</small></p></div>
           </div>
-          <div class="footer-bottom"><small>© <span data-year></span> Habitat Builders</small><small>Independent Folsom community team site. FIRST® and LEGO® are trademarks of their respective owners.</small></div>
+          <div class="footer-bottom"><small>© <span data-year></span> Rainforest Rangers</small><small>Independent Folsom community team site. FIRST® and LEGO® are trademarks of their respective owners.</small></div>
         </div>
       </footer>`;
     footer.querySelector("[data-year]").textContent = new Date().getFullYear();

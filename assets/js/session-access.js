@@ -95,9 +95,11 @@ try {
             message.textContent = `Session completed.${carryMessage}`;
           }
           button.textContent = next ? 'Publishing…' : 'Unpublishing…';
-          const { error: publishError } = await db.from('schedule_sessions').update({ published: next, published_by: next ? userSession.user.id : null, published_at: next ? new Date().toISOString() : null }).eq('session_key', sessionKey);
+          const coachNotes = notes.querySelector('[data-session-notes]').value;
+          const { error: publishError } = await db.from('schedule_sessions').update({ coach_notes: coachNotes, published: next, published_by: next ? userSession.user.id : null, published_at: next ? new Date().toISOString() : null }).eq('session_key', sessionKey);
           if (publishError) { button.disabled = false; button.textContent = next ? 'Publish completed session' : 'Unpublish session'; message.textContent = 'Could not update publication status.'; return; }
           current.published = next;
+          current.coach_notes = coachNotes;
           notes.querySelector('[data-session-status]').textContent = next ? 'Session complete' : 'Coach only';
           button.disabled = false;
           button.textContent = next ? 'Unpublish session' : 'Publish completed session';
