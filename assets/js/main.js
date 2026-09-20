@@ -274,8 +274,10 @@
   }
 })();
 if (document.body.dataset.session) import('./session-materials.js?v=session4-recap1').then(() => import('./model-build-session-overrides.js?v=session4-recap1'));
-if (window.FIREFLIES_PORTAL_CONFIG) import('./session-access.js?v=3');
-else { const portalConfig=document.createElement('script'); portalConfig.src='assets/js/portal-config.js?v=schedule2'; portalConfig.onload=()=>import('./session-access.js?v=3'); document.head.append(portalConfig); }
+if (document.body.dataset.session) {
+  if (window.FIREFLIES_PORTAL_CONFIG) import('./session-access.js?v=published-notes2');
+  else { const portalConfig=document.createElement('script'); portalConfig.src='assets/js/portal-config.js?v=schedule2'; portalConfig.onload=()=>import('./session-access.js?v=published-notes2'); document.head.append(portalConfig); }
+}
 import('./meeting-time.js?v=session5-delay1');
 
 async function initializeAccountMenu(header) {
