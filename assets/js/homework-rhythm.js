@@ -11,13 +11,13 @@ const fallbackAssignments = {
   3: { title: 'Model build and Rainforest Rangers connection', due: 'Wednesday, August 26', priority: 'Reflect on a Session 2 model, connect an individual interest to Rainforest Rangers, and complete Discovery Activity 1.' },
   4: { title: 'Model build and attachment plan', due: 'Wednesday, September 2', priority: 'Make a clear attachment sketch, plan a route from home base, and identify the measurements the team needs before Session 4.' },
   5: { title: 'Model build inspiration and project curiosity', due: 'Wednesday, September 16', priority: 'Reflect on the early tests, bring one useful build idea, and ask a meaningful Innovation Project question for Session 5.' },
-  6: { title: 'Rainforest Rangers ideas and first attachment drawing', due: 'Wednesday, September 23', priority: 'Develop a Rainforest Rangers project idea in the shared Google Doc and draw a first attachment idea for Session 6.' },
-  7: { title: 'Prototype and test', due: 'Wednesday, September 30', priority: 'Document a first prototype, what happened in Session 7 testing, and the next change.' },
-  8: { title: 'Feedback and iteration', due: 'Wednesday, October 7', priority: 'Use Session 8 feedback to make one clear improvement to the project or robot.' },
-  9: { title: 'Impact and mission strategy', due: 'Wednesday, October 14', priority: 'Explain the intended impact and the mission strategy from Session 9.' },
-  10: { title: 'Presentation draft', due: 'Wednesday, October 21', priority: 'Draft the team story, evidence, and one example of Coopertition for Session 10.' },
-  11: { title: 'Robot design explanation', due: 'Wednesday, October 28', priority: 'Explain the base robot, an attachment, and the code or testing evidence from Session 11.' },
-  12: { title: 'Event rehearsal', due: 'Wednesday, November 4', priority: 'Practice the judging presentation, robot explanation, and event plan in Session 12.' }
+  6: { title: 'Rainforest Rangers ideas and first attachment drawing', due: 'Wednesday, September 30', priority: 'Develop a Rainforest Rangers project idea in the shared Google Doc and draw a first attachment idea for Session 6.' },
+  7: { title: 'Prototype and test', due: 'Wednesday, October 7', priority: 'Document a first prototype, what happened in Session 7 testing, and the next change.' },
+  8: { title: 'Feedback and iteration', due: 'Wednesday, October 14', priority: 'Use Session 8 feedback to make one clear improvement to the project or robot.' },
+  9: { title: 'Impact and mission strategy', due: 'Wednesday, October 21', priority: 'Explain the intended impact and the mission strategy from Session 9.' },
+  10: { title: 'Presentation draft', due: 'Wednesday, October 28', priority: 'Draft the team story, evidence, and one example of Coopertition for Session 10.' },
+  11: { title: 'Robot design explanation', due: 'Wednesday, November 4', priority: 'Explain the base robot, an attachment, and the code or testing evidence from Session 11.' },
+  12: { title: 'Event rehearsal', due: 'Wednesday, November 11', priority: 'Practice the judging presentation, robot explanation, and event plan in Session 12.' }
 };
 
 const notebookHomework = {
@@ -39,13 +39,13 @@ const notebookHomework = {
 Object.assign(fallbackAssignments, {
   4: { title: 'Model build and attachment plan', due: 'Wednesday, September 2', priority: 'Make a clear attachment sketch, plan a route from home base, and identify the measurements the team needs before Session 4.' },
   5: { title: 'Model build inspiration and project curiosity', due: 'Wednesday, September 16', priority: 'Reflect on the early tests, bring one useful build idea, and ask a meaningful Innovation Project question for Session 5.' },
-  6: { title: 'Rainforest Rangers ideas and first attachment drawing', due: 'Wednesday, September 23', priority: 'Develop a Rainforest Rangers project idea in the shared Google Doc and draw a first attachment idea for Session 6.' },
-  7: { title: 'Attachment revision plan', due: 'Wednesday, September 30', priority: 'Use the last test record to design one clear attachment revision and a fair comparison test for Session 7.' },
-  8: { title: 'Integrated attachment run plan', due: 'Wednesday, October 7', priority: 'Plan the next attachment run, its reset steps, and the repeatability evidence Session 8 needs.' },
-  9: { title: 'Points, timing, and project evidence', due: 'Wednesday, October 14', priority: 'Compare score, time, and risk while collecting evidence for the project direction.' },
-  10: { title: 'Match strategy and positive impact', due: 'Wednesday, October 21', priority: 'Choose reliable points, protect the time budget, and explain the project’s positive impact.' },
-  11: { title: 'Timed match and project story', due: 'Wednesday, October 28', priority: 'Practice a timed run and turn the project work into a clear team story.' },
-  12: { title: 'Final reliability and team celebration', due: 'Wednesday, November 4', priority: 'Complete final run checks, rehearse the project explanation, and celebrate team strengths.' }
+  6: { title: 'Rainforest Rangers ideas and first attachment drawing', due: 'Wednesday, September 30', priority: 'Develop a Rainforest Rangers project idea in the shared Google Doc and draw a first attachment idea for Session 6.' },
+  7: { title: 'Attachment revision plan', due: 'Wednesday, October 7', priority: 'Use the last test record to design one clear attachment revision and a fair comparison test for Session 7.' },
+  8: { title: 'Integrated attachment run plan', due: 'Wednesday, October 14', priority: 'Plan the next attachment run, its reset steps, and the repeatability evidence Session 8 needs.' },
+  9: { title: 'Points, timing, and project evidence', due: 'Wednesday, October 21', priority: 'Compare score, time, and risk while collecting evidence for the project direction.' },
+  10: { title: 'Match strategy and positive impact', due: 'Wednesday, October 28', priority: 'Choose reliable points, protect the time budget, and explain the project’s positive impact.' },
+  11: { title: 'Timed match and project story', due: 'Wednesday, November 4', priority: 'Practice a timed run and turn the project work into a clear team story.' },
+  12: { title: 'Final reliability and team celebration', due: 'Wednesday, November 11', priority: 'Complete final run checks, rehearse the project explanation, and celebrate team strengths.' }
 });
 
 Object.assign(notebookHomework, {
@@ -114,7 +114,9 @@ function currentWeek() {
   const calculated = Math.max(0, Math.floor((date - SEASON_START) / (7 * DAY)));
   // Session 5 was missed, so the remaining season calendar and active
   // homework release stay one week behind the original August cadence.
-  const delayed = calculated >= 6 ? calculated - 1 : calculated;
+  // Sessions 5 and 6 were each delayed by one week. Keep the current homework
+  // release aligned with the actual Wednesday-before-Friday cadence.
+  const delayed = calculated >= 8 ? calculated - 2 : calculated >= 6 ? calculated - 1 : calculated;
   // Weeks 3-12 are generated below from the notebook plan, so they must be
   // included when the active week is calculated before those nodes exist.
   const builtWeeks = [...document.querySelectorAll('details[data-homework-week]')].map(node => Number(node.dataset.homeworkWeek)).filter(Number.isFinite);

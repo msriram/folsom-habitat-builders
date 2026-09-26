@@ -2,9 +2,9 @@ const sessionConfig = window.FIREFLIES_PORTAL_CONFIG || {};
 const sessionKey = document.body.dataset.session;
 const plannedSessions = {
   'meeting-01': '2026-08-14', 'meeting-02': '2026-08-21', 'meeting-03': '2026-08-28',
-  'meeting-04': '2026-09-04', 'meeting-05': '2026-09-18', 'meeting-06': '2026-09-25',
-  'meeting-07': '2026-10-02', 'meeting-08': '2026-10-09', 'meeting-09': '2026-10-16',
-  'meeting-10': '2026-10-23', 'meeting-11': '2026-10-30', 'meeting-12': '2026-11-06'
+  'meeting-04': '2026-09-04', 'meeting-05': '2026-09-18', 'meeting-06': '2026-10-02',
+  'meeting-07': '2026-10-09', 'meeting-08': '2026-10-16', 'meeting-09': '2026-10-23',
+  'meeting-10': '2026-10-30', 'meeting-11': '2026-11-06', 'meeting-12': '2026-11-13'
 };
 
 const sessionNotesStyle = document.createElement('style');
@@ -59,8 +59,15 @@ try {
       ? await db.from('schedule_sessions').select('session_key,session_date,coach_notes,published,published_at,completed,completed_at').order('session_date')
       : { data: [], error: null };
     const savedSessions = sessionRows || [];
-    const sessionFor = key => savedSessions.find(item => item.session_key === key)
-      || (approved && plannedSessions[key] ? { session_key: key, session_date: plannedSessions[key], published: false, coach_notes: '' } : null);
+    const sessionFor = key => {
+      const saved = savedSessions.find(item => item.session_key === key);
+      // The public schedule is the calendar authority. This also keeps release
+      // timing correct while the legacy database migration ledger is repaired.
+      if (saved) return { ...saved, session_date: plannedSessions[key] || saved.session_date };
+      return approved && plannedSessions[key]
+        ? { session_key: key, session_date: plannedSessions[key], published: false, coach_notes: '' }
+        : null;
+    };
     const current = sessionFor(sessionKey);
     const visibleToTeam = item => approved && Boolean(item) && (item.published || isReleasedToTeam(item));
 

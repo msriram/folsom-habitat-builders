@@ -52,8 +52,9 @@ function releasedHomeworkWeek() {
   const localToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const firstRelease = new Date(2026, 7, 12); // Wednesday before Week 2 begins.
   const scheduledWeek = Math.max(1, Math.floor((localToday - firstRelease) / (7 * DAY)) + 2);
-  // Keep programming with the delayed session/homework calendar after the
-  // missed Session 5, rather than releasing Week 6 a week too early.
+  // Sessions 5 and 6 were each delayed by one week. Do not reveal the next
+  // programming task before its matching weekly homework is released.
+  if (scheduledWeek >= 8) return scheduledWeek - 2;
   return scheduledWeek >= 6 ? scheduledWeek - 1 : scheduledWeek;
 }
 function renderHomework(tasks, context) {

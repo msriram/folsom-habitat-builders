@@ -278,7 +278,7 @@ if (document.body.dataset.session || document.body.dataset.page === 'Sessions') 
   if (window.FIREFLIES_PORTAL_CONFIG) import('./session-access.js?v=session-list-access1');
   else { const portalConfig=document.createElement('script'); portalConfig.src='assets/js/portal-config.js?v=schedule2'; portalConfig.onload=()=>import('./session-access.js?v=session-list-access1'); document.head.append(portalConfig); }
 }
-import('./meeting-time.js?v=session5-delay1');
+import('./meeting-time.js?v=session6-delay2');
 
 async function initializeAccountMenu(header) {
   const config = await loadPortalConfig();
