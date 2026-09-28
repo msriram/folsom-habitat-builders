@@ -36,6 +36,19 @@ if(list&&sessionKey&&!cfg.forceDemo&&cfg.supabaseUrl&&cfg.supabaseAnonKey){
       list.innerHTML=items.map(item=>`<li><label class="schedule-check"><input type="checkbox" data-schedule-item="${item.id}" ${item.completed?'checked':''} ${canEdit&&!locked?'':'disabled'}><span>${escapeHtml(item.label)}</span><small>${escapeHtml(item.area)}</small></label></li>`).join('');
       note.textContent=locked?'This session is complete. Any unfinished items were carried into the next session.':canEdit?'Coach view: checking an item updates Team Room progress for everyone.':'Completion is updated by a coach.';
       list.after(note);
+      if(locked&&canEdit){
+        const reopen=document.createElement('button');
+        reopen.className='button secondary';
+        reopen.type='button';
+        reopen.textContent='Reopen checklist';
+        note.after(reopen);
+        reopen.onclick=async()=>{
+          reopen.disabled=true;note.textContent='Reopening…';
+          const {error:reopenError}=await db.from('schedule_sessions').update({completed:false,completed_at:null}).eq('session_key',sessionKey);
+          if(reopenError){reopen.disabled=false;note.textContent=reopenError.message||'Could not reopen this checklist.';return;}
+          location.reload();
+        };
+      }
       if(canEdit)list.addEventListener('change',async event=>{
         const input=event.target.closest('[data-schedule-item]');if(!input)return;
         input.disabled=true;note.textContent='Saving…';
