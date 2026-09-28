@@ -16,7 +16,7 @@ const plans = {
   },
   5: {
     title: 'Finish the carried-over field builds',
-    intro: 'Complete the model-building work that was planned for Session 4: the M8/M9 tree house, the M13–M15 bases, and the remaining Mission 13 and Mission 15 steps. Then check every model’s placement and reset.',
+    intro: 'Completed: the M8/M9 tree house, Mission 13, Mission 15, field measurements, and robot trials. The field-build work is closed; it does not carry into Session 6.',
     agenda: [
       '<strong>10 min</strong> Review the carry-over list, split into build crews, and stage the bags, instructions, and table locations.',
       '<strong>30 min</strong> Build the M8/M9 large tree house and verify that its motion works as the instructions show.',
@@ -24,19 +24,19 @@ const plans = {
       '<strong>20 min</strong> Continue Mission 13 and build or finish Mission 15. Verify placement, motion, and reset for each completed model.',
       '<strong>10 min</strong> Check the M8/M9 tree house and the three base reset positions together; record any final missing step or future robot action.'
     ],
-    done: ['The M8/M9 large tree house is built and its motion is checked', 'The Mission 13, Mission 14, and Mission 15 bases are built and placed', 'Mission 13 and Mission 15 are finished as far as time allows, with resets checked', 'Any remaining model step has a named owner and next session']
+    done: ['The M8/M9 large tree house is built and its motion is checked', 'Mission 13 and Mission 15 are built, placed, and reset-checked', 'Useful field measurements are recorded', 'Robot trial runs are recorded; no Session 5 field-build item carries forward']
   },
   6: {
-    title: 'Finish the robot, verify the field, and review attachment ideas',
-    intro: 'Session 5 focused on attachments, trying a few ideas, and early measurements without a finished robot or attachment. Session 6 completes the robot and field setup first, then uses the students’ initial attachment drawings and Rainforest Rangers ideas to choose the next work.',
+    title: 'Build and test the first mission attachment',
+    intro: 'This is the team’s first attachment-build and test session. Choose one mission action, build one simple attachment, measure only what that action needs, and collect evidence from controlled trials.',
     agenda: [
-      '<strong>10 min</strong> Review the Session 5 recap and any carried-over work. Confirm the team name: Rainforest Rangers — Protect · Rebuild · Educate.',
-      '<strong>30 min</strong> Finish the base robot: motors, hub, wheels, cables, bracing, and a repeatable launch orientation.',
-      '<strong>20 min</strong> Verify every field model and base is in the correct place and can be operated and reset before robot testing begins.',
-      '<strong>15 min</strong> Review each student’s first attachment drawing from Week 6. Identify the action it would attempt; do not expect a revision or test plan yet.',
-      '<strong>15 min</strong> Discuss the Rainforest Rangers Google Doc ideas: rainforest habitat, who and what is at risk, the causes, and one Protect–Rebuild–Educate direction worth exploring.'
+      '<strong>10 min</strong> Choose one completed mission model and state the exact action: push, pull, lift, guide, or carry.',
+      '<strong>25 min</strong> Use the Week 6 drawings to build one simple attachment. Check its clearance from the wheels, hub, cables, and model before running it.',
+      '<strong>15 min</strong> Measure and record the few values this action needs: launch reference, attachment reach, model contact point, or turning room.',
+      '<strong>25 min</strong> Write a simple first program and run 3–5 controlled trials with the same home base, reset, and model position each time.',
+      '<strong>15 min</strong> Record what happened on each run. Choose one specific change to plan for Session 7; do not redesign everything at once.'
     ],
-    done: ['Base robot is complete, sturdy, and ready for its first measurements and trials', 'Every field model and base is present, placed correctly, and resettable', 'Initial attachment drawings are reviewed and one first attachment direction is selected', 'Rainforest Rangers innovation ideas are discussed from the shared Google Doc']
+    done: ['One attachment prototype is built and safely fitted to the robot', 'The launch reference, contact point, and any needed reach or turning measurement are recorded', 'Three to five controlled trials are recorded with the same reset conditions', 'The team chooses one evidence-based change to plan for Session 7']
   },
   7: {
     title: 'Build the first attachment and begin measured programming',

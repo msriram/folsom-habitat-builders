@@ -1,4 +1,16 @@
-const cfg=window.FIREFLIES_PORTAL_CONFIG||{};
+async function loadScheduleConfig(){
+  if(window.FIREFLIES_PORTAL_CONFIG)return window.FIREFLIES_PORTAL_CONFIG;
+  let script=document.querySelector('script[src*="portal-config.js"]');
+  if(!script){
+    script=document.createElement('script');
+    script.src='assets/js/portal-config.js?v=schedule-progress2';
+    document.head.append(script);
+  }
+  await new Promise(resolve=>script.addEventListener('load',resolve,{once:true}));
+  return window.FIREFLIES_PORTAL_CONFIG||{};
+}
+
+const cfg=await loadScheduleConfig();
 const sessionKey=document.body.dataset.session;
 const list=document.querySelector('.checklist');
 const note=document.createElement('p');
