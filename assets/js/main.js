@@ -273,7 +273,7 @@
     main.append(section);
   }
 })();
-if (document.body.dataset.session) import('./session-materials.js?v=session4-recap1').then(() => import('./model-build-session-overrides.js?v=session4-recap1'));
+if (document.body.dataset.session) import('./session-materials.js?v=session4-recap1').then(() => import('./model-build-session-overrides.js?v=session6-attachment2'));
 if (document.body.dataset.session) import('./schedule-progress.js?v=session-checklist2');
 if (document.body.dataset.session || document.body.dataset.page === 'Sessions') {
   if (window.FIREFLIES_PORTAL_CONFIG) import('./session-access.js?v=session-list-access1');

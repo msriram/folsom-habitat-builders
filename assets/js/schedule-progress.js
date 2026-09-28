@@ -16,10 +16,19 @@ const list=document.querySelector('.checklist');
 const note=document.createElement('p');
 note.className='muted schedule-save-note';
 
+async function restoreScheduleSession(db){
+  for(let attempt=0;attempt<4;attempt+=1){
+    const {data:{session}}=await db.auth.getSession();
+    if(session)return session;
+    if(attempt<3)await new Promise(resolve=>setTimeout(resolve,250));
+  }
+  return null;
+}
+
 if(list&&sessionKey&&!cfg.forceDemo&&cfg.supabaseUrl&&cfg.supabaseAnonKey){
   const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2');
   const db=createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
-  const {data:{session}}=await db.auth.getSession();
+  const session=await restoreScheduleSession(db);
   if(!session){
     note.innerHTML='Sign in to see the shared completion checklist.';
     list.after(note);
