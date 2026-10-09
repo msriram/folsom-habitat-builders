@@ -14,6 +14,10 @@ if (recordTab && recordPanelAnchor) {
   panel.className = 'portal-panel';
   panel.dataset.panel = 'robot-records';
   panel.innerHTML = `<div class="portal-heading"><div><span class="eyebrow">Measure · align · test · improve</span><h2>Robot Records</h2><p class="muted">Use real measurements and repeated trials. Keep one clear starting reference, change one variable at a time, and save the evidence.</p></div></div><section class="callout"><h3>Reliable alignment habits</h3><p>Record the actual field and robot measurements, use a repeatable launch reference, and test the same program several times before trusting it. A fast mission is useful only if it repeats.</p></section><div class="grid two"><section class="plain-panel"><div class="section-title"><div><span class="eyebrow">Shared baseline</span><h3>Field and base robot setup</h3></div></div><form id="robot-setup-form" class="robot-record-form"><div class="grid two"><label>Table length (mm)<input name="table_length_mm" type="number" min="1" step="0.1" placeholder="Measure actual table"></label><label>Table width (mm)<input name="table_width_mm" type="number" min="1" step="0.1" placeholder="Measure actual table"></label><label>Robot length (mm)<input name="robot_length_mm" type="number" min="1" step="0.1"></label><label>Robot width (mm)<input name="robot_width_mm" type="number" min="1" step="0.1"></label><label>Robot height (mm)<input name="robot_height_mm" type="number" min="1" step="0.1"></label><label>Wheel diameter (mm)<input name="wheel_diameter_mm" type="number" min="1" step="0.1"></label><label>Measured distance / motor rotation (mm)<input name="distance_per_motor_rotation_mm" type="number" min="0.1" step="0.1"></label><label>Motor rotations for a 90° turn<input name="turn_90_motor_rotations" type="number" min="0.1" step="0.01"></label><label>Drive motor ports<input name="drive_motor_ports" placeholder="Example: A + B"></label><label>Gear ratio / wheel setup<input name="gear_ratio" placeholder="Example: direct drive"></label></div><label>Launch alignment reference<textarea name="launch_alignment_notes" rows="4" placeholder="Which wall, line, corner, or guide does the robot touch before launch? How should it be squared?"></textarea></label><label>Gyro and sensor notes<textarea name="gyro_and_sensor_notes" rows="4" placeholder="Gyro reset routine, color-sensor settings, lighting notes, or distance-sensor conditions."></textarea></label><button class="button primary" type="submit">Save shared setup</button><p class="form-message" data-setup-message></p></form></section><section class="plain-panel"><div class="section-title"><div><span class="eyebrow">Calibration trial</span><h3>Drive, turn, sensor, or alignment test</h3></div></div><form id="robot-calibration-form" class="robot-record-form"><label>Test type<select name="test_kind"><option value="straight_drive">Straight drive</option><option value="turn">Turn</option><option value="line_or_sensor">Line or sensor</option><option value="launch_alignment">Launch alignment</option><option value="attachment">Attachment</option></select></label><label>Test name<input name="test_name" required placeholder="Example: 500 mm wall-square drive"></label><div class="grid two"><label>Target value<input name="target_value" type="number" step="0.1" placeholder="500"></label><label>Actual value<input name="actual_value" type="number" step="0.1" placeholder="493"></label><label>Unit<select name="unit"><option value="mm">mm</option><option value="degrees">degrees</option><option value="seconds">seconds</option><option value="rotations">rotations</option><option value="other">other</option></select></label><label>Motor rotations<input name="motor_rotations" type="number" step="0.01"></label></div><label>Starting reference<input name="start_reference" placeholder="Example: left wheel against launch wall"></label><label>What happened?<textarea name="observation" rows="4" placeholder="Include drift direction, overshoot, sensor reading, or alignment result."></textarea></label><button class="button primary" type="submit">Save calibration trial</button><p class="form-message" data-calibration-message></p></form></section></div><section class="section compact"><div class="section-title"><div><span class="eyebrow">Mission evidence</span><h3>Attachment and mission run log</h3><p class="muted">Record the score, time, reliability, attachment, program, and the one change to test next.</p></div></div><form id="robot-mission-form" class="card robot-record-form"><div class="grid three"><label>Mission / route<input name="mission" required placeholder="Example: M05 + return home"></label><label>Attachment<input name="attachment_name" placeholder="Example: guided hook v2"></label><label>Program name<input name="program_name" placeholder="Example: right-field-v1"></label><label>Launch reference<input name="launch_reference" placeholder="Example: squared to right wall"></label><label>Planned points<input name="planned_points" type="number" min="0" step="1"></label><label>Observed points<input name="observed_points" type="number" min="0" step="1"></label><label>Attempts<input name="attempts" type="number" min="1" value="5" required></label><label>Successes<input name="successes" type="number" min="0" value="0" required></label><label>Fastest run (seconds)<input name="fastest_run_seconds" type="number" min="0" step="0.1"></label><label>Average run (seconds)<input name="average_run_seconds" type="number" min="0" step="0.1"></label></div><label>Result notes<textarea name="result_notes" rows="3" placeholder="What made it work or fail? Include resets, missed models, or timing details."></textarea></label><label>Next single change<textarea name="next_change" rows="3" placeholder="Change one thing for the next test: alignment, speed, distance, attachment, or code."></textarea></label><button class="button primary" type="submit">Save mission record</button><p class="form-message" data-mission-message></p></form><div class="table-wrap"><table><thead><tr><th>Mission / route</th><th>Attachment</th><th>Points</th><th>Reliability</th><th>Fastest</th><th>Next change</th></tr></thead><tbody data-mission-records><tr><td colspan="6">Sign in to view mission records.</td></tr></tbody></table></div></section><section class="section compact"><div class="section-title"><div><span class="eyebrow">Calibration history</span><h3>Recent trials</h3></div></div><div class="table-wrap"><table><thead><tr><th>Test</th><th>Target</th><th>Actual</th><th>Motor rotations</th><th>Starting reference</th><th>Observation</th></tr></thead><tbody data-calibration-records><tr><td colspan="6">Sign in to view calibration trials.</td></tr></tbody></table></div></section>`;
+  const pointPlanner = document.createElement('section');
+  pointPlanner.className = 'section compact';
+  pointPlanner.innerHTML = `<div class="section-title"><div><span class="eyebrow">Mission strategy</span><h3>Points planner</h3><p class="muted">Break a mission into scoring portions. Mark only the portions the team plans to pursue; target totals help choose a realistic route.</p></div></div><div class="plain-panel"><form id="mission-points-form" class="robot-record-form"><div class="grid three"><label>Mission<input name="mission" required maxlength="80" placeholder="Example: M03 · Flip the Rock"></label><label>Scoring portion<input name="portion" required maxlength="180" placeholder="Example: Research flag down"></label><label>Points<input name="points" required type="number" min="0" step="1" placeholder="20"></label></div><div class="grid two"><label>Bonus or condition (optional)<input name="condition_note" maxlength="240" placeholder="Example: Bonus if rock returns to start"></label><label class="schedule-check"><input name="is_bonus" type="checkbox"><span>This is a bonus portion</span></label></div><label class="schedule-check"><input name="targeted" type="checkbox" checked><span>Include this portion in the current target plan</span></label><button class="button primary" type="submit">Add scoring portion</button><p class="form-message" data-points-message></p></form></div><div class="plain-panel" data-points-summary><p class="muted">Sign in to view the mission points plan.</p></div><div class="table-wrap"><table><thead><tr><th>Mission</th><th>Scoring portion</th><th>Points</th><th>Bonus / condition</th><th>Target</th><th></th></tr></thead><tbody data-mission-points-records><tr><td colspan="6">Sign in to view scoring portions.</td></tr></tbody></table></div>`;
+  panel.insertBefore(pointPlanner, panel.querySelector('.section.compact'));
   recordTab.before(tab);
   recordPanelAnchor.before(panel);
   tab.addEventListener('click', () => {
@@ -33,8 +37,11 @@ async function setupRobotRecords(panel) {
   const setupForm = panel.querySelector('#robot-setup-form');
   const calibrationForm = panel.querySelector('#robot-calibration-form');
   const missionForm = panel.querySelector('#robot-mission-form');
+  const pointsForm = panel.querySelector('#mission-points-form');
   const missionRows = panel.querySelector('[data-mission-records]');
   const calibrationRows = panel.querySelector('[data-calibration-records]');
+  const pointRows = panel.querySelector('[data-mission-points-records]');
+  const pointsSummary = panel.querySelector('[data-points-summary]');
   if (recordConfig.forceDemo || !recordConfig.supabaseUrl || !recordConfig.supabaseAnonKey) return;
   const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
   const db = createClient(recordConfig.supabaseUrl, recordConfig.supabaseAnonKey);
@@ -44,7 +51,7 @@ async function setupRobotRecords(panel) {
   const canEdit = profile?.approval_status === 'approved' && ['coach', 'student_coach'].includes(profile.role);
   if (!profile?.team_id || profile.approval_status !== 'approved') return;
   const setEditable = form => form.querySelectorAll('input,select,textarea,button').forEach(field => { field.disabled = !canEdit; });
-  [setupForm, calibrationForm, missionForm].forEach(form => {
+  [setupForm, calibrationForm, missionForm, pointsForm].forEach(form => {
     setEditable(form);
     if (!canEdit) {
       const message = form.querySelector('.form-message');
@@ -52,14 +59,24 @@ async function setupRobotRecords(panel) {
     }
   });
   const render = async () => {
-    const [{ data: setup }, { data: calibrations }, { data: missions }] = await Promise.all([
+    const [{ data: setup }, { data: calibrations }, { data: missions }, { data: pointTargets }] = await Promise.all([
       db.from('robot_setup').select('*').eq('team_id', profile.team_id).maybeSingle(),
       db.from('robot_calibration_runs').select('*').order('created_at', { ascending: false }).limit(25),
-      db.from('robot_mission_runs').select('*').order('created_at', { ascending: false }).limit(50)
+      db.from('robot_mission_runs').select('*').order('created_at', { ascending: false }).limit(50),
+      db.from('robot_mission_point_targets').select('*').eq('team_id', profile.team_id).order('mission').order('created_at')
     ]);
     if (setup) Object.entries(setup).forEach(([key, value]) => { if (setupForm.elements[key]) setupForm.elements[key].value = value ?? ''; });
     calibrationRows.innerHTML = (calibrations || []).map(item => `<tr><td>${recordEscape(item.test_name)}<br><small>${recordEscape(item.test_kind)}</small></td><td>${item.target_value ?? '—'} ${recordEscape(item.unit)}</td><td>${item.actual_value ?? '—'} ${recordEscape(item.unit)}</td><td>${item.motor_rotations ?? '—'}</td><td>${recordEscape(item.start_reference || '—')}</td><td>${recordEscape(item.observation || '—')}</td></tr>`).join('') || '<tr><td colspan="6">No calibration trials recorded yet.</td></tr>';
     missionRows.innerHTML = (missions || []).map(item => `<tr><td>${recordEscape(item.mission)}<br><small>${recordEscape(item.program_name || '—')}</small></td><td>${recordEscape(item.attachment_name || '—')}</td><td>${item.observed_points ?? item.planned_points ?? '—'}</td><td>${item.successes}/${item.attempts} (${Math.round(item.successes / item.attempts * 100)}%)</td><td>${item.fastest_run_seconds == null ? '—' : `${item.fastest_run_seconds}s`}</td><td>${recordEscape(item.next_change || '—')}</td></tr>`).join('') || '<tr><td colspan="6">No mission records yet.</td></tr>';
+    const totals = new Map();
+    (pointTargets || []).forEach(item => {
+      const current = totals.get(item.mission) || { target: 0, available: 0 };
+      current.available += item.points;
+      if (item.targeted) current.target += item.points;
+      totals.set(item.mission, current);
+    });
+    pointsSummary.innerHTML = totals.size ? `<div class="section-title"><div><span class="eyebrow">Current target totals</span><h4>${[...totals.entries()].map(([mission, total]) => `${recordEscape(mission)}: ${total.target} / ${total.available} points`).join(' · ')}</h4></div></div><p class="muted">The first number is the selected target; the second is every scoring portion recorded for that mission.</p>` : '<p class="muted">Add scoring portions to see each mission’s selected target total.</p>';
+    pointRows.innerHTML = (pointTargets || []).map(item => `<tr><td>${recordEscape(item.mission)}</td><td>${recordEscape(item.portion)}</td><td>${item.points}</td><td>${item.is_bonus ? '<strong>Bonus</strong><br>' : ''}${recordEscape(item.condition_note || '—')}</td><td><label class="schedule-check"><input type="checkbox" data-point-target="${item.id}" ${item.targeted ? 'checked' : ''} ${canEdit ? '' : 'disabled'}><span>${item.targeted ? 'Target' : 'Optional'}</span></label></td><td>${canEdit ? `<button class="mini-action" type="button" data-delete-point="${item.id}">Remove</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="6">No scoring portions recorded yet.</td></tr>';
   };
   setupForm.addEventListener('submit', async event => {
     event.preventDefault(); const message = setupForm.querySelector('[data-setup-message]'); message.textContent = 'Saving…';
@@ -86,6 +103,35 @@ async function setupRobotRecords(panel) {
     const { error } = await db.from('robot_mission_runs').insert({ ...payload, team_id: profile.team_id, author_id: session.user.id });
     if (error) { message.textContent = 'Mission record could not be saved.'; return; }
     missionForm.reset(); missionForm.elements.attempts.value = 5; missionForm.elements.successes.value = 0; message.textContent = 'Mission record saved.'; await render();
+  });
+  pointsForm.addEventListener('submit', async event => {
+    event.preventDefault(); const message = pointsForm.querySelector('[data-points-message]'); message.textContent = 'Saving…';
+    const { error } = await db.from('robot_mission_point_targets').insert({
+      team_id: profile.team_id,
+      author_id: session.user.id,
+      mission: formText(pointsForm, 'mission'),
+      portion: formText(pointsForm, 'portion'),
+      points: formNumber(pointsForm, 'points'),
+      condition_note: formText(pointsForm, 'condition_note'),
+      is_bonus: pointsForm.elements.is_bonus.checked,
+      targeted: pointsForm.elements.targeted.checked
+    });
+    if (error) { message.textContent = 'Scoring portion could not be saved.'; return; }
+    pointsForm.reset(); pointsForm.elements.targeted.checked = true; message.textContent = 'Scoring portion added.'; await render();
+  });
+  pointRows.addEventListener('change', async event => {
+    const input = event.target.closest('[data-point-target]'); if (!input || !canEdit) return;
+    input.disabled = true;
+    const { error } = await db.from('robot_mission_point_targets').update({ targeted: input.checked }).eq('id', input.dataset.pointTarget);
+    if (error) input.checked = !input.checked;
+    await render();
+  });
+  pointRows.addEventListener('click', async event => {
+    const button = event.target.closest('[data-delete-point]'); if (!button || !canEdit) return;
+    if (!window.confirm('Remove this scoring portion?')) return;
+    button.disabled = true;
+    await db.from('robot_mission_point_targets').delete().eq('id', button.dataset.deletePoint);
+    await render();
   });
   await render();
 }
